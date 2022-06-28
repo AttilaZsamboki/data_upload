@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>{% block title %}{% endblock %}</title>
+        {% load static %}
+        <link rel="icon" type="image/x-icon" href="{% static 'datastudio/media/upload.png' %}" />
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="description" content="">
+        <link rel="stylesheet" href="{% static 'datastudio/css/bootstrap.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'datastudio/css/main.css' %}" />
+        <script src="https://kit.fontawesome.com/54ffaac36c.js" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <header>
+            <a href="{% url 'home' %}"><img src="{% static 'datastudio/media/server.png' %}" /></a>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'upload' %}">Upload</a></li>
+                </ul>
+            </nav>
+        </header>
+        <main>
+            {%block content%}
+            {%endblock%}
+            <script src="" async defer></script>
+        </main>
+    </body>
+</html>
+
+
+{% comment %} <!DOCTYPE html>
+
+    {% if user.is_authenticated %}
+    
+    <!-- Navbar toggle -->
+    
+      <nav class="navbar navbar-dark bg-dark">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+      </nav>     
+
+    <!-- navbar -->
+
+      <div class="collapse navbar-collapse" id="navbar">
+        <div class="navbar-nav nav flex-column">          
+            {% if current_page == 'home' %}
+              <a class="nav-item nav-link active fa-solid fa-house" id="home" href="/"> Home </a>
+              <a class="nav-item nav-link fa-solid fa-note-sticky" id="notes" href="/notes"> Notes </a>
+              <a class="nav-item nav-link fa-solid fa-arrow-right-from-bracket" id="logout" href="/logout"> Log Out </a>
+            {% else %}
+              <a class="nav-item nav-link fa-solid fa-house" id="home" href="/"> Home </a>
+              <a class="nav-item nav-link active fa-solid fa-note-sticky" id="notes" href="/notes"> Notes </a>
+              <a class="nav-item nav-link fa-solid fa-arrow-right-from-bracket" id="logout" href="/logout"> Log Out </a>
+            {% endif %}
+        </div>
+      </div>
+
+    {% else %}
+      <nav class="auth-nav navbar-expand-lg navbar-dark bg-dark">
+        <button
+          id="auth-nav-toggler"
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbar"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-dark bg-dark collapse navbar-collapse" id="navbar">
+          <div class="navbar-nav">
+            {% if current_page == 'login' %}
+              <a class="nav-item nav-link active fa-solid fa-right-to-bracket" id="login" href="/"> Log In </a>
+              <a class="nav-item nav-link fa-solid fa-user-plus" id="sign-up" href="/sign-up"> Sign Up </a>
+            {% else %}
+              <a class="nav-item nav-link fa-solid fa-right-to-bracket" id="login" href="/"> Log In </a>
+              <a class="nav-item nav-link active fa-solid fa-user-plus" id="sign-up" href="/sign-up"> Sign Up </a>
+          {% endif %}
+          </div>
+        </div>
+      </nav>
+    
+    {% endif %}
+      
+    {% with messages = get_flashed_messages(with_categories=true) %} 
+    {% if messages %} 
+      {% for category, message in messages %}
+        {% if category == 'error' %}
+          <div class="alert alert-danger alter-dismissable fade show flash" role="alert">
+            {{ message }} 
+            <button type="button" class="close btn flash-close-btn" data-dismiss="alert">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% else %}
+          <div class="alert alert-success alter-dismissable fade show flash" role="alert">
+            {{ message }} 
+            <button type="button" class="close btn flash-close-btn" data-dismiss="alert">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <div class="container">{% block content %} {% endblock %}</div>
+
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+
+    <script type="text/javascript" src="{{ url_for('static', filename='index.js') }}"></script>
+  </body>
+</html> {% endcomment %}

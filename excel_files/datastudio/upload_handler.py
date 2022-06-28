@@ -1,0 +1,178 @@
+from pickle import NONE
+from typing import Type
+import pandas as pd
+import unidecode
+import psycopg2
+from sqlalchemy import create_engine
+from numpy import datetime64
+
+# database connections
+
+DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
+DB_NAME = "defaultdb"
+DB_USER = "doadmin"
+DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
+DB_PORT = "25060"
+
+engine = create_engine(
+    "postgresql://doadmin:AVNS_FovmirLSFDui0KIAOnu@db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require")
+
+
+def handle_uploaded_file(file, table):
+    
+    keepalive_kwargs = {
+    "keepalives": 1,
+    "keepalives_idle": 60,
+    "keepalives_interval": 10,
+    "keepalives_count": 5
+    }
+
+    conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
+                            password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
+    cur = conn.cursor()
+    
+    # getting the primary key
+    p_keys = {"Azonosito": ["bevételek", "költségek"], "Order_Id": ["orders"], "Szamla_belso_azonosito": [
+        "számlák"], "Cikkszam": ["unas"], "Csomagszam": ["gls_elszámolás"], "SKU": ["product_suppliers"], "ID": ["stock_report"]}
+
+    p_key_column = ""
+    for i, l in p_keys.items():
+        for j in l:
+            if j == table:
+                p_key_column = i
+                break
+
+    # data -->> pandas dataframe
+    if table != "gls_elszámolás":
+        data = pd.read_excel(file)
+    # some tables don't start at the first row
+    else:
+        data = pd.read_excel(file, skiprows=4)
+    df = pd.DataFrame(data)
+
+    # deleting columns from gls report
+    if table == "gls_elszámolás":
+        cur.execute("""SELECT
+	lower(string_agg(column_name, ', '))
+FROM
+	information_schema.columns
+WHERE
+	table_schema = 'public'
+	AND table_name = 'gls_elszámolás';
+""")
+        for column in df.columns:
+            if column not in list(cur.fetchone())[0].split(", "):
+                df.drop(column, inplace=True, axis=1)
+
+
+    # duplicate row_name renaming -- poor solution
+    if table == "költségek":
+        df.rename(columns={"Megjegyzések.1": "Megjegyzések2"}, inplace=True)
+
+    # renaming unicode columns to ascii
+    column_names = {}
+    # this is not the best choice, maybe there are better modules
+    chars_to_replace = {": ": "_", " ": "_",
+                        "(": "", ")": "", "%": "", ".": "", "\'": "", "-": "_"}
+    for i in df.columns:
+        # ascii
+        column_names[i] = unidecode.unidecode(i)
+        for l, j in chars_to_replace.items():
+            # removing additional character
+            column_names[i] = column_names[i].replace(l, j)
+    df.rename(columns=column_names, inplace=True)
+
+    # there are rows that don't identify as int
+    # maybe there are better solutions but this is as good as it gets
+
+    def col_by_dtype(data_type, curr_table):
+        data_type_str = ""
+        for i in range(len(data_type)):
+            if i != len(data_type)-1:
+                data_type_str += "'" + data_type[i] + "',"
+            else:
+                data_type_str += "'" + data_type[i] + "'"
+        cur.execute("""select string_agg(col.column_name, ', ')
+        from information_schema.columns col
+                join information_schema.tables tab on tab.table_schema = col.table_schema
+            and tab.table_name = col.table_name
+            and tab.table_type = 'BASE TABLE'
+        where col.data_type in ("""+data_type_str+""")
+        and col.table_name = '"""+curr_table+"""'
+        group by col.table_schema;""")
+        try:
+            cols = list(cur.fetchone())[0].split(", ")
+            cols = [i.lower() for i in cols]
+            return cols
+        except:
+            return None
+
+    for i in df.columns:
+        cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
+        if table in list(cur.fetchone())[0].split(", "):
+
+            numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
+                                        'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
+            date_cols = col_by_dtype(['date', 'timestamp'], table)
+            lower_class = ['stock_report', 'költségek']
+            if table in lower_class:
+                if (numeric_cols is not None) and i.lower() in numeric_cols:
+                    lst = []
+                    for x in df[i]:
+                        if type(x) == str and ',' in x:
+                            lst.append(x.replace(',', '.'))
+                        else:
+                            lst.append(x)
+                    df[i] = lst
+                    df[i] = df[i].astype(float)
+                if (date_cols is not None) and i.lower() in date_cols:
+                    df[i] = df[i].astype(dtype='datetime64[ns]')
+            else:
+                if (numeric_cols is not None) and i.lower() in numeric_cols:
+                    lst = []
+                    for x in df[i]:
+                        if type(x) == str and ',' in x:
+                            lst.append(x.replace(',', '.'))
+                        else:
+                            lst.append(x)
+                    df[i] = lst
+                    df[i] = df[i].astype(float)
+                if (date_cols is not None) and i.lower() in date_cols:
+                    df[i] = df[i].astype('datetime64[ns]')
+
+    # unas sub-categories
+        # adding the new cols to the end of the dataframe
+    if table == "unas":
+        df[[str(i)+"_alkategoria" for i in range(1, 6)]
+           ] = df["Kategoria"].str.split("|", expand=True)
+
+        # deleting the main categories column
+        df.drop("Kategoria", inplace=True, axis=1)
+
+    # adding df to database
+    cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
+    # checking if table already exists
+    if table not in list(cur.fetchone())[0].split(", "):
+        df.to_sql(table, engine, index=False)
+        cur.execute("ALTER TABLE " + table + " ADD COLUMN id SERIAL;")
+        conn.commit()
+    else:
+        df.to_sql("temporary", engine, index=False)
+
+    # selecting rows that are in both the temporary and permanent table
+        try:
+            cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
+                        p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
+            conn.commit()
+        except TypeError:
+            cur.execute("DROP TABLE temporary;")
+            conn.commit()
+            raise
+
+    # dropping temporary table
+        cur.execute("DROP TABLE temporary;")
+        conn.commit()
+
+    # closing connection
+    cur.close()
+    conn.close()
