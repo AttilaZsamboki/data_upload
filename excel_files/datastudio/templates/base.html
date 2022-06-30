@@ -22,13 +22,14 @@
             <nav>
                 <ul>
                     <li><a href="{% url 'upload' %}">Upload</a></li>
+                    <li><a href="{% url 'login' %}" id="login" class="auth-nav">Login</a></li>                  
+                    {% comment %} <li><a href="{% url 'signup' %}" id="signup" class="auth-nav">Sign Up</a></li>                   {% endcomment %}
                 </ul>
             </nav>
         </header>
         <main>
             {%block content%}
             {%endblock%}
-            <script src="" async defer></script>
         </main>
     </body>
 </html>

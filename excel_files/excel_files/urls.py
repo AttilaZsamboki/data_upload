@@ -19,9 +19,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('datastudio/', include('datastudio.urls')),
+    path('', include('datastudio.urls')),
     path('admin/', admin.site.urls),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
