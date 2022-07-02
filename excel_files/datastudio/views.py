@@ -1,11 +1,12 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from requests import request
 from .upload_handler import handle_uploaded_file
-from .forms import UploadFileForm, LoginForm, SignUpForm
+from .forms import UploadFileForm, SignUpForm
 from .models import Users
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
+from django.contrib.auth import login, logout, authenticate
 
 
 class FileFieldFormView(FormView):
@@ -25,10 +26,18 @@ class FileFieldFormView(FormView):
         else:
             return self.form_invalid(form)
 
-class LoginFormView(FormView):
-    form_class = LoginForm
-    template_name = 'login.html'
-    success_url = '/datastudio/home'
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST["username"]
+        email_address = request.POST["email_address"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect("home")
+        else:
+            return HttpResponse("invalid credentials")
+    return render(request, "login.html")
 
 # class SignUpForm(FormView):
 #     form_class = SignUpForm
@@ -47,3 +56,7 @@ def Home(request):
 
 class UsersView(ListView):
     model = Users
+
+def logout_view(request):
+    logout(request)
+    return redirect("home")

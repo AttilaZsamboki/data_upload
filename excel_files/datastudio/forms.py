@@ -21,9 +21,6 @@ class UploadFileForm(forms.Form):
     file = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
     table_name = forms.CharField(label='Tábla neve?', widget=forms.Select(choices=TABLE_CHOICES))
 
-class LoginForm(forms.Form):
-    email_address = forms.EmailField(label='Email address')
-    password = forms.PasswordInput()
 
 class SignUpForm(forms.Form):
     first_name = forms.CharField(label='First Name')

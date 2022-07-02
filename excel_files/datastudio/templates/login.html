@@ -1,27 +1,15 @@
 {% extends "base.html" %} {% block title %}Log In{% endblock %}
+
 {% block content %}
-<form method="POST">
-    <h2 class="main-header">Log In</h2>
-    <div class="form-group basic-auth-input">
-      <label class="auth-input-title" for="email">Email Address</label>
-      <input
-        type="email"
-        class="form-control"
-        id="email"
-        name="email"
-        placeholder="Enter email"
-      />
-      <div class="form-group basic-auth-input">
-          <label class="auth-input-title" for="password">Password</label>
-          <input
-              type="password"
-              class="form-control"
-              id="password"
-              name="password"
-              placeholder="Enter password"
-          />
-    </div>
-    <br />
-    <button type="submit" class="btn btn-primary submit">Log In</button>
-  </form>
+<form method="POST" action="{% url 'login' %}">
+  {% csrf_token %}
+  <h1>Log In</h1>
+  <label for="username">Username</label>
+  <input type="text" placeholder="Username" name="username"><br>
+  <label for="email_address">Email Address</label>
+  <input type="email" placeholder="email_address" name="email_address"><br>
+  <label for="password">Password</label>
+  <input type="password" placeholder="password" name="password">
+  <input type="submit" name="" value="Login">
+</form>
 {% endblock %}
