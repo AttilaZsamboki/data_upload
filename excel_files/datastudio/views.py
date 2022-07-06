@@ -7,9 +7,10 @@ from django.http import HttpResponse
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 
-
-class FileFieldFormView(FormView):
+class FileFieldFormView(LoginRequiredMixin, FormView):
     form_class = UploadFileForm
     template_name = 'upload.html'
     success_url = '/data_upload'
@@ -36,7 +37,7 @@ def login_view(request):
             login(request, user)
             return redirect("home")
         else:
-            return HttpResponse("invalid credentials")
+            return HttpResponse("Invalid credentials")
     return render(request, "login.html")
 
 # class SignUpForm(FormView):
@@ -54,9 +55,8 @@ def login_view(request):
 def Home(request):
     return render(request, "home.html")
 
-class UsersView(ListView):
-    model = Users
 
+@login_required
 def logout_view(request):
     logout(request)
     return redirect("home")
