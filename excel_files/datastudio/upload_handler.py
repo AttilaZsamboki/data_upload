@@ -8,17 +8,9 @@ from numpy import datetime64
 
 # database connection
 
-DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
-DB_NAME = "defaultdb"
-DB_USER = "doadmin"
-DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-DB_PORT = "25060"
-
-engine = create_engine(
-    "postgresql://doadmin:AVNS_FovmirLSFDui0KIAOnu@db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require")
 
 
-def handle_uploaded_file(file, table):
+def handle_uploaded_file(file, table, connection_details):
     
     keepalive_kwargs = {
     "keepalives": 1,
@@ -26,6 +18,15 @@ def handle_uploaded_file(file, table):
     "keepalives_interval": 10,
     "keepalives_count": 5
     }
+
+    DB_HOST = connection_details.host
+    DB_NAME = connection_details.database
+    DB_USER = connection_details.username
+    DB_PASS = connection_details.password
+    DB_PORT = connection_details.port
+
+    engine = create_engine(
+        "postgresql://"+DB_USER+":"+DB_PASS+"@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")
 
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
@@ -137,22 +138,16 @@ def handle_uploaded_file(file, table):
 
     # adding df to database
     cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
-    # checking if table already exists
-    if table not in list(cur.fetchone())[0].split(", "):
-        df.to_sql(table, engine, index=False)
-        cur.execute("ALTER TABLE " + table + " ADD COLUMN id SERIAL;")
-        conn.commit()
-    else:
-        df.to_sql("temporary", engine, index=False)
+    df.to_sql("temporary", engine, index=False)
 
     # selecting rows that are in both the temporary and permanent table
-        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
-                    p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
-        conn.commit()
+    cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
+                p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
+    conn.commit()
 
     # dropping temporary table
-        cur.execute("DROP TABLE temporary;")
-        conn.commit()
+    cur.execute("DROP TABLE temporary;")
+    conn.commit()
 
     #deleting false rows from gls
     if table == "gls_elszámolás":

@@ -6,6 +6,15 @@
 <form method="POST" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.as_p }}
+  <label for="name">Adatbázis: </label>
+  <select name="name">
+    {% if db_choices|length == 0 %}
+      <option value="----------">----------</option>
+    {% endif %}
+    {% for choice in db_choices %}
+      <option value="{{ choice.name }}">{{ choice.name }}</option>
+    {% endfor %}
+  </select><br>
   <input type="submit" value="Mehet!">
 </form>
 

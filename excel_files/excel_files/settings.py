@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-ugx=umv%pb+gznkos%eafy!(v((dod+mh_la&s=0o-m)p=5=d1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['www.dataupload.xyz', '164.92.166.60', 'localhost']
+ALLOWED_HOSTS = ['www.dataupload.xyz', '164.92.166.60', '127.0.0.1']
 
 
 # Application definition

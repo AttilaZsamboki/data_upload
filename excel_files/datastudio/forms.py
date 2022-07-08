@@ -5,6 +5,7 @@ from django import forms
 from idna import alabel
 from requests import request
 from django.forms import ModelForm
+from .models import DatabaseConnections
 
 TABLE_CHOICES = [
     ('bevételek', 'Bevételek'),
@@ -17,14 +18,18 @@ TABLE_CHOICES = [
     ('unas', 'Unas'),
 ]
 
+
 class UploadFileForm(forms.Form):
     file = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
-    table_name = forms.CharField(label='Tábla neve?', widget=forms.Select(choices=TABLE_CHOICES))
+    table_name = forms.CharField(label='Tábla', widget=forms.Select(choices=TABLE_CHOICES))
 
-
-class SignUpForm(forms.Form):
-    first_name = forms.CharField(label='First Name')
-    last_name = forms.CharField(label='Last Name')
-    email_address = forms.EmailField(label='Email address')
-    password = forms.CharField(widget=forms.PasswordInput, label='Password')
-    password_again = forms.CharField(widget=forms.PasswordInput, label='Repeat Password')
+class DatabaseConnectionForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    class Meta:
+        model = DatabaseConnections
+        fields = ("name",
+                  "host",
+                  "database",
+                  "username",
+                  "password")
+        

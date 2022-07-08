@@ -1,0 +1,31 @@
+{% extends 'base.html' %} {% block title %}Connected databases{% endblock %} 
+{% block content %}
+<h2>Connected databases</h2>
+<a href="{% url 'dbconnect' %}"><button>Add connection</button></a>
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Host</th>
+    <th>Database</th>
+    <th>Username</th>
+    <th>Password</th>
+  </tr>
+  <tr>
+    {% for connection in connection_details %}
+  </tr>
+  <tr>
+    <td>{{ connection.name }}</td>
+    <td>{{ connection.host }}</td>
+    <td>{{ connection.database }}</td>
+    <td>{{ connection.username }}</td>
+    <td>{{ connection.password }}</td>
+  </tr>
+  <td>
+    <a href="{% url 'dbupdate' connection.id %}"><button>Edit</button></a>
+  </td>
+  <td>
+    <a href="{% url 'dbdelete' connection.id %}"><button>Delete</button></a>
+  </td>
+  {% endfor %}
+</table>
+{% endblock %}
