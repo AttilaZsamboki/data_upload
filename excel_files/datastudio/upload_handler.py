@@ -1,16 +1,13 @@
-from pickle import NONE
 from typing import Type
 import pandas as pd
 import unidecode
 import psycopg2
 from sqlalchemy import create_engine
-from numpy import datetime64
+from string import ascii_letters
 
 # database connection
 
-
-
-def handle_uploaded_file(file, table, connection_details):
+def handle_uploaded_file(file, table, connection_details, special_queries):
     
     keepalive_kwargs = {
     "keepalives": 1,
@@ -33,7 +30,7 @@ def handle_uploaded_file(file, table, connection_details):
     cur = conn.cursor()
     
     # getting the primary key
-    p_keys = {"Azonosito": ["bevételek"], "azonosito": ["költségek"], "Order_Id": ["orders"], "Szamla_belso_azonosito": [
+    p_keys = {"Azonosito": ["bevételek"], "Azonosito": ["költségek"], "Order_Id": ["orders"], "Szamla_belso_azonosito": [
         "számlák"], "Cikkszam": ["unas"], "Csomagszam": ["gls_elszámolás"], "SKU": ["product_suppliers"], "ID": ["stock_report"]}
     
 
@@ -45,6 +42,7 @@ def handle_uploaded_file(file, table, connection_details):
                 break
 
     # data -->> pandas dataframe
+    # skipping rows
     if table != "gls_elszámolás":
         data = pd.read_excel(file)
     # some tables don't start at the first row
@@ -52,11 +50,7 @@ def handle_uploaded_file(file, table, connection_details):
         data = pd.read_excel(file, skiprows=4)
     df = pd.DataFrame(data)
 
-    # duplicate row_name renaming -- poor solution
-    if table == "költségek":
-        df.rename(columns={"Megjegyzések.1": "Megjegyzések2", "Azonosító": "azonosito"}, inplace=True)
-
-    # renaming unicode columns to ascii
+    # # renaming unicode columns to ascii 
     column_names = {}
     # this is not the best choice, maybe there are better modules
     chars_to_replace = {": ": "_", " ": "_",
@@ -67,24 +61,8 @@ def handle_uploaded_file(file, table, connection_details):
         for l, j in chars_to_replace.items():
             # removing additional character
             column_names[i] = column_names[i].replace(l, j)
-    df.rename(columns=column_names, inplace=True)
-
-    # deleting columns from gls report
-    if table == "gls_elszámolás":
-        cur.execute("""SELECT lower(column_name)
-        FROM
-            information_schema.columns
-        WHERE
-            table_schema = 'public'
-            AND table_name = 'gls_elszámolás';
-        """)
-        gls_cols = [", ".join(i) for i in cur.fetchall()]
-        for column in data.columns:
-            if column.lower() not in gls_cols:
-                df.drop(column, inplace=True, axis=1)
-
-    # there are rows that don't identify as int
-    # maybe there are better solutions but this is as good as it gets
+    for i, l in column_names.items():
+        df.rename(columns={i: l}, inplace=True)
 
     def col_by_dtype(data_type, curr_table):
         data_type_str = ""
@@ -126,33 +104,20 @@ def handle_uploaded_file(file, table, connection_details):
                 df[i] = df[i].astype(float)
             if (date_cols is not None) and i.lower() in date_cols:
                 df[i] = df[i].astype(dtype='datetime64[ns]')
-
-    # unas sub-categories
-        # adding the new cols to the end of the dataframe
-    if table == "unas":
-        df[[str(i)+"_alkategoria" for i in range(1, 6)]
-           ] = df["Kategoria"].str.split("|", expand=True)
-
-        # deleting the main categories column
-        df.drop("Kategoria", inplace=True, axis=1)
-
-    # adding df to database
-    cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
+                
     df.to_sql("temporary", engine, index=False)
-
-    # selecting rows that are in both the temporary and permanent table
-    cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
-                p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
-    conn.commit()
-
-    # dropping temporary table
-    cur.execute("DROP TABLE temporary;")
-    conn.commit()
-
-    #deleting false rows from gls
-    if table == "gls_elszámolás":
-        cur.execute("DELETE FROM gls_elszámolás WHERE \"Felvetel_datuma_\" IS NULL OR logisztika = 0;")
+    
+    for query in special_queries:
+        cur.execute(query.special_query)
         conn.commit()
+    # selecting rows that are in both the temporary and permanent table
+    # cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
+    #             p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
+    # conn.commit()
+
+    # # dropping temporary table
+    # cur.execute("DROP TABLE temporary;")
+    # conn.commit()
 
     # closing connection
     cur.close()

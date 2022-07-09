@@ -12,78 +12,15 @@ class DatabaseConnections(models.Model):
     password = models.CharField(max_length=40)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    
-class AuthGroup(models.Model):
-    name = models.CharField(unique=True, max_length=150)
 
-    class Meta:
-        managed = False
-        db_table = 'auth_group'
+class ImportTemplates(models.Model):
+    name = models.CharField(max_length=30)
+    table = models.CharField(max_length=30)
+    special_query = models.CharField(max_length=1000)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
-
-class AuthGroupPermissions(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
-    permission = models.ForeignKey('AuthPermission', models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'auth_group_permissions'
-        unique_together = (('group', 'permission'),)
-
-
-class AuthPermission(models.Model):
-    name = models.CharField(max_length=255)
-    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING)
-    codename = models.CharField(max_length=100)
-
-    class Meta:
-        managed = False
-        db_table = 'auth_permission'
-        unique_together = (('content_type', 'codename'),)
-
-
-class AuthUser(models.Model):
-    password = models.CharField(max_length=128)
-    last_login = models.DateTimeField(blank=True, null=True)
-    is_superuser = models.BooleanField()
-    username = models.CharField(unique=True, max_length=150)
-    first_name = models.CharField(max_length=150)
-    last_name = models.CharField(max_length=150)
-    email = models.CharField(max_length=254)
-    is_staff = models.BooleanField()
-    is_active = models.BooleanField()
-    date_joined = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'auth_user'
-
-
-class AuthUserGroups(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
-    group = models.ForeignKey(AuthGroup, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'auth_user_groups'
-        unique_together = (('user', 'group'),)
-
-
-class AuthUserUserPermissions(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
-    permission = models.ForeignKey(AuthPermission, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'auth_user_user_permissions'
-        unique_together = (('user', 'permission'),)
-
-
-class Bevtelek(models.Model):
-    azonosito = models.TextField(db_column='Azonosito', blank=True, null=True)  # Field name made lowercase.
+class Bevételek(models.Model):
+    azonosito = models.TextField(db_column='Azonosito', blank=True, primary_key=True)  # Field name made lowercase.
     date = models.DateField(db_column='Date', blank=True, null=True)  # Field name made lowercase.
     teljesites_datuma = models.TextField(db_column='Teljesites_datuma', blank=True, null=True)  # Field name made lowercase.
     ar = models.FloatField(db_column='Ar', blank=True, null=True)  # Field name made lowercase.
@@ -101,75 +38,11 @@ class Bevtelek(models.Model):
     tranzakcio_partner_fiok = models.TextField(db_column='Tranzakcio_partner_fiok', blank=True, null=True)  # Field name made lowercase.
     tranzakcio_beszallito_neve = models.TextField(db_column='Tranzakcio_beszallito_neve', blank=True, null=True)  # Field name made lowercase.
     tranzakcio_tipusa = models.TextField(db_column='Tranzakcio_tipusa', blank=True, null=True)  # Field name made lowercase.
-    id = models.AutoField()
-
-    class Meta:
-        managed = False
-        db_table = 'bevételek'
+    id = models.IntegerField()
 
 
-class DatastudioDatabaseconnections(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=40)
-    host = models.CharField(max_length=150)
-    database = models.CharField(max_length=40)
-    username = models.CharField(max_length=40)
-    password = models.CharField(max_length=40)
-    created_by = models.ForeignKey(AuthUser, models.DO_NOTHING)
-    port = models.CharField(max_length=10)
-
-    class Meta:
-        managed = False
-        db_table = 'datastudio_databaseconnections'
-
-
-class DjangoAdminLog(models.Model):
-    action_time = models.DateTimeField()
-    object_id = models.TextField(blank=True, null=True)
-    object_repr = models.CharField(max_length=200)
-    action_flag = models.SmallIntegerField()
-    change_message = models.TextField()
-    content_type = models.ForeignKey('DjangoContentType', models.DO_NOTHING, blank=True, null=True)
-    user = models.ForeignKey(AuthUser, models.DO_NOTHING)
-
-    class Meta:
-        managed = False
-        db_table = 'django_admin_log'
-
-
-class DjangoContentType(models.Model):
-    app_label = models.CharField(max_length=100)
-    model = models.CharField(max_length=100)
-
-    class Meta:
-        managed = False
-        db_table = 'django_content_type'
-        unique_together = (('app_label', 'model'),)
-
-
-class DjangoMigrations(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    app = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
-    applied = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'django_migrations'
-
-
-class DjangoSession(models.Model):
-    session_key = models.CharField(primary_key=True, max_length=40)
-    session_data = models.TextField()
-    expire_date = models.DateTimeField()
-
-    class Meta:
-        managed = False
-        db_table = 'django_session'
-
-
-class GlsElszmols(models.Model):
-    csomagszam = models.TextField(db_column='Csomagszam', blank=True, null=True)  # Field name made lowercase.
+class GlsElszámols(models.Model):
+    csomagszam = models.TextField(db_column='Csomagszam', blank=True, primary_key=True)  # Field name made lowercase.
     ugyfel_hivatkozas_field = models.TextField(db_column='Ugyfel_hivatkozas_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
     utanvet_hivatkozas_field = models.TextField(db_column='Utanvet_hivatkozas_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
     utanvet_osszege = models.FloatField(db_column='Utanvet_osszege', blank=True, null=True)  # Field name made lowercase.
@@ -183,15 +56,15 @@ class GlsElszmols(models.Model):
     kiszallitasi_cim_field = models.TextField(db_column='Kiszallitasi_cim_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
     atvevo_neve_field = models.TextField(db_column='Atvevo_neve_', blank=True, null=True)  # Field name made lowercase. Field renamed because it ended with '_'.
     logisztika = models.FloatField(blank=True, null=True)
-    id = models.AutoField()
+    id = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'gls_elszámolás'
 
 
-class Kltsgek(models.Model):
-    azonosito = models.TextField()
+class Költségek(models.Model):
+    azonosito = models.TextField(primary_key=True)
     honap = models.TextField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     partner = models.TextField(blank=True, null=True)
@@ -217,7 +90,7 @@ class Kltsgek(models.Model):
     tranzakcio_belso_azonosito = models.TextField(blank=True, null=True)
     tranzakcio_kulso_azonosito = models.TextField(blank=True, null=True)
     megjegyzesek2 = models.TextField(blank=True, null=True)
-    id = models.AutoField()
+    id = models.IntegerField()
 
     class Meta:
         managed = False
@@ -290,7 +163,6 @@ class Orders(models.Model):
     assigned_user = models.TextField(db_column='Assigned_User', blank=True, null=True)  # Field name made lowercase.
     default_customer_class = models.TextField(db_column='Default_Customer_Class', blank=True, null=True)  # Field name made lowercase.
     completed_date = models.DateField(db_column='Completed_Date', blank=True, null=True)  # Field name made lowercase.
-    id = models.AutoField()
 
     class Meta:
         managed = False
@@ -332,7 +204,6 @@ class ProductSuppliers(models.Model):
     supplier_2_safety_stock = models.FloatField(db_column='Supplier___2___Safety_Stock', blank=True, null=True)  # Field name made lowercase. Field renamed because it contained more than one '_' in a row.
     supplier_2_default = models.FloatField(db_column='Supplier___2___Default', blank=True, null=True)  # Field name made lowercase. Field renamed because it contained more than one '_' in a row.
     supplier_2_note = models.FloatField(db_column='Supplier___2___Note', blank=True, null=True)  # Field name made lowercase. Field renamed because it contained more than one '_' in a row.
-    id = models.AutoField()
 
     class Meta:
         managed = False
@@ -340,7 +211,7 @@ class ProductSuppliers(models.Model):
 
 
 class StockReport(models.Model):
-    id = models.BigIntegerField(blank=True, null=True)
+    id = models.BigIntegerField(blank=True, primary_key=True)
     name = models.TextField(blank=True, null=True)
     sku = models.TextField(blank=True, null=True)
     on_stock = models.BigIntegerField(blank=True, null=True)
@@ -351,14 +222,14 @@ class StockReport(models.Model):
     inventory_value_layer = models.FloatField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     sales = models.BigIntegerField(blank=True, null=True)
-    index = models.AutoField()
+    index = models.IntegerField()
 
     class Meta:
         managed = False
         db_table = 'stock_report'
 
 
-class Szmlk(models.Model):
+class Számlák(models.Model):
     szamla_belso_azonosito = models.TextField(db_column='Szamla_belso_azonosito', primary_key=True)  # Field name made lowercase.
     szamla_azonosito = models.TextField(db_column='Szamla_azonosito', blank=True, null=True)  # Field name made lowercase.
     date = models.TextField(db_column='Date', blank=True, null=True)  # Field name made lowercase.
@@ -378,7 +249,7 @@ class Szmlk(models.Model):
     pdf = models.TextField(db_column='PDF', blank=True, null=True)  # Field name made lowercase.
     fizetesi_mod = models.TextField(db_column='Fizetesi_mod', blank=True, null=True)  # Field name made lowercase.
     megjegyzes = models.TextField(db_column='Megjegyzes', blank=True, null=True)  # Field name made lowercase.
-    id = models.AutoField()
+    id = models.IntegerField()
 
     class Meta:
         managed = False
@@ -437,3 +308,4 @@ class Unas(models.Model):
     class Meta:
         managed = False
         db_table = 'unas'
+

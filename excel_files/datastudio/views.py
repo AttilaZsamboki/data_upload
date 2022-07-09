@@ -1,7 +1,8 @@
+import psycopg2
 from requests import request
 from .upload_handler import handle_uploaded_file
-from .forms import UploadFileForm, DatabaseConnectionForm
-from .models import DatabaseConnections
+from .forms import UploadFileForm, DatabaseConnectionForm, ImportTemplateForm
+from .models import DatabaseConnections, ImportTemplates
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -10,6 +11,7 @@ from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteVi
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from psycopg2 import connect
 
 class UploadFileView(LoginRequiredMixin, FormView):
     form_class = UploadFileForm
@@ -22,10 +24,11 @@ class UploadFileView(LoginRequiredMixin, FormView):
         files = request.FILES.getlist('file')
         table = request.POST.get('table_name')
         name = request.POST.get('name') 
-        connection_details = DatabaseConnections.objects.get(name=str(name))
+        special_queries = ImportTemplates.objects.filter(table=table, created_by=request.user.id)
+        connection_details = DatabaseConnections.objects.get(name=str(name), created_by=request.user.id)
         if form.is_valid():
             for file in files:
-                handle_uploaded_file(file, table, connection_details)
+                handle_uploaded_file(file, table, connection_details, special_queries)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -56,16 +59,20 @@ def logout_view(request):
     logout(request)
     return redirect("login")
 
+# -------------------------------------------------------------------- DATABASE CONNECTIONS --------------------------------------------------------------------------#
 
+#CRUD database connections
+#Read (cRud)
 class DatabaseConnectionList(LoginRequiredMixin, ListView):
     model = DatabaseConnections
     template_name = "connections.html"
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["connection_details"] = DatabaseConnections.objects.filter(created_by=self.request.user.id)
         return context
 
+#Create (Crud)
 class DatabaseConnectionCreate(LoginRequiredMixin, CreateView):
     model = DatabaseConnections
     template_name = "connection_create.html"
@@ -76,6 +83,7 @@ class DatabaseConnectionCreate(LoginRequiredMixin, CreateView):
         form.instance.created_by = self.request.user
         return super().form_valid(form) 
 
+#Update (crUd)
 class DatabaseConnectionUpdate(LoginRequiredMixin, UpdateView):
     model = DatabaseConnections
     template_name = "connection_update.html"
@@ -86,7 +94,79 @@ class DatabaseConnectionUpdate(LoginRequiredMixin, UpdateView):
                   "password")
     success_url = reverse_lazy('dblist')
 
+#Delete (cruD)
 class DatabaseConnectionDelete(LoginRequiredMixin, DeleteView):
     model = DatabaseConnections
     template_name = "connection_delete.html"
     success_url = reverse_lazy('dblist')
+
+
+# -------------------------------------------------------------------- IMPORT TEMPLATES -----------------------------------------------------------------------------#
+
+#CRUD import templates
+#Create (Crud)
+class CreateImportTemplate(LoginRequiredMixin, CreateView):
+    model = ImportTemplates
+    template_name = "import_template_create.html"
+    form_class = ImportTemplateForm
+    success_url = reverse_lazy('import_templates')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form) 
+
+#Read (cRud)
+class ReadImportTemplate(LoginRequiredMixin, ListView):
+    model = ImportTemplates
+    template_name = "import_templates.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["import_templates"] = ImportTemplates.objects.filter(created_by=self.request.user.id)
+        return context
+
+#Update (crUd)
+class UpdateImportTemplate(LoginRequiredMixin, UpdateView):
+    model = ImportTemplates
+    template_name = "import_template_update.html"
+    form_class = ImportTemplateForm
+    success_url = reverse_lazy('import_templates')
+
+#Delete (cruD)
+class DeleteImportTemplate(LoginRequiredMixin, DeleteView):
+    model = ImportTemplates
+    template_name = "import_template_delete.html"
+    success_url = reverse_lazy('import_templates')
+
+# @login_required
+# def DataVisualize(request):
+#     if request.method == 'POST':
+#         connection = request.POST['connection']
+#         table = request.POST['table']
+#         which = request.POST['which']
+#         where = request.POST['where']
+#         order = request.POST['order']
+#         connection_details = DatabaseConnections.objects.get(name=str(connection))
+
+#         DB_HOST = connection_details.host
+#         DB_NAME = connection_details.database
+#         DB_USER = connection_details.username
+#         DB_PASS = connection_details.password
+#         DB_PORT = connection_details.port
+        
+#         keepalive_kwargs = {
+#             "keepalives": 1,
+#             "keepalives_idle": 60,
+#             "keepalives_interval": 10,
+#             "keepalives_count": 5
+#         }
+
+
+#         conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
+#                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
+
+#         cur = conn.cursor()
+
+#         cur.execute("SELECT \""+ which +"\" FROM \""+ table +"\" WHERE "+ where +" ORDER BY "+ order +";")
+
+#     return render(request, "datavisualize.html")

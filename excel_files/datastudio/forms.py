@@ -1,11 +1,14 @@
 from cProfile import label
+from dataclasses import fields
+from distutils.log import error
 import email
 from secrets import choice
 from django import forms
 from idna import alabel
+from numpy import size
 from requests import request
 from django.forms import ModelForm
-from .models import DatabaseConnections
+from .models import DatabaseConnections, ImportTemplates
 
 TABLE_CHOICES = [
     ('bevételek', 'Bevételek'),
@@ -32,4 +35,19 @@ class DatabaseConnectionForm(forms.ModelForm):
                   "database",
                   "username",
                   "password")
+
+class ImportTemplateForm(forms.ModelForm):
+    name = forms.CharField(label="Template name", required=False)
+    table = forms.CharField(label="Table")
+    special_query = forms.CharField(label="Query", help_text="IMPORTANT: Use temporary for the table name!", widget=forms.Textarea(attrs={"rows": 3}))
+    class Meta:
+        model = ImportTemplates
+        fields = ("name", "table", "special_query")
+
+# class DataVisualizationForm(forms.Form):
+#     connection = forms.CharField
+#     table
+#     which
+#     where
+#     order
         
