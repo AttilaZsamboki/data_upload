@@ -1,14 +1,6 @@
-from cProfile import label
-from dataclasses import fields
-from distutils.log import error
-import email
-from secrets import choice
+from enum import unique
 from django import forms
-from idna import alabel
-from numpy import size
-from requests import request
-from django.forms import ModelForm
-from .models import DatabaseConnections, ImportTemplates
+from .models import DatabaseConnections, ImportTemplates, TableTemplates
 
 TABLE_CHOICES = [
     ('bevételek', 'Bevételek'),
@@ -43,6 +35,13 @@ class ImportTemplateForm(forms.ModelForm):
     class Meta:
         model = ImportTemplates
         fields = ("name", "table", "special_query")
+
+# TABLE TEMPLATE
+class TableTemplateForm(forms.ModelForm):
+    pkey_col = forms.CharField(label="Primary key column")
+    class Meta:
+        model = TableTemplates
+        fields = ("table", "pkey_col", "skiprows", "append")
 
 # class DataVisualizationForm(forms.Form):
 #     connection = forms.CharField

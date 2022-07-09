@@ -1,8 +1,8 @@
 import psycopg2
 from requests import request
 from .upload_handler import handle_uploaded_file
-from .forms import UploadFileForm, DatabaseConnectionForm, ImportTemplateForm
-from .models import DatabaseConnections, ImportTemplates
+from .forms import UploadFileForm, DatabaseConnectionForm, ImportTemplateForm, TableTemplateForm
+from .models import DatabaseConnections, ImportTemplates, TableTemplates
 from django.urls import reverse_lazy
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -24,11 +24,12 @@ class UploadFileView(LoginRequiredMixin, FormView):
         files = request.FILES.getlist('file')
         table = request.POST.get('table_name')
         name = request.POST.get('name') 
-        special_queries = ImportTemplates.objects.filter(table=table, created_by=request.user.id)
         connection_details = DatabaseConnections.objects.get(name=str(name), created_by=request.user.id)
+        special_queries = ImportTemplates.objects.filter(table=table, created_by=request.user.id)
+        table_template = TableTemplates.objects.get(table=table, created_by=request.user.id)
         if form.is_valid():
             for file in files:
-                handle_uploaded_file(file, table, connection_details, special_queries)
+                handle_uploaded_file(file, table, connection_details, special_queries, table_template)
             return self.form_valid(form)
         else:
             return self.form_invalid(form)
@@ -137,6 +138,47 @@ class DeleteImportTemplate(LoginRequiredMixin, DeleteView):
     model = ImportTemplates
     template_name = "import_template_delete.html"
     success_url = reverse_lazy('import_templates')
+
+
+# -------------------------------------------------------------------- TABLE TEMPLATES -----------------------------------------------------------------------------#
+
+#CRUD import templates
+#Create (Crud)
+class CreateTableTemplate(LoginRequiredMixin, CreateView):
+    model = TableTemplates
+    template_name = "table_template_create.html"
+    form_class = TableTemplateForm
+    success_url = reverse_lazy('table_templates')
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        return super().form_valid(form) 
+
+#Read (cRud)
+class ReadTableTemplate(LoginRequiredMixin, ListView):
+    model = TableTemplates
+    template_name = "table_templates.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["table_templates"] = TableTemplates.objects.filter(created_by=self.request.user.id)
+        return context
+
+#Update (crUd)
+class UpdateTableTemplate(LoginRequiredMixin, UpdateView):
+    model = TableTemplates
+    template_name = "table_template_update.html"
+    form_class = TableTemplateForm
+    success_url = reverse_lazy('table_templates')
+
+#Delete (cruD)
+class DeleteTableTemplate(LoginRequiredMixin, DeleteView):
+    model = TableTemplates
+    template_name = "table_template_delete.html"
+    success_url = reverse_lazy('table_templates')
+
+
+
 
 # @login_required
 # def DataVisualize(request):

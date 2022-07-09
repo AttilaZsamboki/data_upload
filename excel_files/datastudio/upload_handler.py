@@ -7,7 +7,7 @@ from string import ascii_letters
 
 # database connection
 
-def handle_uploaded_file(file, table, connection_details, special_queries):
+def handle_uploaded_file(file, table, connection_details, special_queries, table_template):
     
     keepalive_kwargs = {
     "keepalives": 1,
@@ -28,26 +28,13 @@ def handle_uploaded_file(file, table, connection_details, special_queries):
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
     cur = conn.cursor()
-    
-    # getting the primary key
-    p_keys = {"Azonosito": ["bevételek"], "Azonosito": ["költségek"], "Order_Id": ["orders"], "Szamla_belso_azonosito": [
-        "számlák"], "Cikkszam": ["unas"], "Csomagszam": ["gls_elszámolás"], "SKU": ["product_suppliers"], "ID": ["stock_report"]}
-    
-
-    p_key_column = ""
-    for i, l in p_keys.items():
-        for j in l:
-            if j == table:
-                p_key_column = i
-                break
+     
+    p_key_column = table_template.pkey_col
+    table = table_template.table
 
     # data -->> pandas dataframe
     # skipping rows
-    if table != "gls_elszámolás":
-        data = pd.read_excel(file)
-    # some tables don't start at the first row
-    else:
-        data = pd.read_excel(file, skiprows=4)
+    data = pd.read_excel(file, skiprows=int(table_template.skiprows))
     df = pd.DataFrame(data)
 
     # # renaming unicode columns to ascii 
@@ -104,21 +91,27 @@ def handle_uploaded_file(file, table, connection_details, special_queries):
                 df[i] = df[i].astype(float)
             if (date_cols is not None) and i.lower() in date_cols:
                 df[i] = df[i].astype(dtype='datetime64[ns]')
-                
+
     df.to_sql("temporary", engine, index=False)
-    
+
     for query in special_queries:
         cur.execute(query.special_query)
         conn.commit()
-    # selecting rows that are in both the temporary and permanent table
-    # cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
-    #             p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
-    # conn.commit()
+        
+    if not table_template.append:
+        cur.execute("TRUNCATE "+table+";")
+        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
+        conn.commit()
+    else:    
+        # selecting rows that are in both the temporary and permanent table
+        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
+                    p_key_column+"\" NOT IN (SELECT \""+p_key_column+"\" FROM "+table+");")
+        conn.commit()
 
-    # # dropping temporary table
-    # cur.execute("DROP TABLE temporary;")
-    # conn.commit()
-
+    # dropping temporary table
+    cur.execute("DROP TABLE temporary;")
+    conn.commit()
+    
     # closing connection
     cur.close()
     conn.close()

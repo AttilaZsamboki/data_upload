@@ -1,6 +1,6 @@
 from django.db import models
-from django.conf import settings
 from django.contrib.auth.models import User
+from sqlalchemy import false
 
 # Create your models here.
 class DatabaseConnections(models.Model):
@@ -17,6 +17,13 @@ class ImportTemplates(models.Model):
     name = models.CharField(max_length=30)
     table = models.CharField(max_length=30)
     special_query = models.CharField(max_length=1000)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+
+class TableTemplates(models.Model):
+    table = models.CharField(max_length=30, unique=True)
+    pkey_col = models.CharField(max_length=30)
+    skiprows = models.CharField(max_length=10)
+    append = models.BooleanField()
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Bevételek(models.Model):
