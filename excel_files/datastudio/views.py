@@ -1,43 +1,62 @@
 import psycopg2
 from requests import request
 from .upload_handler import handle_uploaded_file
-from .forms import UploadFileForm, DatabaseConnectionForm, ImportTemplateForm, TableTemplateForm
-from .models import DatabaseConnections, ImportTemplates, TableTemplates
+from .forms import UploadFileForm, DatabaseConnectionForm, ImportTemplateForm, TableTemplateForm, UploadFileForm
+from .models import DatabaseConnections, ImportTemplates, TableTemplates, UploadModel
 from django.urls import reverse_lazy
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import redirect, render
 from django.views.generic import ListView
-from django.views.generic.edit import FormView, CreateView, UpdateView, DeleteView
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from psycopg2 import connect
 
-class UploadFileView(LoginRequiredMixin, FormView):
-    form_class = UploadFileForm
-    template_name = 'upload.html'
-    success_url = '/data_upload'
+# class UploadFileView(LoginRequiredMixin, FormView):
+#     form_class = UploadFileForm
+#     template_name = 'upload.html'
+#     success_url = '/data_upload'
 
-    def post(self, request):
-        form_class = self.get_form_class()
-        form = self.get_form(form_class)
-        files = request.FILES.getlist('file')
-        table = request.POST.get('table_name')
-        name = request.POST.get('name') 
-        connection_details = DatabaseConnections.objects.get(name=str(name), created_by=request.user.id)
-        special_queries = ImportTemplates.objects.filter(table=table, created_by=request.user.id)
-        table_template = TableTemplates.objects.get(table=table, created_by=request.user.id)
+#     def post(self, request):
+#         form_class = self.get_form_class()
+#         form = self.get_form(form_class)
+#         files = request.FILES.getlist('file')
+#         table = request.POST.get('table_name')
+#         name = request.POST.get('name') 
+#         connection_details = DatabaseConnections.objects.get(name=str(name), created_by=request.user.id)
+#         special_queries = ImportTemplates.objects.filter(table=table, created_by=request.user.id)
+#         table_template = TableTemplates.objects.get(table=table, created_by=request.user.id)
+#         if form.is_valid():
+#             for file in files:
+#                 handle_uploaded_file(file, table, connection_details, special_queries, table_template)
+#             return self.form_valid(form)
+#         else:
+#             return self.form_invalid(form)
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context["db_choices"] = DatabaseConnections.objects.filter(created_by=self.request.user.id)
+#         return context
+
+@login_required
+def upload_file(request):
+    if request.method == 'POST':
+        form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            for file in files:
-                handle_uploaded_file(file, table, connection_details, special_queries, table_template)
-            return self.form_valid(form)
-        else:
-            return self.form_invalid(form)
+            instance = UploadModel(table=request.POST["table"], file=request.FILES['file'], database=request.POST["database"], user_id=request.user.id)
+            instance.save()
+            return HttpResponseRedirect('/upload')
+    else:
+        form = UploadFileForm()
+    
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["db_choices"] = DatabaseConnections.objects.filter(created_by=self.request.user.id)
-        return context
+    table_choices = TableTemplates.objects.filter(created_by=request.user.id)
+    db_choices = DatabaseConnections.objects.filter(created_by=request.user.id)
+    context = {'db_choices': db_choices, 'table_choices': table_choices}
+
+    context = {'form': form, 'db_choices': db_choices}
+    return render(request, 'upload.html', context)
 
 def login_view(request):
     if request.method == 'POST':
@@ -51,6 +70,7 @@ def login_view(request):
             return HttpResponse("Invalid credentials")
     return render(request, "login.html")
 
+@login_required
 def Home(request):
     return render(request, "home.html")
 

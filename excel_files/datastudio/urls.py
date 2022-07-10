@@ -2,8 +2,8 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path('data_upload/', views.UploadFileView.as_view(), name="upload"),
     path('', views.Home, name="home"),
+    path('upload/', views.upload_file, name="upload"),
 
 # --------------------------------------------------------------- AUTHORIZATION --------------------------------------------------------------------------------------#
 

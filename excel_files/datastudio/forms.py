@@ -1,22 +1,13 @@
 from enum import unique
 from django import forms
-from .models import DatabaseConnections, ImportTemplates, TableTemplates
+from .models import DatabaseConnections, ImportTemplates, TableTemplates, UploadModel
 
-TABLE_CHOICES = [
-    ('bevételek', 'Bevételek'),
-    ('gls_elszámolás', 'GLS'),
-    ('költségek', 'Költségek'),
-    ('orders', 'Rendelések'),
-    ('product_suppliers', 'Beszállítók'),
-    ('stock_report', 'Készlet'),
-    ('számlák', 'Számlák'),
-    ('unas', 'Unas'),
-]
-
-
-class UploadFileForm(forms.Form):
+class UploadFileForm(forms.ModelForm):
     file = forms.FileField(widget=forms.ClearableFileInput(attrs={'multiple': True}))
-    table_name = forms.CharField(label='Tábla', widget=forms.Select(choices=TABLE_CHOICES))
+
+    class Meta:
+        model = UploadModel
+        fields = ('file',)
 
 class DatabaseConnectionForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput)

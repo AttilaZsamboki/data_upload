@@ -6,8 +6,17 @@
 <form method="POST" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {{ form.as_p }}
-  <label for="name">Adatbázis: </label>
-  <select name="name">
+  <label for="table">Tábla: </label>
+  <select name="table">
+    {% if table_chocies|length == 0 %}
+      <option value="----------">----------</option>
+    {% endif %}
+    {% for choice in table_chocies %}
+      <option value="{{ choice.table }}">{{ choice.table }}</option>
+    {% endfor %}
+  </select><br>
+  <label for="database">Adatbázis: </label>
+  <select name="database">
     {% if db_choices|length == 0 %}
       <option value="----------">----------</option>
     {% endif %}

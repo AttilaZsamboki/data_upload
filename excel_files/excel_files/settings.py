@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'datastudio'
+    'django_crontab',
+    'datastudio',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,10 @@ DATABASES = {
     }
 }
 
+# cronjobs
+CRONJOBS = [
+    ('*/1 * * * *', 'datastudio.cron.upload_file')
+]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -122,6 +127,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
+MEDIA_URL = "media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

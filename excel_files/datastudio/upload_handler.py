@@ -1,9 +1,7 @@
-from typing import Type
 import pandas as pd
 import unidecode
 import psycopg2
 from sqlalchemy import create_engine
-from string import ascii_letters
 
 # database connection
 

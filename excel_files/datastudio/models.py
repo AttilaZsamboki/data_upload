@@ -12,6 +12,11 @@ class DatabaseConnections(models.Model):
     password = models.CharField(max_length=40)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
+class UploadModel(models.Model):
+    table = models.CharField(max_length=50)
+    file = models.FileField(upload_to='upload_files/', max_length=200)
+    database = models.CharField(max_length=50)
+    user_id = models.IntegerField()
 
 class ImportTemplates(models.Model):
     name = models.CharField(max_length=30)
