@@ -42,11 +42,3 @@ class TableTemplateForm(forms.ModelForm):
     class Meta:
         model = TableTemplates
         fields = ("table", "pkey_col", "skiprows","extension_format", "append")
-
-# class DataVisualizationForm(forms.Form):
-#     connection = forms.CharField
-#     table
-#     which
-#     where
-#     order
-        

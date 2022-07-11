@@ -179,39 +179,3 @@ class DeleteTableTemplate(LoginRequiredMixin, DeleteView):
     model = TableTemplates
     template_name = "table_template_delete.html"
     success_url = reverse_lazy('table_templates')
-
-
-
-
-# @login_required
-# def DataVisualize(request):
-#     if request.method == 'POST':
-#         connection = request.POST['connection']
-#         table = request.POST['table']
-#         which = request.POST['which']
-#         where = request.POST['where']
-#         order = request.POST['order']
-#         connection_details = DatabaseConnections.objects.get(name=str(connection))
-
-#         DB_HOST = connection_details.host
-#         DB_NAME = connection_details.database
-#         DB_USER = connection_details.username
-#         DB_PASS = connection_details.password
-#         DB_PORT = connection_details.port
-        
-#         keepalive_kwargs = {
-#             "keepalives": 1,
-#             "keepalives_idle": 60,
-#             "keepalives_interval": 10,
-#             "keepalives_count": 5
-#         }
-
-
-#         conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
-#                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
-
-#         cur = conn.cursor()
-
-#         cur.execute("SELECT \""+ which +"\" FROM \""+ table +"\" WHERE "+ where +" ORDER BY "+ order +";")
-
-#     return render(request, "datavisualize.html")
