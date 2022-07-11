@@ -13,49 +13,20 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from psycopg2 import connect
 
-# class UploadFileView(LoginRequiredMixin, FormView):
-#     form_class = UploadFileForm
-#     template_name = 'upload.html'
-#     success_url = '/data_upload'
-
-#     def post(self, request):
-#         form_class = self.get_form_class()
-#         form = self.get_form(form_class)
-#         files = request.FILES.getlist('file')
-#         table = request.POST.get('table_name')
-#         name = request.POST.get('name') 
-#         connection_details = DatabaseConnections.objects.get(name=str(name), created_by=request.user.id)
-#         special_queries = ImportTemplates.objects.filter(table=table, created_by=request.user.id)
-#         table_template = TableTemplates.objects.get(table=table, created_by=request.user.id)
-#         if form.is_valid():
-#             for file in files:
-#                 handle_uploaded_file(file, table, connection_details, special_queries, table_template)
-#             return self.form_valid(form)
-#         else:
-#             return self.form_invalid(form)
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context["db_choices"] = DatabaseConnections.objects.filter(created_by=self.request.user.id)
-#         return context
-
 @login_required
 def upload_file(request):
     if request.method == 'POST':
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            instance = UploadModel(table=request.POST["table"], file=request.FILES['file'], database=request.POST["database"], user_id=request.user.id)
+            instance = UploadModel(table=request.POST["table"], file=request.FILES['file'], user_id=request.user.id, extension_format=request.POST['extension_format'])
             instance.save()
             return HttpResponseRedirect('/upload')
     else:
         form = UploadFileForm()
     
-
     table_choices = TableTemplates.objects.filter(created_by=request.user.id)
-    db_choices = DatabaseConnections.objects.filter(created_by=request.user.id)
-    context = {'db_choices': db_choices, 'table_choices': table_choices}
+    context = {'form': form, 'table_choices': table_choices}
 
-    context = {'form': form, 'db_choices': db_choices}
     return render(request, 'upload.html', context)
 
 def login_view(request):
@@ -164,6 +135,7 @@ class DeleteImportTemplate(LoginRequiredMixin, DeleteView):
 
 #CRUD import templates
 #Create (Crud)
+
 class CreateTableTemplate(LoginRequiredMixin, CreateView):
     model = TableTemplates
     template_name = "table_template_create.html"
@@ -172,7 +144,13 @@ class CreateTableTemplate(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.created_by = self.request.user
+        form.instance.database = self.request.POST["database"]
         return super().form_valid(form) 
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["db_choices"] = DatabaseConnections.objects.filter(created_by=self.request.user.id)
+        return context
 
 #Read (cRud)
 class ReadTableTemplate(LoginRequiredMixin, ListView):
@@ -190,6 +168,11 @@ class UpdateTableTemplate(LoginRequiredMixin, UpdateView):
     template_name = "table_template_update.html"
     form_class = TableTemplateForm
     success_url = reverse_lazy('table_templates')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["db_choices"] = DatabaseConnections.objects.filter(created_by=self.request.user.id)
+        return context
 
 #Delete (cruD)
 class DeleteTableTemplate(LoginRequiredMixin, DeleteView):

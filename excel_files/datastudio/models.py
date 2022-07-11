@@ -1,3 +1,4 @@
+from distutils import extension
 from django.db import models
 from django.contrib.auth.models import User
 from sqlalchemy import false
@@ -15,7 +16,7 @@ class DatabaseConnections(models.Model):
 class UploadModel(models.Model):
     table = models.CharField(max_length=50)
     file = models.FileField(upload_to='upload_files/', max_length=200)
-    database = models.CharField(max_length=50)
+    extension_format = models.CharField(max_length=10)
     user_id = models.IntegerField()
 
 class ImportTemplates(models.Model):
@@ -28,7 +29,9 @@ class TableTemplates(models.Model):
     table = models.CharField(max_length=30, unique=True)
     pkey_col = models.CharField(max_length=30)
     skiprows = models.CharField(max_length=10)
+    database = models.CharField(max_length=40)
     append = models.BooleanField()
+    extension_format = models.CharField(max_length=10)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Bevételek(models.Model):

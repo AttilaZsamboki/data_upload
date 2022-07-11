@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 
 # database connection
 
-def handle_uploaded_file(file, table, connection_details, special_queries, table_template):
+def handle_uploaded_file(file, table, connection_details, special_queries, table_template, extension_format):
     
     keepalive_kwargs = {
     "keepalives": 1,
@@ -32,7 +32,13 @@ def handle_uploaded_file(file, table, connection_details, special_queries, table
 
     # data -->> pandas dataframe
     # skipping rows
-    data = pd.read_excel(file, skiprows=int(table_template.skiprows))
+    if extension_format == 'csv':
+        data = pd.read_csv(file, skiprows=int(table_template.skiprows))
+    elif extension_format == 'tsv':
+        data = pd.read_csv(file, skiprows=int(table_template.skiprows), delimiter='\t')
+    else:
+        data = pd.read_excel(file, skiprows=int(table_template.skiprows))
+
     df = pd.DataFrame(data)
 
     # # renaming unicode columns to ascii 
