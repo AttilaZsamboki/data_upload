@@ -1,0 +1,33 @@
+#logout-button {
+    background-color: #04010A;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+#logout-button[disabled] {
+    background-color: lightgrey;
+    color: grey;
+}
+
+html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+}
+
+html {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0;
+    overflow: auto;
+}
+
+body {
+    overflow: auto;
+}
+

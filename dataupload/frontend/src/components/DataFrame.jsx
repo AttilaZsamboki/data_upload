@@ -120,7 +120,7 @@ export default function DataFrame({ tables, filter }) {
 			</Button>
 			<div
 				className='ag-theme-alpine'
-				style={{ width: 1335, height: 500, marginTop: 50 }}>
+				style={{ width: 1900, height: 500, marginTop: 50 }}>
 				<AgGridReact
 					ref={gridRef}
 					getRowId={(n) => n.id}

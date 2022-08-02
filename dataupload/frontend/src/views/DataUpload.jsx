@@ -94,7 +94,7 @@ export default function SpecialQueries() {
 						backgroundColor: "#057D55",
 						"&:hover": { color: "white" },
 					}}
-					// href='/upload'
+					href='/upload'
 					endIcon={<FileUploadIcon />}
 					type='text'>
 					Upload

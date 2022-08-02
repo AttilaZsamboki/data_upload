@@ -15,10 +15,10 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         "keepalives_count": 5
     }
 
-    DB_HOST = "db-postgresql-fra1-67534-do-user-4907952-0.b.db.ondigitalocean.com"
+    DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
     DB_NAME = "defaultdb"
     DB_USER = "doadmin"
-    DB_PASS = "AVNS_ymRwUGDjHvDAscsnnOT"
+    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
     DB_PORT = "25060"
 
     engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +

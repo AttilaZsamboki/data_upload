@@ -50,7 +50,7 @@ for sku, infos in skus.items():
         inventory_value_layer = infos[-1]["inventory_value_layer"]
         on_stock_layer = infos[-1]["on_stock_layer"]
         for i in infos:
-            if len(i) == 3 and type(i) is list:
+            if type(i) is list:
                 shipment = i[0]
                 shipment_date = datetime.now() - \
                     datetime.strptime(
@@ -59,17 +59,28 @@ for sku, infos in skus.items():
                     str(i[1]), "%Y-%m-%d %H:%M") if str(i[1]) != 'nan' else 'nan'
                 shipment_date = shipment_date.days
 
-                stock_aging["sku"].append(sku)
-                stock_aging["shipment_now"].append(
-                    shipment if shipment < current_stock else current_stock)
-                stock_aging["current_stock"].append(infos[-1]["on_stock"])
-                stock_aging["age"].append(shipment_date)
-                stock_aging["weighted_archimetric_mean"].append(
-                    inventory_value_layer / on_stock_layer if on_stock_layer else 0)
-                stock_aging["date"].append(date)
-                stock_aging["shipment_supplier_name"].append(i[-1])
-                stock_aging["shipment"].append(shipment)
-                current_stock = abs(shipment - current_stock)
+                if shipment >= current_stock and current_stock:
+                    stock_aging["sku"].append(sku)
+                    stock_aging["shipment_now"].append(current_stock)
+                    stock_aging["current_stock"].append(infos[-1]["on_stock"])
+                    stock_aging["age"].append(shipment_date)
+                    stock_aging["weighted_archimetric_mean"].append(
+                        inventory_value_layer / on_stock_layer if on_stock_layer else 0)
+                    stock_aging["date"].append(date)
+                    stock_aging["shipment_supplier_name"].append(i[2])
+                    stock_aging["shipment"].append(shipment)
+                    break
+                else:
+                    stock_aging["sku"].append(sku)
+                    stock_aging["shipment_now"].append(shipment)
+                    stock_aging["current_stock"].append(infos[-1]["on_stock"])
+                    stock_aging["age"].append(shipment_date)
+                    stock_aging["weighted_archimetric_mean"].append(
+                        inventory_value_layer / on_stock_layer if on_stock_layer else 0)
+                    stock_aging["date"].append(date)
+                    stock_aging["shipment_supplier_name"].append(i[2])
+                    stock_aging["shipment"].append(shipment)
+                    current_stock = abs(shipment - current_stock)
 
 df = pd.DataFrame(stock_aging)
 df.to_sql("fol_stock_aging", engine, if_exists="replace")
