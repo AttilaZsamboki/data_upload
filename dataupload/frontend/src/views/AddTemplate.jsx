@@ -1,10 +1,6 @@
 import React, { useState } from "react";
-import {
-	FormControl,
-	FormControlLabel,
-	Input,
-	InputLabel,
-} from "@mui/material";
+import { Navigate } from "react-router-dom";
+import { FormControl, FormControlLabel, Input, InputLabel } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Button from "@mui/material/Button";
 import Userfront from "@userfront/react";
@@ -13,6 +9,7 @@ import Checkbox from "@mui/material/Checkbox";
 
 export default function AddConnection() {
 	const csrftoken = getCookie("csrftoken");
+	const [loading, setLoading] = useState(true);
 	const [inputs, setInputs] = useState({
 		table: "",
 		primaryKeyColumn: "",
@@ -27,16 +24,17 @@ export default function AddConnection() {
 		setInputs((values) => ({ ...values, [name]: value }));
 	};
 
-	const handleSubmit = (event) => {
+	async function handleSubmit(event) {
 		event.preventDefault();
 		const requestOptions = {
 			credentials: "include",
 			method: "POST",
 			mode: "same-origin",
 			headers: {
-				Accept: "application/json",
+				"Accept": "application/json",
 				"X-CSRFToken": csrftoken,
 				"Content-Type": "application/json",
+				"Authorization": `Bearer ${Userfront.tokens.accessToken}`,
 			},
 			body: JSON.stringify({
 				table: inputs.table,
@@ -47,19 +45,15 @@ export default function AddConnection() {
 				extension_format: inputs.extensionFormat,
 			}),
 		};
-		fetch("/api/templates.json", requestOptions)
-			.then((response) => response.json)
-			.then((data) => console.log(data))
-			.catch((error) => console.log(error));
-		setInputs({
-			table: "",
-			pkey_col: "",
-			skiprows: "",
-			created_by_id: "",
-			append: "",
-			extension_format: "",
-		});
-	};
+		try {
+			const response = await fetch("/api/templates.json", requestOptions);
+			const json = await response.json();
+			console.log(json);
+			setLoading(false);
+		} catch (error) {
+			console.log(error);
+		}
+	}
 
 	const formControlStyle = {
 		marginBottom: 20,
@@ -72,32 +66,16 @@ export default function AddConnection() {
 		<form onSubmit={handleSubmit}>
 			<FormControl style={formControlStyle}>
 				<InputLabel htmlFor='table'>Table</InputLabel>
-				<Input
-					id='table'
-					name='table'
-					type='text'
-					value={inputs.table}
-					onChange={handleChange}
-				/>
+				<Input id='table' name='table' type='text' value={inputs.table} onChange={handleChange} />
 			</FormControl>
 			<br />
 			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='skiprows'>
-					Number of rows to skip
-				</InputLabel>
-				<Input
-					id='skiprows'
-					name='skiprows'
-					type='skiprows'
-					value={inputs.skiprows}
-					onChange={handleChange}
-				/>
+				<InputLabel htmlFor='skiprows'>Number of rows to skip</InputLabel>
+				<Input id='skiprows' name='skiprows' type='skiprows' value={inputs.skiprows} onChange={handleChange} />
 			</FormControl>
 			<br />
 			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='primaryKeyColumn'>
-					Primary Key Column
-				</InputLabel>
+				<InputLabel htmlFor='primaryKeyColumn'>Primary Key Column</InputLabel>
 				<Input
 					id='primaryKeyColumn'
 					name='primaryKeyColumn'
@@ -128,9 +106,7 @@ export default function AddConnection() {
 			/>
 			<br />
 			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='extensionFormat'>
-					Extension Format
-				</InputLabel>
+				<InputLabel htmlFor='extensionFormat'>Extension Format</InputLabel>
 				<Input
 					id='extensionFormat'
 					name='extensionFormat'
@@ -143,7 +119,7 @@ export default function AddConnection() {
 			<Button
 				variant='contained'
 				sx={{
-					backgroundColor: "#057D55",
+					"backgroundColor": "#057D55",
 					"&:hover": { color: "white" },
 				}}
 				endIcon={<KeyboardArrowUpIcon />}
@@ -151,6 +127,7 @@ export default function AddConnection() {
 			>
 				Submit
 			</Button>
+			{!loading && <Navigate to='/upload' replace={true} />}
 		</form>
 	);
 }
