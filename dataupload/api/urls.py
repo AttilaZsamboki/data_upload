@@ -4,12 +4,8 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
 
 
-
 urlpatterns = [
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
-    path('database-connections/', views.DatabaseConnectionsList.as_view()),
-    path('database-connections/<int:pk>',
-         views.DatabaseConnectionsDetail.as_view()),
     path('templates/', views.TemplatesList.as_view()),
     path('templates/<int:pk>', views.TemplateDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),
