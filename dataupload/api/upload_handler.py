@@ -133,11 +133,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                     AND table_name = 'fol_bevételek';""")
     sql_columns = list(cur.fetchone())[0].split(", ")
 
-    if table_template.append == '':
+    if table_template.append == "Felülírás":
         cur.execute("TRUNCATE "+table+";")
         cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
         conn.commit()
-    else:
+    elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
         if p_key_column in sql_columns:
             p_key_column_sql = p_key_column
         else:
@@ -165,6 +165,9 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                 cur.close()
                 conn.close()
                 return print("Hibásan megadott elsődleges kulcs!")
+    elif table_template.append == "Hozzáfűzés":
+        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
+        conn.commit()
 
         cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
                     p_key_column_df+"\" NOT IN (SELECT \""+p_key_column_sql+"\" FROM "+table+");")
