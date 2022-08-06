@@ -158,7 +158,7 @@ class DatauploadTabletemplates(models.Model):
     pkey_col = models.CharField(max_length=30)
     skiprows = models.CharField(max_length=10)
     created_by_id = models.IntegerField()
-    append = models.BooleanField()
+    append = models.CharField(max_length=40)
     extension_format = models.CharField(max_length=10)
 
     class Meta:

@@ -1,22 +1,34 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { FormControl, FormControlLabel, Input, InputLabel } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Button from "@mui/material/Button";
 import Userfront from "@userfront/react";
 import getCookie from "../utils/GetCookie";
-import Checkbox from "@mui/material/Checkbox";
+import { Autocomplete, TextField } from "@mui/material";
+import { event } from "jquery";
 
 export default function AddConnection() {
 	const csrftoken = getCookie("csrftoken");
-	const [loading, setLoading] = useState(true);
+	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
+	const [appendOption, setAppendOption] = useState(null);
+	const [tables, setTables] = useState([]);
+	const [table, setTable] = useState(null);
+	const [isFinished, setisFinished] = useState(false);
 	const [inputs, setInputs] = useState({
-		table: "",
 		primaryKeyColumn: "",
 		skiprows: "",
-		isAppend: true,
 		extensionFormat: "",
 	});
+
+	useEffect(() => {
+		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
+		fetch("/api/table-names")
+			.then((response) => response.json())
+			.then((json) =>
+				setTables(json.filter((table) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()))
+			);
+	}, []);
 
 	const handleChange = (event) => {
 		const name = event.target.name;
@@ -37,11 +49,11 @@ export default function AddConnection() {
 				"Authorization": `Bearer ${Userfront.tokens.accessToken}`,
 			},
 			body: JSON.stringify({
-				table: inputs.table,
+				table: table,
 				pkey_col: inputs.primaryKeyColumn,
 				skiprows: inputs.skiprows,
 				created_by_id: Userfront.user.userId,
-				append: inputs.isAppend,
+				append: appendOption,
 				extension_format: inputs.extensionFormat,
 			}),
 		};
@@ -49,7 +61,7 @@ export default function AddConnection() {
 			const response = await fetch("/api/templates.json", requestOptions);
 			const json = await response.json();
 			console.log(json);
-			setLoading(false);
+			setisFinished(true);
 		} catch (error) {
 			console.log(error);
 		}
@@ -60,14 +72,16 @@ export default function AddConnection() {
 		width: 500,
 	};
 
-	const label = { inputProps: { "aria-label": "Checkbox demo" } };
-
 	return (
 		<form onSubmit={handleSubmit}>
-			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='table'>Table</InputLabel>
-				<Input id='table' name='table' type='text' value={inputs.table} onChange={handleChange} />
-			</FormControl>
+			<Autocomplete
+				disablePortal
+				id='table'
+				options={tables}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Tábla neve' />}
+				onChange={(event, values) => setTable(values)}
+			/>
 			<br />
 			<FormControl style={formControlStyle}>
 				<InputLabel htmlFor='skiprows'>Number of rows to skip</InputLabel>
@@ -85,24 +99,16 @@ export default function AddConnection() {
 				/>
 			</FormControl>
 			<br />
-			<FormControlLabel
-				control={
-					<Checkbox
-						{...label}
-						defaultChecked
-						id='isAppend'
-						name='isAppend'
-						value={inputs.isAppend}
-						onClick={(event) =>
-							setInputs((values) => ({
-								...values,
-								append: event.target.checked,
-							}))
-						}
-					/>
-				}
-				label='Should uploads be appended'
-				labelPlacement='top'
+			<Autocomplete
+				disablePortal
+				id='appendOptions'
+				name='appendOptions'
+				type='text'
+				options={appendOptions}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Hozááfűzés formája' />}
+				onChange={(event, values) => setAppendOption(values)}
+				value={appendOption}
 			/>
 			<br />
 			<FormControl style={formControlStyle}>
@@ -123,11 +129,10 @@ export default function AddConnection() {
 					"&:hover": { color: "white" },
 				}}
 				endIcon={<KeyboardArrowUpIcon />}
-				type='submit' /*href='/templates'*/
-			>
+				type='submit'>
 				Submit
 			</Button>
-			{!loading && <Navigate to='/upload' replace={true} />}
+			{/* {isFinished && <Navigate to='/upload' replace={true} />} */}
 		</form>
 	);
 }
