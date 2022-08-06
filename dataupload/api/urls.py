@@ -1,16 +1,11 @@
-from re import template
 from xml.etree.ElementInclude import include
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
-from rest_framework.authtoken.views import obtain_auth_token
+
 
 urlpatterns = [
-    path('token-auth/', obtain_auth_token),
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
-    path('database-connections/', views.DatabaseConnectionsList.as_view()),
-    path('database-connections/<int:pk>',
-         views.DatabaseConnectionsDetail.as_view()),
     path('templates/', views.TemplatesList.as_view()),
     path('templates/<int:pk>', views.TemplateDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),

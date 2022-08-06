@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
 import { Autocomplete } from "@mui/material";
@@ -12,6 +12,7 @@ export default function SpecialQueries() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
 	}
+	const inputRef = useRef(null);
 	const csrftoken = getCookie("csrftoken");
 	const [tableOptions, setTablesOptions] = useState([]);
 	const [inputTable, setInputTable] = useState("");
@@ -21,13 +22,7 @@ export default function SpecialQueries() {
 		const fetchData = async () => {
 			const data = await fetch("/api/templates");
 			const json = await data.json();
-			setTablesOptions(
-				json
-					.filter(
-						(res) => res.created_by_id === Userfront.user.userId
-					)
-					.map((res) => res.table)
-			);
+			setTablesOptions(json.filter((res) => res.created_by_id === Userfront.user.userId).map((res) => res.table));
 			return json;
 		};
 
@@ -57,6 +52,8 @@ export default function SpecialQueries() {
 				"Content-Type": "multipart/form-data",
 			},
 		});
+		setInputTable("");
+		inputRef.current.value = null;
 	};
 	const formControlStyle = {
 		marginBottom: 20,
@@ -73,30 +70,23 @@ export default function SpecialQueries() {
 					type='text'
 					options={tableOptions}
 					sx={{ width: 300 }}
-					renderInput={(params) => (
-						<TextField {...params} label='Template neve' />
-					)}
+					renderInput={(params) => <TextField {...params} label='Template neve' />}
 					onChange={handleChange}
+					value={inputTable}
 				/>
 				<br />
 				<FormControl style={formControlStyle}>
-					<input
-						id='file'
-						name='file'
-						type='file'
-						onChange={onFileChange}
-					/>
+					<input id='file' name='file' type='file' onChange={onFileChange} ref={inputRef} />
 				</FormControl>
 				<br />
 				<Button
 					variant='contained'
 					sx={{
-						backgroundColor: "#057D55",
+						"backgroundColor": "#057D55",
 						"&:hover": { color: "white" },
 					}}
-					href='/upload'
 					endIcon={<FileUploadIcon />}
-					type='text'>
+					type='submit'>
 					Upload
 				</Button>
 			</form>

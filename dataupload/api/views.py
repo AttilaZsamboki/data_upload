@@ -21,19 +21,6 @@ def TableNames(request):
 
 # dataupload config
 
-
-class DatabaseConnectionsList(generics.ListCreateAPIView):
-    queryset = models.DatauploadDatabaseconnections.objects.all()
-    serializer_class = serializers.DatabaseConnectionsSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-
-class DatabaseConnectionsDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.DatauploadDatabaseconnections.objects.all()
-    serializer_class = serializers.DatabaseConnectionsSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-
-
 class TemplatesList(generics.ListCreateAPIView):
     queryset = models.DatauploadTabletemplates.objects.all()
     serializer_class = serializers.TemplatesSerializer
