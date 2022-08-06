@@ -6,13 +6,14 @@ from sqlalchemy import create_engine
 engine = create_engine(
     "postgresql://doadmin:AVNS_FovmirLSFDui0KIAOnu@db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require")
 
-obj = pd.read_sql_table(table_name="fol_stock_transaction_report", con=engine)
-obj.sort_values(by="Finished", ascending=False, inplace=True)
-obj.dropna(subset=['Finished'], inplace=True)
+stock_report = pd.read_sql_table(
+    table_name="fol_stock_transaction_report", con=engine)
+stock_report.sort_values(by="Finished", ascending=False, inplace=True)
+stock_report.dropna(subset=['Finished'], inplace=True)
 
 skus = {}
 
-for row in obj.iloc:
+for row in stock_report.iloc:
     sku = row["Product"]
     quantity = row["Quantity"]
     finished = row["Finished"]
@@ -23,11 +24,12 @@ for row in obj.iloc:
     else:
         skus[sku].append([quantity, finished, shippment_supplier_name])
 
-obj2 = pd.read_sql_table(table_name="fol_stock_report", con=engine)
+stock_transaction_report = pd.read_sql_table(
+    table_name="fol_stock_report", con=engine)
 
 stock_report_obj = {}
 
-for row in obj2.iloc:
+for row in stock_transaction_report.iloc:
     sku = row["sku"]
 
     if sku in skus and sku not in stock_report_obj:
@@ -45,7 +47,7 @@ stock_aging = {"sku": [], "shipment": [], "shipment_now": [], "current_stock": [
                "age": [], "weighted_archimetric_mean": [], "shipment_supplier_name": []}
 
 for sku, infos in skus.items():
-    if sku != '-':
+    if sku != '-' and sku is not None:
         current_stock = infos[-1]["on_stock"]
         inventory_value_layer = infos[-1]["inventory_value_layer"]
         on_stock_layer = infos[-1]["on_stock_layer"]
