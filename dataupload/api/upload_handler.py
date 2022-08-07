@@ -5,8 +5,6 @@ import datetime as dt
 from sqlalchemy import create_engine
 import os
 from .models import DatauploadUploadmodel
-import re
-
 # database connection
 
 
@@ -58,7 +56,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
 
     df = pd.DataFrame(data)
 
-    if re.search("*stock_report", table):
+    if table in ["fol_stock_report", "pro_stock_report"]:
         df["timestamp"] = dt.datetime.now()
 
     # # renaming unicode columns to ascii
@@ -170,12 +168,12 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                 cur.close()
                 conn.close()
                 return print("Hibásan megadott elsődleges kulcs!")
-    elif table_template.append == "Hozzáfűzés":
-        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
-        conn.commit()
 
         cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
                     p_key_column_df+"\" NOT IN (SELECT \""+p_key_column_sql+"\" FROM "+table+");")
+    elif table_template.append == "Hozzáfűzés":
+        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
+        conn.commit()
 
     # dropping temporary table
     cur.execute("DROP TABLE temporary;")

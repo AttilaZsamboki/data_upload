@@ -61,9 +61,7 @@ export default function DataFrame({ tables, filter }) {
 	const [columnDefs, setColumnDefs] = useState([]);
 	// fetching data from the database
 	useEffect(() => {
-		axios(`/api/${tableName}`).then((result) =>
-			setRowData(result.data.filter(filter))
-		);
+		axios(`/api/${tableName}`).then((result) => setRowData(result.data.filter(filter)));
 
 		setColumnDefs([]);
 	}, [tableName]);
@@ -71,10 +69,7 @@ export default function DataFrame({ tables, filter }) {
 	useEffect(() => {
 		for (let data in rowData[0]) {
 			if (data === Object.keys(rowData[0])[0]) {
-				setColumnDefs((prev) => [
-					...prev,
-					{ field: data, checkboxSelection: true },
-				]);
+				setColumnDefs((prev) => [...prev, { field: data, checkboxSelection: true }]);
 			} else {
 				setColumnDefs((prev) => [...prev, { field: data }]);
 			}
@@ -87,7 +82,7 @@ export default function DataFrame({ tables, filter }) {
 		fetch(`/api/${tableName}/${rowId}`, {
 			method: "DELETE",
 			headers: {
-				Accept: "application/json",
+				"Accept": "application/json",
 				"X-CSRFToken": csrftoken,
 				"Content-Type": "application/json",
 			},
@@ -98,29 +93,25 @@ export default function DataFrame({ tables, filter }) {
 		<div>
 			<Autocomplete
 				disablePortal
-				id='combo-box-demo'
+				id='table'
 				options={tables}
 				sx={{ width: 300 }}
-				renderInput={(params) => (
-					<TextField {...params} label='Table name' />
-				)}
+				renderInput={(params) => <TextField {...params} label='Table name' />}
 				onChange={handleChange}
 			/>
 			<Button
 				variant='contained'
 				disabled={!tableName}
 				sx={{
-					backgroundColor: "#057D55",
-					marginTop: 5,
-					marginLeft: 3,
+					"backgroundColor": "#057D55",
+					"marginTop": 5,
+					"marginLeft": 3,
 					"&:hover": { color: "white" },
 				}}
 				href={`/add-${tableName}`}>
 				Add row to {tableName}
 			</Button>
-			<div
-				className='ag-theme-alpine'
-				style={{ width: 1900, height: 500, marginTop: 50 }}>
+			<div className='ag-theme-alpine' style={{ width: 1900, height: 500, marginTop: 50 }}>
 				<AgGridReact
 					ref={gridRef}
 					getRowId={(n) => n.id}
