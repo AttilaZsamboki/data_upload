@@ -15,19 +15,48 @@ export default function SpecialQueries() {
 	const inputRef = useRef(null);
 	const csrftoken = getCookie("csrftoken");
 	const [tableOptions, setTablesOptions] = useState([]);
-	const [inputTable, setInputTable] = useState("");
+	const [inputTable, setInputTable] = useState(null);
 	const [selectedFile, setSelectedFile] = useState(null);
+	const [minDate, setMinDate] = useState(null);
+	const [maxDate, setMaxDate] = useState(null);
+	const [isLoadingDate, setIsLoadingDate] = useState(true);
 
 	useEffect(() => {
-		const fetchData = async () => {
+		const fetchTables = async () => {
 			const data = await fetch("/api/templates");
 			const json = await data.json();
 			setTablesOptions(json.filter((res) => res.created_by_id === Userfront.user.userId).map((res) => res.table));
 			return json;
 		};
 
-		fetchData();
+		fetchTables();
 	}, []);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			const data = await fetch(`/api/${inputTable}`);
+			const json = await data.json();
+			const maxDateJson = new Date(
+				Math.max(
+					...json.map((element) => {
+						return new Date(element.date);
+					})
+				)
+			);
+			const minDateJson = new Date(
+				Math.min(
+					...json.map((element) => {
+						return new Date(element.date);
+					})
+				)
+			);
+			setMinDate(minDateJson);
+			setMaxDate(maxDateJson);
+			setIsLoadingDate(false);
+		};
+
+		fetchData();
+	}, [inputTable]);
 
 	const onFileChange = (e) => {
 		setSelectedFile(e.target.files[0]);
@@ -55,6 +84,7 @@ export default function SpecialQueries() {
 		setInputTable(null);
 		inputRef.current.value = null;
 	};
+
 	const formControlStyle = {
 		marginBottom: 20,
 		width: 500,
@@ -70,11 +100,24 @@ export default function SpecialQueries() {
 					type='text'
 					options={tableOptions}
 					sx={{ width: 300 }}
-					renderInput={(params) => <TextField {...params} label='Template neve' />}
+					renderInput={(params) => <TextField {...params} label='Tábla neve' />}
 					onChange={handleChange}
 					value={inputTable}
 				/>
 				<br />
+				{!isLoadingDate && (
+					<div>
+						<p>
+							Adathalmaz kezdete:{" "}
+							{minDate.toLocaleString("hu-HU", { year: "numeric", month: "2-digit", day: "2-digit" })}
+						</p>{" "}
+						<br />
+						<p>
+							Adathalmaz vége:{" "}
+							{maxDate.toLocaleString("hu-HU", { year: "numeric", month: "2-digit", day: "2-digit" })}
+						</p>
+					</div>
+				)}
 				<FormControl style={formControlStyle}>
 					<input id='file' name='file' type='file' onChange={onFileChange} ref={inputRef} />
 				</FormControl>
