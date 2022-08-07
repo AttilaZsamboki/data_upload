@@ -1,13 +1,22 @@
-import React, { useState } from "react";
-import { FormControl, FormHelperText, Input, InputLabel } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { FormControl, Input, InputLabel } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import Button from "@mui/material/Button";
+import { Button, Autocomplete, TextField } from "@mui/material";
 import Userfront from "@userfront/react";
 import getCookie from "../utils/GetCookie";
 
 export default function AddConnection() {
 	const csrftoken = getCookie("csrftoken");
-	console.log(Userfront.tokens.accessToken);
+	const [tables, setTables] = useState([]);
+
+	useEffect(() => {
+		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
+		fetch("/api/table-names")
+			.then((response) => response.json())
+			.then((json) =>
+				setTables(json.filter((table) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()))
+			);
+	}, []);
 
 	const [inputs, setInputs] = useState({});
 
@@ -53,13 +62,16 @@ export default function AddConnection() {
 			<FormControl style={formControlStyle}>
 				<InputLabel htmlFor='name'>Query Name</InputLabel>
 				<Input id='name' name='name' type='text' value={inputs.name} onChange={handleChange} />
-				<FormHelperText id='name-helper'>You can choose any name for your connection.</FormHelperText>
 			</FormControl>
 			<br />
-			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='table'>Table</InputLabel>
-				<Input id='table' name='table' type='text' value={inputs.table} onChange={handleChange} />
-			</FormControl>
+			<Autocomplete
+				disablePortal
+				id='table'
+				options={tables}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Tábla neve' />}
+				onChange={(event, values) => setTable(values)}
+			/>
 			<br />
 			<FormControl style={formControlStyle}>
 				<InputLabel htmlFor='special_query'>Special_query</InputLabel>

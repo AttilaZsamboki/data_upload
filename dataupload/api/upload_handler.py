@@ -1,7 +1,9 @@
 import pandas as pd
 import unidecode
 import psycopg2
+import datetime as dt
 from sqlalchemy import create_engine
+import re
 
 # database connection
 
@@ -42,6 +44,9 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         data = pd.read_excel(file, skiprows=int(table_template.skiprows))
 
     df = pd.DataFrame(data)
+
+    if re.search("*stock_report", table):
+        df["timestamp"] = dt.datetime.now()
 
     # # renaming unicode columns to ascii
     column_names = {}

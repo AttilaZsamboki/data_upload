@@ -132,7 +132,7 @@ export default function AddConnection() {
 				type='submit'>
 				Submit
 			</Button>
-			{/* {isFinished && <Navigate to='/upload' replace={true} />} */}
+			{isFinished && <Navigate to='/upload' replace={true} />}
 		</form>
 	);
 }
