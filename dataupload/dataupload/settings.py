@@ -73,11 +73,15 @@ WSGI_APPLICATION = 'dataupload.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'defaultdb',
-        'PORT': '25060',
+        'NAME': 'POOL1',
+        'PORT': '25061',
         'USER': 'doadmin',
         'HOST': 'db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com',
-        'PASSWORD': 'AVNS_FovmirLSFDui0KIAOnu'
+        'PASSWORD': 'AVNS_FovmirLSFDui0KIAOnu',
+        'OPTIONS': {
+            'sslmode': 'verify-full',
+            'sslrootcert': os.path.join(BASE_DIR, 'ca-certificate.crt')
+        },
     }
 }
 

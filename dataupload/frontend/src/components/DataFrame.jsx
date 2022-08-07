@@ -9,48 +9,13 @@ import { AgGridReact } from "ag-grid-react";
 // css
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import { useMemo } from "react";
 
-export default function DataFrame({ tables, filter }) {
+export default function DataFrame({ tables, initialFilter }) {
 	// static const variables
 
 	const gridRef = useRef();
-
 	const csrftoken = getCookie("csrftoken");
-
-	const [gridApi, setGridApi] = useState(null);
-	const [gridColumnApi, setGridColumnApi] = useState(null);
-
-	const [deleteRowId, setDeleteRowId] = useState([]);
-
-	const onGridReady = (params) => {
-		setGridApi(params.api);
-		setGridColumnApi(params.columnApi);
-	};
-
-	const onSuppressKeyboardEvent = (params) => {
-		if (!params.editing) {
-			let isBackspaceKey = params.event.keyCode === 8;
-			let isDeleteKey = params.event.keyCode === 46;
-
-			// Delete selected rows with back space
-
-			if (isBackspaceKey || isDeleteKey) {
-				const selectedRows = params.api.getSelectedRows();
-
-				setRowData(
-					rowData.filter((row) => {
-						return selectedRows.indexOf(row) == -1; // filter out selected rows
-					})
-				);
-
-				setDeleteRowId(selectedRows);
-
-				return true;
-			}
-
-			return false;
-		}
-	};
 
 	const [tableName, setTablename] = useState();
 	const handleChange = (event, values) => {
@@ -61,9 +26,7 @@ export default function DataFrame({ tables, filter }) {
 	const [columnDefs, setColumnDefs] = useState([]);
 	// fetching data from the database
 	useEffect(() => {
-		axios(`/api/${tableName}`).then((result) =>
-			setRowData(result.data.filter(filter))
-		);
+		axios(`/api/${tableName}`).then((result) => setRowData(result.data.filter(initialFilter)));
 
 		setColumnDefs([]);
 	}, [tableName]);
@@ -71,28 +34,25 @@ export default function DataFrame({ tables, filter }) {
 	useEffect(() => {
 		for (let data in rowData[0]) {
 			if (data === Object.keys(rowData[0])[0]) {
-				setColumnDefs((prev) => [
-					...prev,
-					{ field: data, checkboxSelection: true },
-				]);
+				setColumnDefs((prev) => [...prev, { field: data, checkboxSelection: true }]);
 			} else {
 				setColumnDefs((prev) => [...prev, { field: data }]);
 			}
 		}
 	}, [rowData]);
 
-	// posting data to the database
-	useEffect(() => {
-		const rowId = deleteRowId.map((rowId) => rowId.id);
-		fetch(`/api/${tableName}/${rowId}`, {
-			method: "DELETE",
-			headers: {
-				Accept: "application/json",
-				"X-CSRFToken": csrftoken,
-				"Content-Type": "application/json",
+	const defaultColDef = useMemo(
+		() => ({
+			floatingFilter: true,
+			filter: true,
+			minWidth: 200,
+			flex: 1,
+			filterParams: {
+				debounceMs: 0,
 			},
-		});
-	}, [deleteRowId]);
+		}),
+		[]
+	);
 
 	return (
 		<div>
@@ -101,36 +61,28 @@ export default function DataFrame({ tables, filter }) {
 				id='combo-box-demo'
 				options={tables}
 				sx={{ width: 300 }}
-				renderInput={(params) => (
-					<TextField {...params} label='Table name' />
-				)}
+				renderInput={(params) => <TextField {...params} label='Table name' />}
 				onChange={handleChange}
 			/>
 			<Button
 				variant='contained'
 				disabled={!tableName}
 				sx={{
-					backgroundColor: "#057D55",
-					marginTop: 5,
-					marginLeft: 3,
+					"backgroundColor": "#057D55",
+					"marginTop": 5,
+					"marginLeft": 3,
 					"&:hover": { color: "white" },
 				}}
 				href={`/add-${tableName}`}>
 				Add row to {tableName}
 			</Button>
-			<div
-				className='ag-theme-alpine'
-				style={{ width: 1900, height: 500, marginTop: 50 }}>
+			<div className='ag-theme-alpine' style={{ width: "100%", height: 700, marginTop: 50 }}>
 				<AgGridReact
 					ref={gridRef}
-					getRowId={(n) => n.id}
+					defaultColDef={defaultColDef}
 					rowSelection={"multiple"}
 					enableRangeSelection={"true"}
-					onGridReady={onGridReady}
 					rowData={rowData}
-					defaultColDef={{
-						suppressKeyboardEvent: onSuppressKeyboardEvent,
-					}}
 					columnDefs={columnDefs}
 				/>
 			</div>

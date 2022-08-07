@@ -16,7 +16,7 @@ export default function SpecialQueries() {
 
 	return (
 		<div>
-			<DataFrame tables={tables} filter={filter} />
+			<DataFrame tables={tables} initialFilter={filter} />
 		</div>
 	);
 }

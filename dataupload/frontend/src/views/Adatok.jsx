@@ -21,5 +21,5 @@ export default function Tables() {
 
 	console.log();
 
-	return <DataFrame tables={tables} filter={(input) => input} />;
+	return <DataFrame tables={tables} initialFilter={(input) => input} />;
 }

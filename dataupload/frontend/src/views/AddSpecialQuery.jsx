@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { FormControl, Input, InputLabel } from "@mui/material";
+import { FormControl, Input, InputLabel, Button, Autocomplete, TextField } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
-import { Button, Autocomplete, TextField } from "@mui/material";
 import Userfront from "@userfront/react";
 import getCookie from "../utils/GetCookie";
 
