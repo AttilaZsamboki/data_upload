@@ -36,20 +36,45 @@ export default function SpecialQueries() {
 		const fetchData = async () => {
 			const data = await fetch(`/api/${inputTable}`);
 			const json = await data.json();
-			const maxDateJson = new Date(
-				Math.max(
-					...json.map((element) => {
-						return new Date(element.date);
-					})
-				)
-			);
-			const minDateJson = new Date(
-				Math.min(
-					...json.map((element) => {
-						return new Date(element.date);
-					})
-				)
-			);
+			const dateColumnsByTable = [
+				{ table: "fol_unas", dateCol: "" },
+				{ table: "fol_bevételek", dateCol: "date" },
+				{ table: "fol_gls_elszámolás", dateCol: "Felvetel_datuma_" },
+				{ table: "fol_költségek", dateCol: "date" },
+				{ table: "fol_orders", dateCol: "Order_Date" },
+				{ table: "fol_product_suppliers", dateCol: "" },
+				{ table: "fol_stock_aging", dateCol: "" },
+				{ table: "fol_stock_report", dateCol: "" },
+				{ table: "fol_stock_transaction_report", dateCol: "Finished" },
+				{ table: "fol_számlák", dateCol: "Date" },
+				{ table: "pro_bevételek", dateCol: "date" },
+				{ table: "pro_költségek", dateCol: "date" },
+				{ table: "pro_orders", dateCol: "Order_Date" },
+				{ table: "pro_product_suppliers", dateCol: "" },
+				{ table: "pro_stock_aging", dateCol: "" },
+				{ table: "pro_stock_report", dateCol: "" },
+				{ table: "pro_stock_transaction_report", dateCol: "Finished" },
+				{ table: "pro_számlák", dateCol: "Date" },
+			];
+			const dateColumn = dateColumnsByTable.map(({ table, dateCol }) => table === inputTable && dateCol);
+			const maxDateJson = dateColumn
+				? new Date(
+						Math.max(
+							...json.map((element) => {
+								return new Date(element[dateColumn]);
+							})
+						)
+				  )
+				: "";
+			const minDateJson = dateColumn
+				? new Date(
+						Math.min(
+							...json.map((element) => {
+								return new Date(element[dateColumn]);
+							})
+						)
+				  )
+				: "";
 			setMinDate(minDateJson);
 			setMaxDate(maxDateJson);
 			setIsLoadingDate(false);
