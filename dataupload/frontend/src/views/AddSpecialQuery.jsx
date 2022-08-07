@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { FormControl, Input, InputLabel, Button, Autocomplete, TextField } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Userfront from "@userfront/react";
@@ -7,6 +8,8 @@ import getCookie from "../utils/GetCookie";
 export default function AddConnection() {
 	const csrftoken = getCookie("csrftoken");
 	const [tables, setTables] = useState([]);
+	const [isFinished, setIsFinished] = useState(false);
+	const [table, setTable] = useState(null);
 
 	useEffect(() => {
 		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
@@ -25,7 +28,7 @@ export default function AddConnection() {
 		setInputs((values) => ({ ...values, [name]: value }));
 	};
 
-	const handleSubmit = (event) => {
+	const handleSubmit = async (event) => {
 		event.preventDefault();
 		const requestOptions = {
 			credentials: "include",
@@ -39,16 +42,19 @@ export default function AddConnection() {
 			},
 			body: JSON.stringify({
 				name: inputs.name,
-				table: inputs.table,
+				table: table,
 				special_query: inputs.special_query,
-				created_by: Userfront.user.userId,
+				created_by_id: Userfront.user.userId,
 			}),
 		};
-		fetch("/api/special-queries/", requestOptions)
-			.then((response) => response.json)
-			.then((data) => console.log(data))
-			.catch((error) => console.log(error));
-		setInputs({ name: "", table: "", special_query: "" });
+		try {
+			const reponse = await fetch("/api/special-queries/", requestOptions);
+			const json = await reponse.json();
+			console.log(json);
+			setIsFinished(true);
+		} catch (error) {
+			console.log(error);
+		}
 	};
 
 	const formControlStyle = {
@@ -93,6 +99,7 @@ export default function AddConnection() {
 				type='submit'>
 				Submit
 			</Button>
+			{isFinished && <Navigate to='/upload' replace={true} />}
 		</form>
 	);
 }

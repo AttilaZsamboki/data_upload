@@ -14,7 +14,7 @@ export default function AddConnection() {
 	const [appendOption, setAppendOption] = useState(null);
 	const [tables, setTables] = useState([]);
 	const [table, setTable] = useState(null);
-	const [isFinished, setisFinished] = useState(false);
+	const [isFinished, setIsFinished] = useState(false);
 	const [inputs, setInputs] = useState({
 		primaryKeyColumn: "",
 		skiprows: "",
@@ -61,7 +61,7 @@ export default function AddConnection() {
 			const response = await fetch("/api/templates.json", requestOptions);
 			const json = await response.json();
 			console.log(json);
-			setisFinished(true);
+			setIsFinished(true);
 		} catch (error) {
 			console.log(error);
 		}

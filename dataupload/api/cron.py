@@ -10,7 +10,7 @@ def upload_file():
         extension_format = DatauploadTabletemplates.objects.get(
             table=table, created_by_id=upload.user_id).extension_format
         special_queries = DatauploadImporttemplates.objects.filter(
-            table=table, created_by=upload.user_id)
+            table=table, created_by_id=upload.user_id)
         table_template = DatauploadTabletemplates.objects.get(
             table=table, created_by_id=upload.user_id)
         handle_uploaded_file(file, table, special_queries,

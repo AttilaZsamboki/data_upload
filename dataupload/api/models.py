@@ -145,7 +145,7 @@ class DatauploadImporttemplates(models.Model):
     name = models.CharField(max_length=30)
     table = models.CharField(max_length=30)
     special_query = models.CharField(max_length=1000)
-    created_by = models.ForeignKey(AuthUser, models.DO_NOTHING)
+    created_by_id = models.IntegerField()
 
     class Meta:
         managed = False
