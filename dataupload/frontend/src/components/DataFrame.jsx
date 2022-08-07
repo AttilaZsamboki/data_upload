@@ -68,9 +68,9 @@ export default function DataFrame({ tables, initialFilter }) {
 				variant='contained'
 				disabled={!tableName}
 				sx={{
-					""backgroundColor"": "#057D55",
-					""marginTop"": 5,
-					""marginLeft"": 3,
+					backgroundColor: "#057D55",
+					marginTop: 5,
+					marginLeft: 3,
 					"&:hover": { color: "white" },
 				}}
 				href={`/add-${tableName}`}>
