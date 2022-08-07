@@ -21,7 +21,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     DB_NAME = "POOL1"
     DB_USER = "doadmin"
     DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_PORT = "250601"
+    DB_PORT = "25061"
 
     engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
                            "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")
