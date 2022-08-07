@@ -56,7 +56,8 @@ export default function SpecialQueries() {
 				{ table: "pro_stock_transaction_report", dateCol: "Finished" },
 				{ table: "pro_számlák", dateCol: "Date" },
 			];
-			const dateColumn = dateColumnsByTable.map(({ table, dateCol }) => table === inputTable && dateCol);
+			let dateColumn = dateColumnsByTable.filter(({ table, dateCol }) => table === inputTable && dateCol);
+			dateColumn = dateColumn.map((table) => table.dateCol);
 			const maxDateJson = dateColumn
 				? new Date(
 						Math.max(
