@@ -20,7 +20,8 @@ cur = conn.cursor()
 költségek = pd.read_sql_table("fol_költségek", engine)
 bevételek = pd.read_sql_table("fol_bevételek", engine)
 
-cf_starting_closing = {"honap": [], "nyito": [], "zaro": []}
+cf_starting_closing = {"months": [],
+                       "starting_values": [], "closing_values": []}
 
 nyito = 0
 
@@ -37,13 +38,13 @@ for month in months:
         if row.Date.strftime("%Y-%m") == month:
             bevételek_per_month += row.Osszesen_HUF
     zaro = nyito + (bevételek_per_month - költség_per_month)
-    cf_starting_closing["honap"].append(month)
-    cf_starting_closing["nyito"].append(nyito)
-    cf_starting_closing["zaro"].append(zaro)
+    cf_starting_closing["months"].append(month)
+    cf_starting_closing["starting_values"].append(nyito)
+    cf_starting_closing["closing_values"].append(zaro)
     nyito = zaro
 
 
 df = pd.DataFrame(cf_starting_closing)
-cur.execute("TRUNCATE starting_colsing_cf;")
+cur.execute("TRUNCATE starting_closing_cf;")
 conn.commit()
-df.to_sql("starting_colsing_cf", if_exists='append', index=False)
+df.to_sql("starting_closing_cf", engine, if_exists='append', index=False)

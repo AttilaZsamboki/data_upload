@@ -52,7 +52,7 @@ export default function SpecialQueries() {
 				"Content-Type": "multipart/form-data",
 			},
 		});
-		setInputTable("");
+		setInputTable(null);
 		inputRef.current.value = null;
 	};
 	const formControlStyle = {

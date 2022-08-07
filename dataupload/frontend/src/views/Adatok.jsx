@@ -8,7 +8,7 @@ export default function Tables() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
 	}
-	const tablePrefix = Userfront.user.name.slice(0, 3) + "_";w
+	const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 	const [tables, setTables] = useState([]);
 
 	useEffect(() => {
