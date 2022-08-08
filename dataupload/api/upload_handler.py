@@ -125,6 +125,8 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         df.to_sql("temporary", engine, index=False)
     else:
         df.to_sql(table, engine, index=False, if_exists='fail')
+        cur.execute("TRUNCATE "+table)
+        conn.commit()
         return
 
     for query in special_queries:
