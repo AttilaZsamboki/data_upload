@@ -124,7 +124,7 @@ const NavBar = () => {
 								{page}
 							</Button>
 						))}
-						{Userfront.user.userId in [1, 2] && (
+						{Userfront.user.userId === 8 && (
 							<Button
 								key='Tábla létrehozása'
 								onClick={handleCloseNavMenu}

@@ -171,7 +171,7 @@ class DatauploadUploadmodel(models.Model):
     user_id = models.IntegerField()
     is_new_table = models.BooleanField()
     extension_format = models.CharField(max_length=10, blank=True)
-                
+    skiprows = models.IntegerField(blank=True)
 
     class Meta:
         managed = False

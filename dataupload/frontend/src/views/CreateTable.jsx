@@ -3,7 +3,7 @@ import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
 import getCookie from "../utils/GetCookie";
 import AddIcon from "@mui/icons-material/Add";
-import { FormControl, Input, InputLabel, Button, FormHelperText } from "@mui/material";
+import { FormControl, Input, InputLabel, Button, FormHelperText, Autocomplete, TextField } from "@mui/material";
 import axios from "axios";
 
 export default function SpecialQueries() {
@@ -17,6 +17,7 @@ export default function SpecialQueries() {
 	const [inputTable, setInputTable] = useState(null);
 	const [selectedFile, setSelectedFile] = useState(null);
 	const [format, setFormat] = useState(null);
+	const [skiprows, setSkiprows] = useState(null);
 
 	const onFileUpload = (event) => {
 		const tablePrefix = Userfront.user.name.toLowerCase().slice(0, 3) + "_";
@@ -27,6 +28,7 @@ export default function SpecialQueries() {
 		formData.append("user_id", Userfront.user.userId);
 		formData.append("is_new_table", true);
 		formData.append("extension_format", format);
+		formData.append("skiprows", skiprows);
 		axios({
 			method: "post",
 			url: "/api/uploadmodel/",
@@ -59,6 +61,23 @@ export default function SpecialQueries() {
 					/>
 				</FormControl>
 				<br />
+				<Autocomplete
+					disablePortal
+					id='format'
+					options={formatOptions}
+					sx={{ width: 300 }}
+					renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
+					onChange={(event, values) => setFormat(values)}
+				/>
+				<br />
+				<TextField
+					type='number'
+					name='skiprows'
+					label='Kihagyott sorok száma'
+					value={skiprows}
+					onChange={({ target }) => setSkiprows(target.value)}
+				/>
+				<br />
 				<FormControl style={formControlStyle}>
 					<input
 						id='file'
@@ -69,15 +88,6 @@ export default function SpecialQueries() {
 					/>
 					<FormHelperText>Példa File</FormHelperText>
 				</FormControl>
-				<br />
-				<Autocomplete
-					disablePortal
-					id='format'
-					options={formatOptions}
-					sx={{ width: 300 }}
-					renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
-					onChange={(event, values) => setFormat(values)}
-				/>
 				<br />
 				<Button
 					variant='contained'

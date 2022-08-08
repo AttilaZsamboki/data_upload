@@ -8,7 +8,7 @@ from .models import DatauploadUploadmodel
 # database connection
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table):
+def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows):
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -47,12 +47,12 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     # data -->> pandas dataframe
     # skipping rows
     if extension_format == 'csv':
-        data = pd.read_csv(file, skiprows=int(table_template.skiprows))
+        data = pd.read_csv(file, skiprows=int(skiprows))
     elif extension_format == 'tsv':
         data = pd.read_csv(file, skiprows=int(
             table_template.skiprows), delimiter='\t')
     else:
-        data = pd.read_excel(file, skiprows=int(table_template.skiprows))
+        data = pd.read_excel(file, skiprows=int(skiprows))
 
     df = pd.DataFrame(data)
 
