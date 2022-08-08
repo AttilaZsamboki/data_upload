@@ -93,11 +93,14 @@ export default function SpecialQueries() {
 	};
 
 	const onFileUpload = (event) => {
+		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
+
 		event.preventDefault();
 		const formData = new FormData();
 		formData.append("table", inputTable);
 		formData.append("file", selectedFile);
 		formData.append("user_id", Userfront.user.userId);
+		formData.append("is_new_table", false);
 		axios({
 			method: "post",
 			url: "/api/uploadmodel/",

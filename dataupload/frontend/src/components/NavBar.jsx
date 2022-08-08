@@ -12,7 +12,7 @@ import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import Userfront from "@userfront/react";
+import Userfront from "@userfront/core";
 import LogoutButton from "./LogoutButton";
 
 const pages = ["Adatok", "Import config"];
@@ -38,38 +38,29 @@ const NavBar = () => {
 	};
 
 	return (
-		<AppBar
-			position='static'
-			style={{ marginBottom: 30 }}
-			sx={{ backgroundColor: "#013870" }}>
+		<AppBar position='static' sx={{ marginBottom: 5, backgroundColor: "#013970" }}>
 			<Container maxWidth='xl'>
 				<Toolbar disableGutters>
-					<CloudUploadIcon
-						sx={{ display: { xs: "none", md: "flex" }, mr: 1 }}
-					/>
+					<CloudUploadIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
 					<Typography
 						variant='h6'
 						noWrap
 						component='a'
 						href='/upload'
 						sx={{
-							mr: 2,
-							display: { xs: "none", md: "flex" },
-							fontFamily: "monospace",
-							fontWeight: 700,
-							letterSpacing: ".2rem",
-							color: "#EBF6DE",
-							textDecoration: "none",
-							"&:hover": { color: "#0A58CA" },
+							"mr": 2,
+							"display": { xs: "none", md: "flex" },
+							"fontFamily": "monospace",
+							"fontWeight": 700,
+							"letterSpacing": ".3rem",
+							"color": "inherit",
+							"textDecoration": "none",
+							"&:hover": { color: "#04010A" },
 						}}>
 						UPLOAD
 					</Typography>
 
-					<Box
-						sx={{
-							flexGrow: 1,
-							display: { xs: "flex", md: "none" },
-						}}>
+					<Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
 						<IconButton
 							size='large'
 							aria-label='account of current user'
@@ -97,47 +88,57 @@ const NavBar = () => {
 								display: { xs: "block", md: "none" },
 							}}>
 							{pages.map((page) => (
-								<MenuItem
-									key={page}
-									onClick={handleCloseNavMenu}>
+								<MenuItem key={page} onClick={handleCloseNavMenu}>
 									<Typography textAlign='center'>
-										{page}
+										<Button href={`/${page.toLowerCase().replace(" ", "-")}`}>{page}</Button>
 									</Typography>
 								</MenuItem>
 							))}
 						</Menu>
 					</Box>
-					<Box
+					<CloudUploadIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
+					<Typography
+						variant='h5'
+						noWrap
+						component='a'
+						href='/upload'
 						sx={{
+							mr: 2,
+							display: { xs: "flex", md: "none" },
 							flexGrow: 1,
-							display: { xs: "none", md: "flex" },
+							fontFamily: "monospace",
+							fontWeight: 700,
+							letterSpacing: ".3rem",
+							color: "inherit",
+							textDecoration: "none",
 						}}>
+						UPLOAD
+					</Typography>
+					<Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
 						{pages.map((page) => (
 							<Button
 								key={page}
-								href={`/${page
-									.toLowerCase()
-									.replace(" ", "-")}`}
 								onClick={handleCloseNavMenu}
-								sx={{
-									my: 2,
-									color: "#EBF6DE",
-									display: "block",
-								}}>
+								sx={{ "my": 2, "color": "white", "display": "block", "&:hover": { color: "#04010A" } }}
+								href={`/${page.toLowerCase().replace(" ", "-")}`}>
 								{page}
 							</Button>
 						))}
+						{Userfront.user.userId === 8 && (
+							<Button
+								key='Tábla létrehozása'
+								onClick={handleCloseNavMenu}
+								sx={{ "my": 2, "color": "white", "display": "block", "&:hover": { color: "#04010A" } }}
+								href={"/create-table"}>
+								Tábla létrehozása
+							</Button>
+						)}
 					</Box>
 
 					<Box sx={{ flexGrow: 0 }}>
 						<Tooltip title='Open settings'>
-							<IconButton
-								onClick={handleOpenUserMenu}
-								sx={{ p: 0 }}>
-								<Avatar
-									alt='Remy Sharp'
-									src='/static/images/avatar/2.jpg'
-								/>
+							<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+								<Avatar alt='Remy Sharp' src='/static/images/avatar/2.jpg' />
 							</IconButton>
 						</Tooltip>
 						<Menu
@@ -156,12 +157,8 @@ const NavBar = () => {
 							open={Boolean(anchorElUser)}
 							onClose={handleCloseUserMenu}>
 							{settings.map((setting) => (
-								<MenuItem
-									key={setting}
-									onClick={handleCloseUserMenu}>
-									<Typography textAlign='center'>
-										{setting}
-									</Typography>
+								<MenuItem key={setting} onClick={handleCloseUserMenu}>
+									<Typography textAlign='center'>{setting}</Typography>
 								</MenuItem>
 							))}
 						</Menu>
