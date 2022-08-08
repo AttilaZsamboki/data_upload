@@ -11,14 +11,15 @@ import { event } from "jquery";
 export default function AddConnection() {
 	const csrftoken = getCookie("csrftoken");
 	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
+	const formatOptions = ["xlsx", "csv", "tsv"];
 	const [appendOption, setAppendOption] = useState(null);
+	const [format, setFormat] = useState(null);
 	const [tables, setTables] = useState([]);
 	const [table, setTable] = useState(null);
 	const [isFinished, setIsFinished] = useState(false);
 	const [inputs, setInputs] = useState({
 		primaryKeyColumn: "",
 		skiprows: "",
-		extensionFormat: "",
 	});
 
 	useEffect(() => {
@@ -54,7 +55,7 @@ export default function AddConnection() {
 				skiprows: inputs.skiprows,
 				created_by_id: Userfront.user.userId,
 				append: appendOption,
-				extension_format: inputs.extensionFormat,
+				extension_format: format,
 			}),
 		};
 		try {
@@ -83,10 +84,13 @@ export default function AddConnection() {
 				onChange={(event, values) => setTable(values)}
 			/>
 			<br />
-			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='skiprows'>Number of rows to skip</InputLabel>
-				<Input id='skiprows' name='skiprows' type='skiprows' value={inputs.skiprows} onChange={handleChange} />
-			</FormControl>
+			<TextField
+				type='number'
+				name='skiprows'
+				label='Kihagyott sorok száma'
+				value={inputs.skiprows}
+				onChange={handleChange}
+			/>
 			<br />
 			<FormControl style={formControlStyle}>
 				<InputLabel htmlFor='primaryKeyColumn'>Primary Key Column</InputLabel>
@@ -111,16 +115,14 @@ export default function AddConnection() {
 				value={appendOption}
 			/>
 			<br />
-			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='extensionFormat'>Extension Format</InputLabel>
-				<Input
-					id='extensionFormat'
-					name='extensionFormat'
-					type='text'
-					value={inputs.extensionFormat}
-					onChange={handleChange}
-				/>
-			</FormControl>
+			<Autocomplete
+				disablePortal
+				id='format'
+				options={formatOptions}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
+				onChange={(event, values) => setFormat(values)}
+			/>
 			<br />
 			<Button
 				variant='contained'

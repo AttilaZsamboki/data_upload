@@ -24,19 +24,55 @@ export default function DataFrame({ tables, initialFilter }) {
 
 	const [rowData, setRowData] = useState([]);
 	const [columnDefs, setColumnDefs] = useState([]);
-	// fetching data from the database
+	const [isLoading, setIsLoading] = useState(false);
 	useEffect(() => {
-		axios(`/api/${tableName}`).then((result) => setRowData(result.data.filter(initialFilter)));
+		setRowData([]);
+		const fetchData = async () => {
+			try {
+				const result = await axios(`/api/${tableName}`);
+				setRowData(result.data.filter(initialFilter));
+			} catch (error) {
+				console.log(error);
+			}
+		};
 
-		setColumnDefs([]);
+		if (tableName) {
+			fetchData();
+			setColumnDefs([]);
+		}
 	}, [tableName]);
 
 	useEffect(() => {
-		for (let data in rowData[0]) {
-			if (data === Object.keys(rowData[0])[0]) {
-				setColumnDefs((prev) => [...prev, { field: data, checkboxSelection: true }]);
+		const dateColumnsByTable = [
+			{ table: "fol_unas", dateCol: "" },
+			{ table: "fol_bevételek", dateCol: "date" },
+			{ table: "fol_gls_elszámolás", dateCol: "felvetel_datuma_" },
+			{ table: "fol_költségek", dateCol: "date" },
+			{ table: "fol_orders", dateCol: "Order_Date" },
+			{ table: "fol_product_suppliers", dateCol: "" },
+			{ table: "fol_stock_aging", dateCol: "" },
+			{ table: "fol_stock_report", dateCol: "" },
+			{ table: "fol_stock_transaction_report", dateCol: "Finished" },
+			{ table: "fol_számlák", dateCol: "date" },
+			{ table: "pro_bevételek", dateCol: "date" },
+			{ table: "pro_költségek", dateCol: "date" },
+			{ table: "pro_orders", dateCol: "Order_Date" },
+			{ table: "pro_product_suppliers", dateCol: "" },
+			{ table: "pro_stock_aging", dateCol: "" },
+			{ table: "pro_stock_report", dateCol: "" },
+			{ table: "pro_stock_transaction_report", dateCol: "Finished" },
+			{ table: "pro_számlák", dateCol: "Date" },
+		];
+		let dateColumn = dateColumnsByTable.filter(({ table }) => table === tableName);
+		dateColumn = dateColumn.map((table) => table.dateCol);
+		for (let columnName in rowData[0]) {
+			if (columnName === Object.keys(rowData[0])[0]) {
+				setColumnDefs((prev) => [...prev, { field: columnName, checkboxSelection: true }]);
+			} else if (columnName === dateColumn.toString()) {
+				console.log(dateColumn, columnName);
+				setColumnDefs((prev) => [...prev, { field: columnName, filter: "agDateColumnFilter" }]);
 			} else {
-				setColumnDefs((prev) => [...prev, { field: data }]);
+				setColumnDefs((prev) => [...prev, { field: columnName }]);
 			}
 		}
 	}, [rowData]);
@@ -68,9 +104,9 @@ export default function DataFrame({ tables, initialFilter }) {
 				variant='contained'
 				disabled={!tableName}
 				sx={{
-					backgroundColor: "#057D55",
-					marginTop: 5,
-					marginLeft: 3,
+					"backgroundColor": "#057D55",
+					"marginTop": 5,
+					"marginLeft": 3,
 					"&:hover": { color: "white" },
 				}}
 				href={`/add-${tableName}`}>

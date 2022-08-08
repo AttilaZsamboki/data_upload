@@ -78,16 +78,7 @@ export default function AddConnection() {
 				onChange={(event, values) => setTable(values)}
 			/>
 			<br />
-			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='special_query'>Special_query</InputLabel>
-				<Input
-					id='special_query'
-					name='special_query'
-					type='text'
-					value={inputs.special_query}
-					onChange={handleChange}
-				/>
-			</FormControl>
+			<TextField id='special-query' label='Special SQL query' multiline rows={8} fullWidth />
 			<br />
 			<Button
 				variant='contained'
