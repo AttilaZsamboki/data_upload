@@ -8,7 +8,7 @@ from .models import DatauploadUploadmodel
 # database connection
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id):
+def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table):
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -121,7 +121,13 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         cur.execute("DROP TABLE temporary;")
         conn.commit()
 
-    df.to_sql("temporary", engine, index=False)
+    if not is_new_table:
+        df.to_sql("temporary", engine, index=False)
+    else:
+        df.to_sql(table, engine, index=False, if_exists='fail')
+        cur.execute("TRUNCATE "+table)
+        conn.commit()
+        return
 
     for query in special_queries:
         cur.execute(query.special_query)

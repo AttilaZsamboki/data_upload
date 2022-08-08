@@ -12,6 +12,7 @@ import AddTemplate from "./views/AddTemplate";
 import ImportConfig from "./views/ImportConfig";
 import AddSpecialQueries from "./views/AddSpecialQuery";
 import Footer from "./components/Footer";
+import CreateTable from "./views/CreateTable";
 
 function App() {
 	return (
@@ -29,6 +30,7 @@ function App() {
 					<Route path='/add-templates' element={<AddTemplate />} />
 					<Route path='/import-config' element={<ImportConfig />} />
 					<Route path='/add-special-queries' element={<AddSpecialQueries />} />
+					<Route path='/create-table' element={<CreateTable />} />
 				</Routes>
 			</BrowserRouter>
 			<Footer />

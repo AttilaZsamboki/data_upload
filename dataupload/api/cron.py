@@ -14,4 +14,4 @@ def upload_file():
         table_template = DatauploadTabletemplates.objects.get(
             table=table, created_by_id=upload.user_id)
         handle_uploaded_file(file, table, special_queries,
-                             table_template, extension_format, upload.user_id)
+                             table_template, extension_format, upload.user_id, upload.is_new_table)

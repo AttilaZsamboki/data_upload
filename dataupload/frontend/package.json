@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "proxy": "https://localhost:8000",
+  "proxy": "https://www.dataupload.xyz",
   "scripts": {
     "build": "esbuild ./src/index.jsx --bundle --outdir=./static/frontend --watch"
   },
