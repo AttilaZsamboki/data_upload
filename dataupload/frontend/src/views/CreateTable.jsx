@@ -10,18 +10,13 @@ export default function SpecialQueries() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
 	}
+
+	const formatOptions = ["xlsx", "csv", "tsv"];
 	const inputRef = useRef(null);
 	const csrftoken = getCookie("csrftoken");
 	const [inputTable, setInputTable] = useState(null);
 	const [selectedFile, setSelectedFile] = useState(null);
-
-	const onFileChange = (e) => {
-		setSelectedFile(e.target.files[0]);
-	};
-
-	const handleChange = ({ target }) => {
-		setInputTable(target.value);
-	};
+	const [format, setFormat] = useState(null);
 
 	const onFileUpload = (event) => {
 		const tablePrefix = Userfront.user.name.toLowerCase().slice(0, 3) + "_";
@@ -31,6 +26,7 @@ export default function SpecialQueries() {
 		formData.append("file", selectedFile);
 		formData.append("user_id", Userfront.user.userId);
 		formData.append("is_new_table", true);
+		formData.append("extension_format", format);
 		axios({
 			method: "post",
 			url: "/api/uploadmodel/",
@@ -54,13 +50,34 @@ export default function SpecialQueries() {
 			<form onSubmit={onFileUpload}>
 				<FormControl style={formControlStyle}>
 					<InputLabel htmlFor='table'>Tábla neve</InputLabel>
-					<Input id='table' name='table' type='text' value={inputTable} onChange={handleChange} />
+					<Input
+						id='table'
+						name='table'
+						type='text'
+						value={inputTable}
+						onChange={({ target }) => setInputTable(target.value)}
+					/>
 				</FormControl>
 				<br />
 				<FormControl style={formControlStyle}>
-					<input id='file' name='file' type='file' onChange={onFileChange} ref={inputRef} />
+					<input
+						id='file'
+						name='file'
+						type='file'
+						onChange={({ target }) => setSelectedFile(target.files[0])}
+						ref={inputRef}
+					/>
 					<FormHelperText>Példa File</FormHelperText>
 				</FormControl>
+				<br />
+				<Autocomplete
+					disablePortal
+					id='format'
+					options={formatOptions}
+					sx={{ width: 300 }}
+					renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
+					onChange={(event, values) => setFormat(values)}
+				/>
 				<br />
 				<Button
 					variant='contained'

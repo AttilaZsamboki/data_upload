@@ -1,5 +1,4 @@
 from django.db import models
-from sqlalchemy import true
 
 
 class AuthGroup(models.Model):
@@ -171,6 +170,8 @@ class DatauploadUploadmodel(models.Model):
     file = models.FileField(upload_to='upload_files/', max_length=200)
     user_id = models.IntegerField()
     is_new_table = models.BooleanField()
+    extension_format = models.CharField(max_length=10, blank=True)
+                
 
     class Meta:
         managed = False
