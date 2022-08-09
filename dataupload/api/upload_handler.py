@@ -5,6 +5,7 @@ import datetime as dt
 from sqlalchemy import create_engine
 import os
 from .models import DatauploadUploadmodel
+# database connection
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows, column_bindings):
