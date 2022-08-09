@@ -20,6 +20,26 @@ export default function AddConnection() {
 		primaryKeyColumn: "",
 		skiprows: "",
 	});
+	const [columnNames, setColumnNames] = useState(null);
+	const [columns, setColumns] = useState(
+		columnNames &&
+			Object.keys(columnNames).map((column) => {
+				column: "";
+			})
+	);
+
+	useEffect(() => {
+		setColumnNames([]);
+		const column = async () => {
+			const data = await fetch("/api/column-names/");
+			const json = await data.json();
+			setColumnNames(
+				json.filter((column) => column[0] === table && column[1] !== "id").map((column) => column[1])
+			);
+		};
+
+		column();
+	}, [table]);
 
 	useEffect(() => {
 		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
@@ -36,6 +56,13 @@ export default function AddConnection() {
 		setInputs((values) => ({ ...values, [name]: value }));
 	};
 
+	const handleColumnChange = (event) => {
+		const name = event.target.name;
+		const value = event.target.value;
+		setColumns((values) => ({ ...values, [name]: value }));
+		console.log(columns);
+	};
+
 	async function handleSubmit(event) {
 		event.preventDefault();
 		const requestOptions = {
@@ -46,7 +73,6 @@ export default function AddConnection() {
 				"Accept": "application/json",
 				"X-CSRFToken": csrftoken,
 				"Content-Type": "application/json",
-				"Authorization": `Bearer ${Userfront.tokens.accessToken}`,
 			},
 			body: JSON.stringify({
 				table: table,
@@ -55,6 +81,7 @@ export default function AddConnection() {
 				created_by_id: Userfront.user.userId,
 				append: appendOption,
 				extension_format: format,
+				source_column_names: JSON.stringify(columns),
 			}),
 		};
 		try {
@@ -80,7 +107,10 @@ export default function AddConnection() {
 				options={tables}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Tábla neve' />}
-				onChange={(event, values) => setTable(values)}
+				onChange={(event, values) => {
+					setColumns(null);
+					setTable(values);
+				}}
 			/>
 			<br />
 			<TextField
@@ -123,7 +153,18 @@ export default function AddConnection() {
 				onChange={(event, values) => setFormat(values)}
 			/>
 			<br />
+			{columnNames && (
+				<div>
+					{Object.values(columnNames).map((column) => (
+						<FormControl>
+							<InputLabel htmlFor={column}>{column}</InputLabel>
+							<Input id={column} name={column} type='text' onChange={handleColumnChange} />
+						</FormControl>
+					))}
+				</div>
+			)}
 			<Button
+				disabled={!columns}
 				variant='contained'
 				sx={{
 					"backgroundColor": "#057D55",

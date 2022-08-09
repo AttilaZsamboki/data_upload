@@ -12,6 +12,14 @@ conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
 #----------------------------------------------------GENERIC-------------------------------------------------------#
 
 
+def ColumnNames(request):
+    if request.method == 'GET':
+        cur = conn.cursor()
+        cur.execute(
+            "select table_name, column_name from information_schema.columns where table_schema = 'public'")
+        return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
+
+
 def TableNames(request):
     if request.method == 'GET':
         cur = conn.cursor()
@@ -40,6 +48,7 @@ class SpecialQueriesList(generics.ListCreateAPIView):
 class SpecialQueryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.DatauploadImporttemplates.objects.all()
     serializer_class = serializers.ImportTemplatesSerializer
+
 
 
 class UploadmodelViewSet(viewsets.ModelViewSet):
