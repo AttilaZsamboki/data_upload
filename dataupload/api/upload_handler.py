@@ -5,10 +5,9 @@ import datetime as dt
 from sqlalchemy import create_engine
 import os
 from .models import DatauploadUploadmodel
-# database connection
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows):
+def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows, column_bindings):
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -45,19 +44,15 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     if table in ["fol_stock_report", "pro_stock_report"]:
         df["timestamp"] = dt.datetime.now()
 
-    # # renaming unicode columns to ascii
-    column_names = {}
-    # this is not the best choice, maybe there are better modules
-    chars_to_replace = {": ": "_", " ": "_",
-                        "(": "", ")": "", "%": "", ".": "", "\'": "", "-": "_"}
-    for i in df.columns:
-        # ascii
-        column_names[i] = unidecode.unidecode(i)
-        for l, j in chars_to_replace.items():
-            # removing additional character
-            column_names[i] = column_names[i].replace(l, j)
-    for i, l in column_names.items():
-        df.rename(columns={i: l}, inplace=True)
+    # column_names = {}
+    # chars_to_replace = {": ": "_", " ": "_",
+    #                     "(": "", ")": "", "%": "", ".": "", "\'": "", "-": "_"}
+    # for i in df.columns:
+    #     column_names[i] = unidecode.unidecode(i)
+    #     for l, j in chars_to_replace.items():
+    #         column_names[i] = column_names[i].replace(l, j)
+    # for i, l in column_names.items():
+    #     df.rename(columns={i: l}, inplace=True)
 
     cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
     tables_in_sql = list(cur.fetchone())[0].split(", ")
@@ -82,49 +77,49 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         else:
             return print("Hibásan megadott táblanév, nincs ilyen tábla az adatbázisban!")
 
-    def col_by_dtype(data_type, curr_table):
-        data_type_str = ""
-        for i in range(len(data_type)):
-            if i != len(data_type)-1:
-                data_type_str += "'" + data_type[i] + "',"
-            else:
-                data_type_str += "'" + data_type[i] + "'"
-        cur.execute("""select lower(string_agg(col.column_name, ', '))
-        from information_schema.columns col
-                join information_schema.tables tab on tab.table_schema = col.table_schema
-            and tab.table_name = col.table_name
-            and tab.table_type = 'BASE TABLE'
-        where col.data_type in ("""+data_type_str+""")
-        and col.table_name = '"""+curr_table+"""'
-        group by col.table_schema;""")
-        try:
-            cols = list(cur.fetchone())[0].split(", ")
-            cols = [i.lower() for i in cols]
-            return cols
-        except:
-            return None
+    # def col_by_dtype(data_type, curr_table):
+    #     data_type_str = ""
+    #     for i in range(len(data_type)):
+    #         if i != len(data_type)-1:
+    #             data_type_str += "'" + data_type[i] + "',"
+    #         else:
+    #             data_type_str += "'" + data_type[i] + "'"
+    #     cur.execute("""select lower(string_agg(col.column_name, ', '))
+    #     from information_schema.columns col
+    #             join information_schema.tables tab on tab.table_schema = col.table_schema
+    #         and tab.table_name = col.table_name
+    #         and tab.table_type = 'BASE TABLE'
+    #     where col.data_type in ("""+data_type_str+""")
+    #     and col.table_name = '"""+curr_table+"""'
+    #     group by col.table_schema;""")
+    #     try:
+    #         cols = list(cur.fetchone())[0].split(", ")
+    #         cols = [i.lower() for i in cols]
+    #         return cols
+    #     except:
+    #         return None
 
-    for i in df.columns:
-        if table in tables_in_sql:
+    # for i in df.columns:
+    #     if table in tables_in_sql:
 
-            numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
-                                        'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
-            date_cols = col_by_dtype(['date', 'timestamp'], table)
-            try:
-                if (numeric_cols is not None) and i.lower() in numeric_cols:
-                    lst = []
-                    for x in df[i]:
-                        if type(x) == str and ',' in x:
-                            lst.append(x.replace(',', '.'))
-                        else:
-                            lst.append(x)
-                    df[i] = lst
-                    df[i] = df[i].astype(float)
-                if (date_cols is not None) and i.lower() in date_cols:
-                    df[i] = df[i].astype(dtype='datetime64[ns]')
-            except ValueError as e:
-                return print(
-                    "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
+    #         numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
+    #                                     'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
+    #         date_cols = col_by_dtype(['date', 'timestamp'], table)
+    #         try:
+    #             if (numeric_cols is not None) and i.lower() in numeric_cols:
+    #                 lst = []
+    #                 for x in df[i]:
+    #                     if type(x) == str and ',' in x:
+    #                         lst.append(x.replace(',', '.'))
+    #                     else:
+    #                         lst.append(x)
+    #                 df[i] = lst
+    #                 df[i] = df[i].astype(float)
+    #             if (date_cols is not None) and i.lower() in date_cols:
+    #                 df[i] = df[i].astype(dtype='datetime64[ns]')
+    #         except ValueError as e:
+    #             return print(
+    #                 "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -179,7 +174,8 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                 conn.close()
                 return print("Hibásan megadott elsődleges kulcs!")
 
-        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary WHERE \"" +
+        cur.execute("INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys()]) +
+                    ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary WHERE \"" +
                     p_key_column_df+"\" NOT IN (SELECT \""+p_key_column_sql+"\" FROM "+table+");")
     elif table_template.append == "Hozzáfűzés":
         cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")

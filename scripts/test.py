@@ -28,14 +28,6 @@ cur = conn.cursor()
 
 sourceColumnNames = ["Name", "Date"]
 
-cur.execute("""SELECT
-                string_agg(column_name, ', ')
-            FROM
-                information_schema.columns
-            WHERE
-                table_schema = 'public'
-                AND table_name = 'test_table';""")
-sql_columns = list(cur.fetchall())[0].split(", ")
 columnNames = {}
 
 
