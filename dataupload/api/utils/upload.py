@@ -7,7 +7,7 @@ DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
 DB_PORT = "25061"
 
 conn = connect(dbname=DB_NAME, user=DB_USER,
-               password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
+               password=DB_PASS, host=DB_HOST, port=DB_PORT)
 cur = conn.cursor()
 
 

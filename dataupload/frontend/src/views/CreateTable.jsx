@@ -42,6 +42,7 @@ export default function SpecialQueries() {
 			},
 		});
 		setInputTable(null);
+		setIsFinished(true);
 		inputRef.current.value = null;
 	};
 

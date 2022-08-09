@@ -49,6 +49,8 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     #\\\\\\\\\\\\\\\\\\\\\\ ADDING NEW TABLES /////////////////////////////////////#
 
     #\\\\\\\\\\\\\\\\\\\\\\\\ UTF-8 >---> ASCII (HEAD) ///////////////////////////////////////#
+    cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
+    tables_in_sql = list(cur.fetchone())[0].split(", ")
     if is_new_table:
         column_names = {}
         chars_to_replace = {": ": "_", " ": "_",
@@ -60,14 +62,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         for i, l in column_names.items():
             df.rename(columns={i: l}, inplace=True)
 
-        cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
-        tables_in_sql = list(cur.fetchone())[0].split(", ")
-
         if table not in tables_in_sql:
-            cur.execute(
-                "select table_name, column_name from information_schema.columns where table_schema = 'public'")
-            db_column_names = cur.fetchall()
-            column_bindings[db_column_names] = [source_column_names]
+            db_column_names = df.columns
+            column_bindings = {}
+            for i in range(len(db_column_names)):
+                column_bindings[db_column_names[i]] = source_column_names[i]
             template = DatauploadTabletemplates(table=table, pkey_col="", skiprows=skiprows, created_by_id=user_id,
                                                 append="Hozzáfűzés duplikációk szűrésével", extension_format=extension_format, source_column_names=dumps(column_bindings))
             template.save()
@@ -95,11 +94,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                                         'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
             date_cols = col_by_dtype(['date', 'timestamp'], table)
             numeric_cols_source = [
-                i for i in numeric_cols if i == primary_key_source]
+                j for i, j in column_bindings.items() if j in numeric_cols] if numeric_cols else []
             date_cols_source = [
-                i for i in date_cols if i == primary_key_source]
+                j for i, j in column_bindings.items() if j in date_cols] if date_cols else []
             try:
-                if (numeric_cols_source is not None) and i in numeric_cols_source:
+                if numeric_cols_source:
                     lst = []
                     for x in df[i]:
                         if type(x) == str and ',' in x:
@@ -108,7 +107,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                             lst.append(x)
                     df[i] = lst
                     df[i] = df[i].astype(float)
-                if (date_cols is not None) and i.lower() in date_cols_source:
+                if date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
             except ValueError as e:
                 return print(
@@ -131,17 +130,15 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary"
 
-    append = table.append
-
-    if append == "Felülírás":
+    if table_template.append == "Felülírás":
         cur.execute("TRUNCATE "+table+";")
-    elif append == "Hozzáfűzés duplikációk szűrésével":
+    elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
         primary_key_source = table_template.pkey_col
         primary_key_db = [
             i for i, j in column_bindings.items() if j == primary_key_source]
         cur.execute(base_query + " WHERE \"" +
                     primary_key_source+"\" NOT IN (SELECT \""+"".join(primary_key_db)+"\" FROM "+table+");")
-    elif append == "Hozzáfűzés" or append == "Felülírás":
+    elif table_template.append == "Hozzáfűzés" or table_template == "Felülírás":
         cur.execute(base_query)
         conn.commit()
 
