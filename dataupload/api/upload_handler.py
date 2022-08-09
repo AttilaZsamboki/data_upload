@@ -4,8 +4,9 @@ import psycopg2
 import datetime as dt
 from sqlalchemy import create_engine
 import os
-from .models import DatauploadUploadmodel
-# database connection
+from .models import DatauploadUploadmodel, DatauploadTabletemplates
+from .utils.upload import col_by_dtype
+from json import dumps
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows, column_bindings):
@@ -30,8 +31,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
     cur = conn.cursor()
 
-    # data -->> pandas dataframe
-    # skipping rows
+    #\\\\\\\\\\\\\\\\\\\\\\\\\ data -->> pandas dataframe ///////////////////////////////////////////#
     if extension_format == 'csv':
         data = pd.read_csv(file, skiprows=int(skiprows))
     elif extension_format == 'tsv':
@@ -41,25 +41,35 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         data = pd.read_excel(file, skiprows=int(skiprows))
 
     df = pd.DataFrame(data)
-
+    source_column_names = df.columns
+    # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
     if table in ["fol_stock_report", "pro_stock_report"]:
         df["timestamp"] = dt.datetime.now()
 
-    # column_names = {}
-    # chars_to_replace = {": ": "_", " ": "_",
-    #                     "(": "", ")": "", "%": "", ".": "", "\'": "", "-": "_"}
-    # for i in df.columns:
-    #     column_names[i] = unidecode.unidecode(i)
-    #     for l, j in chars_to_replace.items():
-    #         column_names[i] = column_names[i].replace(l, j)
-    # for i, l in column_names.items():
-    #     df.rename(columns={i: l}, inplace=True)
+    #\\\\\\\\\\\\\\\\\\\\\\ ADDING NEW TABLES /////////////////////////////////////#
 
+    #\\\\\\\\\\\\\\\\\\\\\\\\ UTF-8 >---> ASCII (HEAD) ///////////////////////////////////////#
     cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
     tables_in_sql = list(cur.fetchone())[0].split(", ")
-
     if is_new_table:
+        column_names = {}
+        chars_to_replace = {": ": "_", " ": "_",
+                            "(": "", ")": "", "%": "", ".": "", "\'": "", "-": "_"}
+        for i in df.columns:
+            column_names[i] = unidecode.unidecode(i)
+            for l, j in chars_to_replace.items():
+                column_names[i] = column_names[i].replace(l, j)
+        for i, l in column_names.items():
+            df.rename(columns={i: l}, inplace=True)
+
         if table not in tables_in_sql:
+            db_column_names = df.columns
+            column_bindings = {}
+            for i in range(len(db_column_names)):
+                column_bindings[db_column_names[i]] = source_column_names[i]
+            template = DatauploadTabletemplates(table=table, pkey_col="", skiprows=skiprows, created_by_id=user_id,
+                                                append="Hozzáfűzés duplikációk szűrésével", extension_format=extension_format, source_column_names=dumps(column_bindings))
+            template.save()
             df.to_sql(table, engine, index=False)
             cur.execute("TRUNCATE "+table)
             conn.commit()
@@ -78,49 +88,30 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         else:
             return print("Hibásan megadott táblanév, nincs ilyen tábla az adatbázisban!")
 
-    # def col_by_dtype(data_type, curr_table):
-    #     data_type_str = ""
-    #     for i in range(len(data_type)):
-    #         if i != len(data_type)-1:
-    #             data_type_str += "'" + data_type[i] + "',"
-    #         else:
-    #             data_type_str += "'" + data_type[i] + "'"
-    #     cur.execute("""select lower(string_agg(col.column_name, ', '))
-    #     from information_schema.columns col
-    #             join information_schema.tables tab on tab.table_schema = col.table_schema
-    #         and tab.table_name = col.table_name
-    #         and tab.table_type = 'BASE TABLE'
-    #     where col.data_type in ("""+data_type_str+""")
-    #     and col.table_name = '"""+curr_table+"""'
-    #     group by col.table_schema;""")
-    #     try:
-    #         cols = list(cur.fetchone())[0].split(", ")
-    #         cols = [i.lower() for i in cols]
-    #         return cols
-    #     except:
-    #         return None
-
-    # for i in df.columns:
-    #     if table in tables_in_sql:
-
-    #         numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
-    #                                     'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
-    #         date_cols = col_by_dtype(['date', 'timestamp'], table)
-    #         try:
-    #             if (numeric_cols is not None) and i.lower() in numeric_cols:
-    #                 lst = []
-    #                 for x in df[i]:
-    #                     if type(x) == str and ',' in x:
-    #                         lst.append(x.replace(',', '.'))
-    #                     else:
-    #                         lst.append(x)
-    #                 df[i] = lst
-    #                 df[i] = df[i].astype(float)
-    #             if (date_cols is not None) and i.lower() in date_cols:
-    #                 df[i] = df[i].astype(dtype='datetime64[ns]')
-    #         except ValueError as e:
-    #             return print(
-    #                 "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
+    for i in df.columns:
+        if table in tables_in_sql:
+            numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
+                                        'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
+            date_cols = col_by_dtype(['date', 'timestamp'], table)
+            numeric_cols_source = [
+                j for i, j in column_bindings.items() if j in numeric_cols] if numeric_cols else []
+            date_cols_source = [
+                j for i, j in column_bindings.items() if j in date_cols] if date_cols else []
+            try:
+                if numeric_cols_source:
+                    lst = []
+                    for x in df[i]:
+                        if type(x) == str and ',' in x:
+                            lst.append(x.replace(',', '.'))
+                        else:
+                            lst.append(x)
+                    df[i] = lst
+                    df[i] = df[i].astype(float)
+                if date_cols_source:
+                    df[i] = df[i].astype(dtype='datetime64[ns]')
+            except ValueError as e:
+                return print(
+                    "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -132,54 +123,23 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         cur.execute(query.special_query)
         conn.commit()
 
-    cur.execute("""SELECT
-                    string_agg(column_name, ', ')
-                FROM
-                    information_schema.columns
-                WHERE
-                    table_schema = 'public'
-                    AND table_name = '"""+table+"""';""")
-    sql_columns = list(cur.fetchone())[0].split(", ")
+    for i in column_bindings.values():
+        if i not in df.columns:
+            print("Column not in source file, check your template")
+
+    base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
+    )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary"
 
     if table_template.append == "Felülírás":
         cur.execute("TRUNCATE "+table+";")
-        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
-        conn.commit()
     elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
-        p_key_column = table_template.pkey_col
-        if p_key_column in sql_columns:
-            p_key_column_sql = p_key_column
-        else:
-            if p_key_column.lower() in sql_columns:
-                p_key_column_sql = p_key_column.lower()
-            elif p_key_column.capitalize() in sql_columns:
-                p_key_column_sql = p_key_column.capitalize()
-            else:
-                cur.execute("DROP TABLE temporary;")
-                conn.commit()
-                cur.close()
-                conn.close()
-                return print("Hibásan megadott elsődleges kulcs!")
-
-        if p_key_column in df.columns:
-            p_key_column_df = p_key_column
-        else:
-            if p_key_column.lower() in df.columns:
-                p_key_column_df = p_key_column.lower()
-            elif p_key_column.capitalize() in df.columns:
-                p_key_column_df = p_key_column.capitalize()
-            else:
-                cur.execute("DROP TABLE temporary;")
-                conn.commit()
-                cur.close()
-                conn.close()
-                return print("Hibásan megadott elsődleges kulcs!")
-
-        cur.execute("INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys()]) +
-                    ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary WHERE \"" +
-                    p_key_column_df+"\" NOT IN (SELECT \""+p_key_column_sql+"\" FROM "+table+");")
-    elif table_template.append == "Hozzáfűzés":
-        cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
+        primary_key_source = table_template.pkey_col
+        primary_key_db = [
+            i for i, j in column_bindings.items() if j == primary_key_source]
+        cur.execute(base_query + " WHERE \"" +
+                    primary_key_source+"\" NOT IN (SELECT \""+"".join(primary_key_db)+"\" FROM "+table+");")
+    elif table_template.append == "Hozzáfűzés" or table_template == "Felülírás":
+        cur.execute(base_query)
         conn.commit()
 
     # dropping temporary table

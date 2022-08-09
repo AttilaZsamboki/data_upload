@@ -60,7 +60,6 @@ export default function AddConnection() {
 		const name = event.target.name;
 		const value = event.target.value;
 		setColumns((values) => ({ ...values, [name]: value }));
-		console.log(columns);
 	};
 
 	async function handleSubmit(event) {
