@@ -30,20 +30,6 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
     cur = conn.cursor()
 
-    p_key_column = table_template.pkey_col
-    table = table_template.table
-
-    cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
-    tables_in_sql = list(cur.fetchone())[0].split(", ")
-
-    if table not in tables_in_sql:
-        if table.capitalize() in tables_in_sql:
-            table = table.capitalize()
-        elif table.lower() in tables_in_sql:
-            table = table.lower()
-        else:
-            return print("Hibásan megadott táblanév, nincs ilyen tábla az adatbázisban!")
-
     # data -->> pandas dataframe
     # skipping rows
     if extension_format == 'csv':
@@ -72,6 +58,29 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
             column_names[i] = column_names[i].replace(l, j)
     for i, l in column_names.items():
         df.rename(columns={i: l}, inplace=True)
+
+    cur.execute("SELECT string_agg(tablename, ', ') FROM pg_catalog.pg_tables WHERE schemaname != 'pg_catalog' AND schemaname != 'information_schema';")
+    tables_in_sql = list(cur.fetchone())[0].split(", ")
+
+    if is_new_table:
+        if table not in tables_in_sql:
+            df.to_sql(table, engine, index=False)
+            cur.execute("TRUNCATE "+table)
+            conn.commit()
+            os.remove('/home/atti/googleds/dataupload/media/' + str(file))
+            DatauploadUploadmodel.objects.get(
+                table=table, file=file, user_id=user_id).delete()
+            return
+        else:
+            return print("Table already exists")
+
+    if table not in tables_in_sql:
+        if table.capitalize() in tables_in_sql:
+            table = table.capitalize()
+        elif table.lower() in tables_in_sql:
+            table = table.lower()
+        else:
+            return print("Hibásan megadott táblanév, nincs ilyen tábla az adatbázisban!")
 
     def col_by_dtype(data_type, curr_table):
         data_type_str = ""
@@ -121,13 +130,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         cur.execute("DROP TABLE temporary;")
         conn.commit()
 
-    if not is_new_table:
-        df.to_sql("temporary", engine, index=False)
-    else:
-        df.to_sql(table, engine, index=False, if_exists='fail')
-        cur.execute("TRUNCATE "+table)
-        conn.commit()
-        return
+    df.to_sql("temporary", engine, index=False)
 
     for query in special_queries:
         cur.execute(query.special_query)
@@ -147,6 +150,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         cur.execute("INSERT INTO "+table+" SELECT * FROM temporary;")
         conn.commit()
     elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
+        p_key_column = table_template.pkey_col
         if p_key_column in sql_columns:
             p_key_column_sql = p_key_column
         else:

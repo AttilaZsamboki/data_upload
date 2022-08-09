@@ -21,28 +21,26 @@ def TableNames(request):
 
 # dataupload config
 
+
 class TemplatesList(generics.ListCreateAPIView):
     queryset = models.DatauploadTabletemplates.objects.all()
     serializer_class = serializers.TemplatesSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class TemplateDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.DatauploadTabletemplates.objects.all()
     serializer_class = serializers.TemplatesSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class SpecialQueriesList(generics.ListCreateAPIView):
     queryset = models.DatauploadImporttemplates.objects.all()
     serializer_class = serializers.ImportTemplatesSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
 
 class SpecialQueryDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.DatauploadImporttemplates.objects.all()
     serializer_class = serializers.ImportTemplatesSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
 
 class UploadmodelViewSet(viewsets.ModelViewSet):
     queryset = models.DatauploadUploadmodel.objects.all()
@@ -52,7 +50,8 @@ class UploadmodelViewSet(viewsets.ModelViewSet):
         table = request.data["table"]
         file = request.data["file"]
         user_id = request.data["table"]
-        models.DatauploadUploadmodel.create(table=table, file=file, user_id=user_id)
+        models.DatauploadUploadmodel.create(
+            table=table, file=file, user_id=user_id)
         return HttpResponse({"message": "File uploaded"}, status=200)
 
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #

@@ -9,6 +9,8 @@ import axios from "axios";
 export default function SpecialQueries() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
+	} else if (!(Userfront.user.userId in [1, 2])) {
+		return <Navigate to='/upload' />;
 	}
 
 	const formatOptions = ["xlsx", "csv", "tsv"];
@@ -21,6 +23,7 @@ export default function SpecialQueries() {
 
 	const onFileUpload = (event) => {
 		const tablePrefix = Userfront.user.name.toLowerCase().slice(0, 3) + "_";
+		console.log(skiprows);
 		event.preventDefault();
 		const formData = new FormData();
 		formData.append("table", tablePrefix + inputTable);
@@ -75,7 +78,7 @@ export default function SpecialQueries() {
 					name='skiprows'
 					label='Kihagyott sorok száma'
 					value={skiprows}
-					onChange={({ target }) => setSkiprows(target.value)}
+					onChange={(values) => console.log(values.value)}
 				/>
 				<br />
 				<FormControl style={formControlStyle}>

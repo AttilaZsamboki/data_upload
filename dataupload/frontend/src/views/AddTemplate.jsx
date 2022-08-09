@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import Userfront from "@userfront/react";
 import getCookie from "../utils/GetCookie";
 import { Autocomplete, TextField } from "@mui/material";
-import { event } from "jquery";
 
 export default function AddConnection() {
 	const csrftoken = getCookie("csrftoken");
