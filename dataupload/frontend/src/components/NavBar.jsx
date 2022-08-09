@@ -103,14 +103,15 @@ const NavBar = () => {
 						component='a'
 						href='/upload'
 						sx={{
-							mr: 2,
-							display: { xs: "flex", md: "none" },
-							flexGrow: 1,
-							fontFamily: "monospace",
-							fontWeight: 700,
-							letterSpacing: ".3rem",
-							color: "inherit",
-							textDecoration: "none",
+							"mr": 2,
+							"display": { xs: "flex", md: "none" },
+							"flexGrow": 1,
+							"fontFamily": "monospace",
+							"fontWeight": 700,
+							"letterSpacing": ".3rem",
+							"color": "inherit",
+							"textDecoration": "none",
+							"&:hover": { color: "#04010A" },
 						}}>
 						UPLOAD
 					</Typography>
@@ -124,7 +125,7 @@ const NavBar = () => {
 								{page}
 							</Button>
 						))}
-						{Userfront.user.userId === 8 && (
+						{Userfront.user.userId in [1, 2] && (
 							<Button
 								key='Tábla létrehozása'
 								onClick={handleCloseNavMenu}

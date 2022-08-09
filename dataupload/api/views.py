@@ -12,6 +12,14 @@ conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
 #----------------------------------------------------GENERIC-------------------------------------------------------#
 
 
+def ColumnNames(request):
+    if request.method == 'GET':
+        cur = conn.cursor()
+        cur.execute(
+            "select table_name, column_name from information_schema.columns where table_schema = 'public'")
+        return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
+
+
 def TableNames(request):
     if request.method == 'GET':
         cur = conn.cursor()
@@ -20,6 +28,7 @@ def TableNames(request):
         return JsonResponse(list(cur.fetchone())[0].split(", "), safe=False, json_dumps_params={'ensure_ascii': False})
 
 # dataupload config
+
 
 class TemplatesList(generics.ListCreateAPIView):
     queryset = models.DatauploadTabletemplates.objects.all()
@@ -44,6 +53,7 @@ class SpecialQueryDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ImportTemplatesSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
+
 class UploadmodelViewSet(viewsets.ModelViewSet):
     queryset = models.DatauploadUploadmodel.objects.all()
     serializer_class = serializers.UploadModelSerializer
@@ -52,7 +62,8 @@ class UploadmodelViewSet(viewsets.ModelViewSet):
         table = request.data["table"]
         file = request.data["file"]
         user_id = request.data["table"]
-        models.DatauploadUploadmodel.create(table=table, file=file, user_id=user_id)
+        models.DatauploadUploadmodel.create(
+            table=table, file=file, user_id=user_id)
         return HttpResponse({"message": "File uploaded"}, status=200)
 
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #

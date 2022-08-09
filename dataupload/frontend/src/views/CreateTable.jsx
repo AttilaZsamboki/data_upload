@@ -9,6 +9,8 @@ import axios from "axios";
 export default function SpecialQueries() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
+	} else if (!(Userfront.user.userId in [1, 2])) {
+		return <Navigate to='/upload' />;
 	}
 
 	const formatOptions = ["xlsx", "csv", "tsv"];

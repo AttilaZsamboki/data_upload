@@ -12,6 +12,7 @@ urlpatterns = [
     path('special-queries/<int:pk>', views.SpecialQueryDetail.as_view()),
     #----------------------------------GENERIC------------------------------------#
     path('table-names', views.TableNames),
+    path('column-names/', views.ColumnNames),
     #----------------------------------DATAS--------------------------------------#
     #-----------------------------------FOL---------------------------------------#
     path('fol_bevételek/', views.FolBevetelekList.as_view()),

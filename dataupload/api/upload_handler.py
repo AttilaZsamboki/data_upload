@@ -139,7 +139,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
                     information_schema.columns
                 WHERE
                     table_schema = 'public'
-                    AND table_name = 'fol_bevételek';""")
+                    AND table_name = '"""+table+"""';""")
     sql_columns = list(cur.fetchone())[0].split(", ")
 
     if table_template.append == "Felülírás":
