@@ -9,7 +9,7 @@ import axios from "axios";
 export default function SpecialQueries() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
-	} else if (!(Userfront.user.userId in [1, 2])) {
+	} else if (![1, 2].includes(Userfront.user.userId)) {
 		return <Navigate to='/upload' />;
 	}
 
@@ -20,10 +20,10 @@ export default function SpecialQueries() {
 	const [selectedFile, setSelectedFile] = useState(null);
 	const [format, setFormat] = useState(null);
 	const [skiprows, setSkiprows] = useState(null);
+	const [isFinished, setIsFinished] = useState(false);
 
 	const onFileUpload = (event) => {
 		const tablePrefix = Userfront.user.name.toLowerCase().slice(0, 3) + "_";
-		console.log(skiprows);
 		event.preventDefault();
 		const formData = new FormData();
 		formData.append("table", tablePrefix + inputTable);
@@ -78,7 +78,7 @@ export default function SpecialQueries() {
 					name='skiprows'
 					label='Kihagyott sorok száma'
 					value={skiprows}
-					onChange={(values) => console.log(values.value)}
+					onChange={({ target }) => setSkiprows(target.value)}
 				/>
 				<br />
 				<FormControl style={formControlStyle}>
@@ -102,6 +102,7 @@ export default function SpecialQueries() {
 					type='submit'>
 					Létrehozás
 				</Button>
+				{isFinished && <Navigate to='/upload' replace={true} />}
 			</form>
 		</div>
 	);
