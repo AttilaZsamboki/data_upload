@@ -27,31 +27,19 @@ class ExampleAuthentication(authentication.BaseAuthentication):
 
 
 def ColumnNames(request):
-    try:
-        access_cookie = request.COOKIES['id.6nz455rn']
-    except:
-        access_cookie = ""
-        return redirect("http://127.0.0.1:8000/login")
-    if access_cookie:
-        if request.method == 'GET':
-            cur = conn.cursor()
-            cur.execute(
-                "select table_name, column_name from information_schema.columns where table_schema = 'public'")
-            return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
+    if request.method == 'GET':
+        cur = conn.cursor()
+        cur.execute(
+            "select table_name, column_name from information_schema.columns where table_schema = 'public'")
+        return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
 
 
 def TableNames(request):
-    try:
-        access_cookie = request.COOKIES['access.6nz455rn']
-    except:
-        access_cookie = ""
-        return redirect("http://127.0.0.1:8000/login")
-    if access_cookie:
-        if request.method == 'GET':
-            cur = conn.cursor()
-            cur.execute(
-                "select string_agg(table_name, ', ') from information_schema.tables where table_schema = 'public';")
-            return JsonResponse(list(cur.fetchone())[0].split(", "), safe=False, json_dumps_params={'ensure_ascii': False})
+    if request.method == 'GET':
+        cur = conn.cursor()
+        cur.execute(
+            "select string_agg(table_name, ', ') from information_schema.tables where table_schema = 'public';")
+        return JsonResponse(list(cur.fetchone())[0].split(", "), safe=False, json_dumps_params={'ensure_ascii': False})
 
 # dataupload config
 
