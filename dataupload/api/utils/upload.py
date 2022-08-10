@@ -18,7 +18,7 @@ def col_by_dtype(data_type, curr_table):
             data_type_str += "'" + data_type[i] + "',"
         else:
             data_type_str += "'" + data_type[i] + "'"
-    cur.execute("""select lower(string_agg(col.column_name, ', '))
+    cur.execute("""select string_agg(col.column_name, ', ')
     from information_schema.columns col
             join information_schema.tables tab on tab.table_schema = col.table_schema
         and tab.table_name = col.table_name
@@ -27,8 +27,6 @@ def col_by_dtype(data_type, curr_table):
     and col.table_name = '"""+curr_table+"""'
     group by col.table_schema;""")
     try:
-        cols = list(cur.fetchone())[0].split(", ")
-        cols = [i.lower() for i in cols]
-        return cols
+        return list(cur.fetchone())[0].split(", ")
     except:
         return None

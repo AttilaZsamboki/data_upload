@@ -922,9 +922,9 @@ class ProKltsgek(models.Model):
     # Field name made lowercase.
     azonosito = models.TextField(db_column='Azonosito', blank=True, null=True)
     # Field name made lowercase.
-    honap = models.TextField(db_column='Honap', blank=True, null=True)
+    date = models.TextField(db_column='date', blank=True, null=True)
     # Field name made lowercase.
-    date = models.TextField(db_column='Date', blank=True, null=True)
+    honap = models.TextField(db_column='Honap', blank=True, null=True)
     # Field name made lowercase.
     partner = models.TextField(db_column='Partner', blank=True, null=True)
     # Field name made lowercase.
@@ -986,8 +986,9 @@ class ProKltsgek(models.Model):
     tranzakcio_kulso_azonosito = models.TextField(
         db_column='Tranzakcio_kulso_azonosito', blank=True, null=True)
     # Field name made lowercase.
-    megjegyzesek1 = models.FloatField(
-        db_column='Megjegyzesek1', blank=True, null=True)
+    megjegyzesek1 = models.CharField(
+        db_column='Megjegyzesek1', blank=True, null=True, max_length=2000)
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False

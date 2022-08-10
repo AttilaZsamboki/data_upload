@@ -41,6 +41,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         data = pd.read_excel(file, skiprows=int(skiprows))
 
     df = pd.DataFrame(data)
+
     source_column_names = df.columns
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
     if table in ["fol_stock_report", "pro_stock_report"]:
@@ -88,30 +89,30 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
         else:
             return print("Hibásan megadott táblanév, nincs ilyen tábla az adatbázisban!")
 
+    if table in tables_in_sql:
+        numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
+                                    'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
+        date_cols = col_by_dtype(['date', 'timestamp'], table)
+        numeric_cols_source = [
+            j for i, j in column_bindings.items() if i in numeric_cols] if numeric_cols else []
+        date_cols_source = [
+            j for i, j in column_bindings.items() if i in date_cols] if date_cols else []
     for i in df.columns:
-        if table in tables_in_sql:
-            numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
-                                        'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
-            date_cols = col_by_dtype(['date', 'timestamp'], table)
-            numeric_cols_source = [
-                j for i, j in column_bindings.items() if j in numeric_cols] if numeric_cols else []
-            date_cols_source = [
-                j for i, j in column_bindings.items() if j in date_cols] if date_cols else []
-            try:
-                if numeric_cols_source:
-                    lst = []
-                    for x in df[i]:
-                        if type(x) == str and ',' in x:
-                            lst.append(x.replace(',', '.'))
-                        else:
-                            lst.append(x)
-                    df[i] = lst
-                    df[i] = df[i].astype(float)
-                if date_cols_source:
-                    df[i] = df[i].astype(dtype='datetime64[ns]')
-            except ValueError as e:
-                return print(
-                    "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
+        try:
+            if numeric_cols_source and i in numeric_cols_source:
+                lst = []
+                for x in df[i]:
+                    if type(x) == str and ',' in x:
+                        lst.append(x.replace(',', '.'))
+                    else:
+                        lst.append(x)
+                df[i] = lst
+                df[i] = df[i].astype(float)
+            if date_cols_source and i in date_cols_source:
+                df[i] = df[i].astype(dtype='datetime64[ns]')
+        except ValueError as e:
+            return print(
+                "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -125,20 +126,22 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
 
     for i in column_bindings.values():
         if i not in df.columns:
-            print("Column not in source file, check your template")
+            print(i + " not in source file, check your template")
 
     base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary"
 
     if table_template.append == "Felülírás":
         cur.execute("TRUNCATE "+table+";")
+        cur.execute(base_query)
+        conn.commit()
     elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
         primary_key_source = table_template.pkey_col
         primary_key_db = [
             i for i, j in column_bindings.items() if j == primary_key_source]
         cur.execute(base_query + " WHERE \"" +
                     primary_key_source+"\" NOT IN (SELECT \""+"".join(primary_key_db)+"\" FROM "+table+");")
-    elif table_template.append == "Hozzáfűzés" or table_template == "Felülírás":
+    elif table_template.append == "Hozzáfűzés":
         cur.execute(base_query)
         conn.commit()
 
