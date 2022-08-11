@@ -17,6 +17,7 @@ export default function Tables() {
 			.then((json) =>
 				setTables(json.filter((table) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()))
 			);
+		document.title = "Adatok";
 	}, []);
 
 	return <DataFrame tables={tables} initialFilter={(input) => input} dataPickerLabel='Tábla neve' prefix={true} />;

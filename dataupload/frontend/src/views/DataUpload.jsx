@@ -32,6 +32,7 @@ export default function SpecialQueries() {
 		};
 
 		fetchTables();
+		document.title = "Upload";
 	}, []);
 
 	useEffect(() => {
@@ -86,7 +87,7 @@ export default function SpecialQueries() {
 			setIsLoadingDate(false);
 		};
 
-		fetchData();
+		inputTable && fetchData();
 	}, [inputTable]);
 
 	const onFileChange = (e) => {

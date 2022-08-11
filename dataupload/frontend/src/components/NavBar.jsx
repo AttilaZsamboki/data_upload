@@ -94,6 +94,24 @@ const NavBar = () => {
 									</Typography>
 								</MenuItem>
 							))}
+							{["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(
+								Userfront.user.username
+							) && (
+								<>
+									<MenuItem key='create-table' onClick={handleCloseNavMenu}>
+										<Typography textAlign='center'>
+											<Button href={"/create-table"}>Tábla létrehozása</Button>
+										</Typography>
+									</MenuItem>
+									<MenuItem key='signup' onClick={handleCloseNavMenu}>
+										<Typography textAlign='center'>
+											<Button onClick={handleCloseNavMenu} href={"/signup"}>
+												Felhasználó regisztrálása
+											</Button>
+										</Typography>
+									</MenuItem>
+								</>
+							)}
 						</Menu>
 					</Box>
 					<CloudUploadIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
@@ -125,14 +143,35 @@ const NavBar = () => {
 								{page}
 							</Button>
 						))}
-						{[1, 2].includes(Userfront.user.userId) && (
-							<Button
-								key='Tábla létrehozása'
-								onClick={handleCloseNavMenu}
-								sx={{ "my": 2, "color": "white", "display": "block", "&:hover": { color: "#04010A" } }}
-								href={"/create-table"}>
-								Tábla létrehozása
-							</Button>
+						{["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(
+							Userfront.user.username
+						) && (
+							<>
+								<Button
+									key='Tábla létrehozása'
+									onClick={handleCloseNavMenu}
+									sx={{
+										"my": 2,
+										"color": "white",
+										"display": "block",
+										"&:hover": { color: "#04010A" },
+									}}
+									href={"/create-table"}>
+									Tábla létrehozása
+								</Button>
+								<Button
+									key='Felhasználó regisztrálása'
+									onClick={handleCloseNavMenu}
+									sx={{
+										"my": 2,
+										"color": "white",
+										"display": "block",
+										"&:hover": { color: "#04010A" },
+									}}
+									href={"/signup"}>
+									Felhasználó regisztrálása
+								</Button>
+							</>
 						)}
 					</Box>
 

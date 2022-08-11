@@ -9,7 +9,7 @@ import axios from "axios";
 export default function SpecialQueries() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
-	} else if (![1, 2].includes(Userfront.user.userId)) {
+	} else if (!["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)) {
 		return <Navigate to='/upload' />;
 	}
 
@@ -21,6 +21,10 @@ export default function SpecialQueries() {
 	const [format, setFormat] = useState(null);
 	const [skiprows, setSkiprows] = useState(null);
 	const [isFinished, setIsFinished] = useState(false);
+
+	useEffect(() => {
+		document.title = "Tábla létrehozás";
+	});
 
 	const onFileUpload = (event) => {
 		const tablePrefix = Userfront.user.name.toLowerCase().slice(0, 3) + "_";
