@@ -11,7 +11,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useMemo } from "react";
 
-export default function DataFrame({ tables, initialFilter }) {
+export default function DataFrame({ tables, initialFilter, dataPickerLabel }) {
 	// static const variables
 
 	const gridRef = useRef();
@@ -97,7 +97,7 @@ export default function DataFrame({ tables, initialFilter }) {
 				id='table'
 				options={tables}
 				sx={{ width: 300 }}
-				renderInput={(params) => <TextField {...params} label='Table name' />}
+				renderInput={(params) => <TextField {...params} label={dataPickerLabel} />}
 				onChange={handleChange}
 			/>
 			<Button

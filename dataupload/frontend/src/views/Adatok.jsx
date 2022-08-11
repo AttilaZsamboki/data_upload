@@ -19,7 +19,5 @@ export default function Tables() {
 			);
 	}, []);
 
-	console.log();
-
-	return <DataFrame tables={tables} initialFilter={(input) => input} />;
+	return <DataFrame tables={tables} initialFilter={(input) => input} dataPickerLabel='Tábla neve' />;
 }

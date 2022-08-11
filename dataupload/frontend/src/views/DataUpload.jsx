@@ -4,8 +4,9 @@ import { Navigate } from "react-router-dom";
 import { Autocomplete } from "@mui/material";
 import getCookie from "../utils/GetCookie";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
+import CloseIcon from "@mui/icons-material/Close";
 import Button from "@mui/material/Button";
-import { FormControl, Input, InputLabel, TextField } from "@mui/material";
+import { FormControl, TextField, Alert, Box, Collapse, Button, IconButton } from "@mui/material";
 import axios from "axios";
 
 export default function SpecialQueries() {
@@ -20,6 +21,7 @@ export default function SpecialQueries() {
 	const [minDate, setMinDate] = useState(null);
 	const [maxDate, setMaxDate] = useState(null);
 	const [isLoadingDate, setIsLoadingDate] = useState(true);
+	const [open, setOpen] = React.useState(true);
 
 	useEffect(() => {
 		const fetchTables = async () => {
@@ -93,25 +95,27 @@ export default function SpecialQueries() {
 	};
 
 	const onFileUpload = (event) => {
-		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
-
-		event.preventDefault();
-		const formData = new FormData();
-		formData.append("table", inputTable);
-		formData.append("file", selectedFile);
-		formData.append("user_id", Userfront.user.userId);
-		formData.append("is_new_table", false);
-		axios({
-			method: "post",
-			url: "/api/uploadmodel/",
-			data: formData,
-			headers: {
-				"X-CSRFToken": csrftoken,
-				"Content-Type": "multipart/form-data",
-			},
-		});
-		setInputTable(null);
-		inputRef.current.value = null;
+		if (inputTable && selectedFile) {
+			event.preventDefault();
+			const formData = new FormData();
+			formData.append("table", inputTable);
+			formData.append("file", selectedFile);
+			formData.append("user_id", Userfront.user.userId);
+			formData.append("is_new_table", false);
+			axios({
+				method: "post",
+				url: "/api/uploadmodel/",
+				data: formData,
+				headers: {
+					"X-CSRFToken": csrftoken,
+					"Content-Type": "multipart/form-data",
+				},
+			});
+			setInputTable(null);
+			inputRef.current.value = null;
+		} else {
+			return <Alert severity='warning'>Nem volt megadva minden várt informácio a feltöltéshez</Alert>;
+		}
 	};
 
 	const formControlStyle = {
@@ -161,6 +165,33 @@ export default function SpecialQueries() {
 					type='submit'>
 					Upload
 				</Button>
+				<Box sx={{ width: "80%" }}>
+					<Collapse in={open}>
+						<Alert
+							action={
+								<IconButton
+									aria-label='close'
+									color='inherit'
+									size='small'
+									onClick={() => {
+										setOpen(false);
+									}}>
+									<CloseIcon fontSize='inherit' />
+								</IconButton>
+							}
+							sx={{ mb: 2 }}>
+							Close me!
+						</Alert>
+					</Collapse>
+					<Button
+						disabled={open}
+						variant='outlined'
+						onClick={() => {
+							setOpen(true);
+						}}>
+						Re-open
+					</Button>
+				</Box>
 			</form>
 		</div>
 	);

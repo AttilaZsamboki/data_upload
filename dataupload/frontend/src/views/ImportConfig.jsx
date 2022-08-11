@@ -16,7 +16,7 @@ export default function SpecialQueries() {
 
 	return (
 		<div>
-			<DataFrame tables={tables} initialFilter={filter} />
+			<DataFrame tables={tables} initialFilter={filter} dataPickerLabel='Config neve' />
 		</div>
 	);
 }
