@@ -10,6 +10,7 @@ export default function AddConnection() {
 	const [tables, setTables] = useState([]);
 	const [isFinished, setIsFinished] = useState(false);
 	const [table, setTable] = useState(null);
+	const [query, setQuery] = useState(null);
 
 	useEffect(() => {
 		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
@@ -43,7 +44,7 @@ export default function AddConnection() {
 			body: JSON.stringify({
 				name: inputs.name,
 				table: table,
-				special_query: inputs.special_query,
+				special_query: query,
 				created_by_id: Userfront.user.userId,
 			}),
 		};
@@ -78,7 +79,14 @@ export default function AddConnection() {
 				onChange={(event, values) => setTable(values)}
 			/>
 			<br />
-			<TextField id='special-query' label='Special SQL query' multiline rows={8} fullWidth />
+			<TextField
+				id='special-query'
+				label='Special SQL query'
+				onChange={(event) => setQuery(event.target.value)}
+				multiline
+				rows={8}
+				fullWidth
+			/>
 			<br />
 			<Button
 				variant='contained'
