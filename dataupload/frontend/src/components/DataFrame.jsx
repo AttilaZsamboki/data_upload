@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { Autocomplete, Button, TextField } from "@mui/material";
+import { Autocomplete, Button, TextField, Box } from "@mui/material";
 import getCookie from "../utils/GetCookie";
+import Userfront from "@userfront/react";
 
 // ag-grid
 import { AgGridReact } from "ag-grid-react";
@@ -11,7 +12,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { useMemo } from "react";
 
-export default function DataFrame({ tables, initialFilter, dataPickerLabel }) {
+export default function DataFrame({ tables, initialFilter, dataPickerLabel, prefix }) {
 	// static const variables
 
 	const gridRef = useRef();
@@ -24,7 +25,6 @@ export default function DataFrame({ tables, initialFilter, dataPickerLabel }) {
 
 	const [rowData, setRowData] = useState([]);
 	const [columnDefs, setColumnDefs] = useState([]);
-	const [isLoading, setIsLoading] = useState(false);
 	useEffect(() => {
 		setRowData([]);
 		const fetchData = async () => {
@@ -69,7 +69,6 @@ export default function DataFrame({ tables, initialFilter, dataPickerLabel }) {
 			if (columnName === Object.keys(rowData[0])[0]) {
 				setColumnDefs((prev) => [...prev, { field: columnName, checkboxSelection: true }]);
 			} else if (columnName === dateColumn.toString()) {
-				console.log(dateColumn, columnName);
 				setColumnDefs((prev) => [...prev, { field: columnName, filter: "agDateColumnFilter" }]);
 			} else {
 				setColumnDefs((prev) => [...prev, { field: columnName }]);
@@ -99,6 +98,11 @@ export default function DataFrame({ tables, initialFilter, dataPickerLabel }) {
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label={dataPickerLabel} />}
 				onChange={handleChange}
+				renderOption={(props, option) => (
+					<Box component='li' sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
+						{prefix ? option.slice(4) : option}
+					</Box>
+				)}
 			/>
 			<Button
 				variant='contained'

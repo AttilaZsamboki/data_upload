@@ -5,8 +5,8 @@ import { Autocomplete } from "@mui/material";
 import getCookie from "../utils/GetCookie";
 import FileUploadIcon from "@mui/icons-material/FileUpload";
 import CloseIcon from "@mui/icons-material/Close";
-import Button from "@mui/material/Button";
-import { FormControl, TextField, Alert, Box, Collapse, Button, IconButton } from "@mui/material";
+import { FormControl, TextField, Alert, Box, Collapse, Button } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
 import axios from "axios";
 
 export default function SpecialQueries() {
@@ -21,7 +21,7 @@ export default function SpecialQueries() {
 	const [minDate, setMinDate] = useState(null);
 	const [maxDate, setMaxDate] = useState(null);
 	const [isLoadingDate, setIsLoadingDate] = useState(true);
-	const [open, setOpen] = React.useState(true);
+	const [error, setError] = useState(null);
 
 	useEffect(() => {
 		const fetchTables = async () => {
@@ -35,6 +35,9 @@ export default function SpecialQueries() {
 	}, []);
 
 	useEffect(() => {
+		setIsLoadingDate(true);
+		setMinDate(null);
+		setMaxDate(null);
 		const fetchData = async () => {
 			const data = await fetch(`/api/${inputTable}`);
 			const json = await data.json();
@@ -95,8 +98,8 @@ export default function SpecialQueries() {
 	};
 
 	const onFileUpload = (event) => {
+		event.preventDefault();
 		if (inputTable && selectedFile) {
-			event.preventDefault();
 			const formData = new FormData();
 			formData.append("table", inputTable);
 			formData.append("file", selectedFile);
@@ -113,8 +116,11 @@ export default function SpecialQueries() {
 			});
 			setInputTable(null);
 			inputRef.current.value = null;
-		} else {
-			return <Alert severity='warning'>Nem volt megadva minden várt informácio a feltöltéshez</Alert>;
+		} else if (!inputTable) {
+			setError("Válassz ki egy táblát a feltöltéshez");
+		} else if (!selectedFile) {
+			setError("Adj meg egy fájlt a feltöltéshez");
+			console.log(inputTable);
 		}
 	};
 
@@ -125,6 +131,28 @@ export default function SpecialQueries() {
 
 	return (
 		<div>
+			{error && (
+				<Box sx={{ width: "100%" }}>
+					<Collapse in={error}>
+						<Alert
+							severity='warning'
+							action={
+								<IconButton
+									aria-label='close'
+									color='inherit'
+									size='small'
+									onClick={() => {
+										setError(null);
+									}}>
+									<CloseIcon fontSize='inherit' />
+								</IconButton>
+							}
+							sx={{ mb: 2 }}>
+							{error}
+						</Alert>
+					</Collapse>
+				</Box>
+			)}
 			<form onSubmit={onFileUpload}>
 				<Autocomplete
 					disablePortal
@@ -135,7 +163,12 @@ export default function SpecialQueries() {
 					sx={{ width: 300 }}
 					renderInput={(params) => <TextField {...params} label='Tábla neve' />}
 					onChange={handleChange}
-					value={inputTable}
+					value={inputTable && inputTable.replace((Userfront.user.name.slice(0, 3) + "_").toLowerCase(), "")}
+					renderOption={(props, option) => (
+						<Box component='li' sx={{ "& > img": { mr: 2, flexShrink: 0 } }} {...props}>
+							{option.replace((Userfront.user.name.slice(0, 3) + "_").toLowerCase(), "")}
+						</Box>
+					)}
 				/>
 				<br />
 				{!isLoadingDate && (
@@ -165,33 +198,6 @@ export default function SpecialQueries() {
 					type='submit'>
 					Upload
 				</Button>
-				<Box sx={{ width: "80%" }}>
-					<Collapse in={open}>
-						<Alert
-							action={
-								<IconButton
-									aria-label='close'
-									color='inherit'
-									size='small'
-									onClick={() => {
-										setOpen(false);
-									}}>
-									<CloseIcon fontSize='inherit' />
-								</IconButton>
-							}
-							sx={{ mb: 2 }}>
-							Close me!
-						</Alert>
-					</Collapse>
-					<Button
-						disabled={open}
-						variant='outlined'
-						onClick={() => {
-							setOpen(true);
-						}}>
-						Re-open
-					</Button>
-				</Box>
 			</form>
 		</div>
 	);
