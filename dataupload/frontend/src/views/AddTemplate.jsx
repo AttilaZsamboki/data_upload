@@ -163,7 +163,7 @@ export default function AddConnection() {
 				</div>
 			)}
 			<Button
-				disabled={!columns}
+				disabled={!table}
 				variant='contained'
 				sx={{
 					"backgroundColor": "#057D55",

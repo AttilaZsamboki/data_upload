@@ -10,6 +10,7 @@ from json import dumps
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows, column_bindings):
+    column_binding_values_str = "".join(column_bindings.values())
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -129,7 +130,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
             print(i + " not in source file, check your template")
 
     base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
-    )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary"
+    )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary" if column_binding_values_str else "INSERT INTO "+table+" SELECT * FROM temporary"
 
     if table_template.append == "Felülírás":
         cur.execute("TRUNCATE "+table+";")
