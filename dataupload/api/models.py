@@ -159,7 +159,7 @@ class DatauploadTabletemplates(models.Model):
     created_by_id = models.IntegerField()
     append = models.CharField(max_length=40)
     extension_format = models.CharField(max_length=10)
-    source_column_names = models.CharField(max_length=2000)
+    source_column_names = models.CharField(max_length=2000, blank=True)
 
     class Meta:
         managed = False

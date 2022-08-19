@@ -8,15 +8,26 @@ import Menu from "@mui/material/Menu";
 import MenuIcon from "@mui/icons-material/Menu";
 import Container from "@mui/material/Container";
 import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
 import Tooltip from "@mui/material/Tooltip";
 import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import Userfront from "@userfront/core";
-import LogoutButton from "./LogoutButton";
+import LogoutButton from "./Auth";
 
 const pages = ["Adatok", "Import config"];
-const settings = ["Profile", "Account", "Settings", <LogoutButton />];
+const settings = [
+	"Profile",
+	"Account",
+	"Settings",
+	Userfront.accessToken() ? (
+		<LogoutButton />
+	) : (
+		<Button variant='contained' href='/login' sx={{ "&:hover": { color: "white" } }}>
+			Login
+		</Button>
+	),
+];
 
 const NavBar = () => {
 	const [anchorElNav, setAnchorElNav] = React.useState(null);

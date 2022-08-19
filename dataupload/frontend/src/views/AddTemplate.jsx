@@ -1,132 +1,67 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
-import { FormControl, FormControlLabel, Input, InputLabel } from "@mui/material";
+import { FormControl, Input, InputLabel } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import Button from "@mui/material/Button";
 import Userfront from "@userfront/react";
-import getCookie from "../utils/GetCookie";
 import { Autocomplete, TextField } from "@mui/material";
+import { useColumnNames, useCreateTemplate } from "../hooks/Templates";
+import { useTableOptions } from "../hooks/Tables";
 
-export default function AddConnection() {
-	const csrftoken = getCookie("csrftoken");
+export default function AddTemplate() {
+	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
 	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
 	const formatOptions = ["xlsx", "csv", "tsv"];
-	const [appendOption, setAppendOption] = useState(null);
-	const [format, setFormat] = useState(null);
-	const [tables, setTables] = useState([]);
-	const [table, setTable] = useState(null);
-	const [isFinished, setIsFinished] = useState(false);
-	const [inputs, setInputs] = useState({
-		primaryKeyColumn: "",
-		skiprows: "",
-	});
-	const [columnNames, setColumnNames] = useState(null);
-	const [columns, setColumns] = useState(
-		columnNames &&
-			Object.keys(columnNames).map((column) => {
-				column: "";
-			})
-	);
+	const tableOptions = useTableOptions();
+	const [state, setState] = useState({});
+	const columnNames = useColumnNames(state.table);
+	const { mutate: addTemplate, isSuccess } = useCreateTemplate();
 
-	useEffect(() => {
-		setColumnNames([]);
-		const column = async () => {
-			const data = await fetch("/api/column-names/");
-			const json = await data.json();
-			setColumnNames(
-				json.filter((column) => column[0] === table && column[1] !== "id").map((column) => column[1])
-			);
-		};
-
-		column();
-	}, [table]);
-
-	useEffect(() => {
-		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
-		fetch("/api/table-names")
-			.then((response) => response.json())
-			.then((json) =>
-				setTables(json.filter((table) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()))
-			);
-	}, []);
-
-	const handleChange = (event) => {
-		const name = event.target.name;
-		const value = event.target.value;
-		setInputs((values) => ({ ...values, [name]: value }));
+	const handleChange = ({ target }) => {
+		const { name, value } = target;
+		setState((values) => ({ ...values, [name]: value }));
 	};
 
-	const handleColumnChange = (event) => {
-		const name = event.target.name;
-		const value = event.target.value;
-		setColumns((values) => ({ ...values, [name]: value }));
-	};
-
-	async function handleSubmit(event) {
-		event.preventDefault();
-		const requestOptions = {
-			credentials: "include",
-			method: "POST",
-			mode: "same-origin",
-			headers: {
-				"Accept": "application/json",
-				"X-CSRFToken": csrftoken,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				table: table,
-				pkey_col: inputs.primaryKeyColumn,
-				skiprows: inputs.skiprows,
-				created_by_id: Userfront.user.userId,
-				append: appendOption,
-				extension_format: format,
-				source_column_names: JSON.stringify(columns),
-			}),
-		};
-		try {
-			const response = await fetch("/api/templates.json", requestOptions);
-			const json = await response.json();
-			console.log(json);
-			setIsFinished(true);
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	const formControlStyle = {
-		marginBottom: 20,
-		width: 500,
+	const handleAddTemplate = () => {
+		// addTemplate({
+		// 	table: state.table,
+		// 	pkey_col: state.pkey_col,
+		// 	skiprows: state.skiprows,
+		// 	created_by_id: Userfront.user.userId,
+		// 	append: state.append,
+		// 	extension_format: state.extension_format,
+		// 	source_column_names: state.source_column_names,
+		// });
+		console.log({ state });
 	};
 
 	return (
-		<form onSubmit={handleSubmit}>
+		<div>
 			<Autocomplete
 				disablePortal
+				value={state.table}
 				id='table'
-				options={tables}
+				options={tableOptions.data}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Tábla neve' />}
-				onChange={(event, values) => {
-					setColumns(null);
-					setTable(values);
-				}}
+				onChange={(e, v) => setState((prev) => ({ ...prev, table: v }))}
 			/>
 			<br />
 			<TextField
 				type='number'
 				name='skiprows'
 				label='Kihagyott sorok száma'
-				value={inputs.skiprows}
+				value={state.skiprows}
 				onChange={handleChange}
 			/>
 			<br />
-			<FormControl style={formControlStyle}>
+			<FormControl>
 				<InputLabel htmlFor='primaryKeyColumn'>Primary Key Column</InputLabel>
 				<Input
 					id='primaryKeyColumn'
 					name='primaryKeyColumn'
 					type='text'
-					value={inputs.pkey_col}
+					value={state.pkey_col}
 					onChange={handleChange}
 				/>
 			</FormControl>
@@ -139,8 +74,8 @@ export default function AddConnection() {
 				options={appendOptions}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Hozááfűzés formája' />}
-				onChange={(event, values) => setAppendOption(values)}
-				value={appendOption}
+				onChange={(e, v) => setState((prev) => ({ ...prev, append: v }))}
+				value={state.append}
 			/>
 			<br />
 			<Autocomplete
@@ -149,21 +84,23 @@ export default function AddConnection() {
 				options={formatOptions}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
-				onChange={(event, values) => setFormat(values)}
+				onChange={(e, v) => setState((prev) => ({ ...prev, extension_format: v }))}
+				value={state.extension_format}
 			/>
 			<br />
 			{columnNames && (
 				<div>
-					{Object.values(columnNames).map((column) => (
+					{columnNames.data.map((column) => (
 						<FormControl>
 							<InputLabel htmlFor={column}>{column}</InputLabel>
-							<Input id={column} name={column} type='text' onChange={handleColumnChange} />
+							<Input id={column} name={column} type='text' onChange={handleChange} />
 						</FormControl>
 					))}
 				</div>
 			)}
 			<Button
-				disabled={!columns}
+				onClick={handleAddTemplate}
+				disabled={!columnNames}
 				variant='contained'
 				sx={{
 					"backgroundColor": "#057D55",
@@ -173,7 +110,7 @@ export default function AddConnection() {
 				type='submit'>
 				Submit
 			</Button>
-			{isFinished && <Navigate to='/upload' replace={true} />}
-		</form>
+			{isSuccess && <Navigate to='/upload' replace={true} />}
+		</div>
 	);
 }

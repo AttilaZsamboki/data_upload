@@ -9,26 +9,32 @@ from rest_framework.permissions import IsAuthenticated
 from . import models, serializers
 from .permissions import AuthorAllUser
 
-conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
-                        password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
 
 #----------------------------------------------------GENERIC-------------------------------------------------------#
 
 
 def ColumnNames(request):
+    conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
+                            password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
     if request.method == 'GET':
         cur = conn.cursor()
         cur.execute(
             "select table_name, column_name from information_schema.columns where table_schema = 'public'")
         return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
+    cur.close()
+    conn.close()
 
 
 def TableNames(request):
+    conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
+                            password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
     if request.method == 'GET':
         cur = conn.cursor()
         cur.execute(
             "select string_agg(table_name, ', ') from information_schema.tables where table_schema = 'public';")
         return JsonResponse(list(cur.fetchone())[0].split(", "), safe=False, json_dumps_params={'ensure_ascii': False})
+    cur.close()
+    conn.close()
 
 # dataupload config
 

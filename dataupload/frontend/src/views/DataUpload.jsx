@@ -25,9 +25,14 @@ export default function SpecialQueries() {
 
 	useEffect(() => {
 		const fetchTables = async () => {
+			const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 			const data = await fetch("/api/templates");
 			const json = await data.json();
-			setTablesOptions(json.filter((res) => res.created_by_id === Userfront.user.userId).map((res) => res.table));
+			setTablesOptions(
+				json
+					.filter((res) => res.table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase())
+					.map((res) => res.table)
+			);
 			return json;
 		};
 
