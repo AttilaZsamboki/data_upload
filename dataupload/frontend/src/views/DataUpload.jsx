@@ -24,16 +24,22 @@ export default function SpecialQueries() {
 	const [error, setError] = useState(null);
 
 	useEffect(() => {
+		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 		const fetchTables = async () => {
 			const data = await fetch("/api/templates");
 			const json = await data.json();
-			setTablesOptions(json.filter((res) => res.created_by_id === Userfront.user.userId).map((res) => res.table));
+			setTablesOptions(
+				json
+					.filter((res) => res.table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase())
+					.map((res) => res.table)
+			);
 			return json;
 		};
 
 		fetchTables();
 		document.title = "Upload";
 	}, []);
+
 
 	useEffect(() => {
 		setIsLoadingDate(true);
@@ -44,7 +50,7 @@ export default function SpecialQueries() {
 			const json = await data.json();
 			const dateColumnsByTable = [
 				{ table: "fol_unas", dateCol: "" },
-				{ table: "fol_bevételek", dateCol: "date" },
+				{ table: "fol_bevételek", dateCol: "teljesites_datuma" },
 				{ table: "fol_gls_elszámolás", dateCol: "Felvetel_datuma_" },
 				{ table: "fol_költségek", dateCol: "date" },
 				{ table: "fol_orders", dateCol: "Order_Date" },

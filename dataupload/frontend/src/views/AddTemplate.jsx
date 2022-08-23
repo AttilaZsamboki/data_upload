@@ -16,8 +16,9 @@ export default function AddConnection() {
 	const [tables, setTables] = useState([]);
 	const [table, setTable] = useState(null);
 	const [isFinished, setIsFinished] = useState(false);
+	const [primaryKeyColumn, setPrimaryKeyColumn] = useState(null);
+	const [isError, setIsError] = useState(null);
 	const [inputs, setInputs] = useState({
-		primaryKeyColumn: "",
 		skiprows: "",
 	});
 	const [columnNames, setColumnNames] = useState(null);
@@ -48,6 +49,7 @@ export default function AddConnection() {
 			.then((json) =>
 				setTables(json.filter((table) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()))
 			);
+		document.title = "Template hozzáadása";
 	}, []);
 
 	const handleChange = (event) => {
@@ -75,7 +77,7 @@ export default function AddConnection() {
 			},
 			body: JSON.stringify({
 				table: table,
-				pkey_col: inputs.primaryKeyColumn,
+				pkey_col: primaryKeyColumn,
 				skiprows: inputs.skiprows,
 				created_by_id: Userfront.user.userId,
 				append: appendOption,
@@ -88,8 +90,10 @@ export default function AddConnection() {
 			const json = await response.json();
 			console.log(json);
 			setIsFinished(true);
+			setIsError(false);
 		} catch (error) {
 			console.log(error);
+			setIsError(true);
 		}
 	}
 
@@ -120,17 +124,6 @@ export default function AddConnection() {
 				onChange={handleChange}
 			/>
 			<br />
-			<FormControl style={formControlStyle}>
-				<InputLabel htmlFor='primaryKeyColumn'>Primary Key Column</InputLabel>
-				<Input
-					id='primaryKeyColumn'
-					name='primaryKeyColumn'
-					type='text'
-					value={inputs.pkey_col}
-					onChange={handleChange}
-				/>
-			</FormControl>
-			<br />
 			<Autocomplete
 				disablePortal
 				id='appendOptions'
@@ -143,6 +136,21 @@ export default function AddConnection() {
 				value={appendOption}
 			/>
 			<br />
+			{columnNames && appendOption === "Hozzáfűzés duplikációk szűrésével" && (
+				<>
+					<Autocomplete
+						disablePortal
+						id='primary-key'
+						options={columnNames}
+						sx={{ width: 300 }}
+						renderInput={(params) => <TextField {...params} label='Elsődleges kulcs oszlop' />}
+						onChange={(event, values) => {
+							setPrimaryKeyColumn(values);
+						}}
+					/>
+					<br />
+				</>
+			)}
 			<Autocomplete
 				disablePortal
 				id='format'
@@ -173,7 +181,7 @@ export default function AddConnection() {
 				type='submit'>
 				Submit
 			</Button>
-			{isFinished && <Navigate to='/upload' replace={true} />}
+			{isFinished && !isError && <Navigate to='/upload' replace={true} />}
 		</form>
 	);
 }

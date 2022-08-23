@@ -10,7 +10,9 @@ from json import dumps
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows, column_bindings):
-    column_binding_values_str = "".join(column_bindings.values())
+    null_cols = [i for i, j in column_bindings.items() if j == '']
+    for i in null_cols:
+        del column_bindings[i]
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -31,6 +33,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                             password=DB_PASS, host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
     cur = conn.cursor()
+    column_binding_values_str = "".join(column_bindings.values())
 
     #\\\\\\\\\\\\\\\\\\\\\\\\\ data -->> pandas dataframe ///////////////////////////////////////////#
     if extension_format == 'csv':
@@ -47,7 +50,10 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
     if table in ["fol_stock_report", "pro_stock_report"]:
         df["timestamp"] = dt.datetime.now()
+        column_bindings["timestamp"] = "timestamp"
 
+    if table == 'fol_gls_elszámolás':
+        df = df[df['Súly'].notna()]
     #\\\\\\\\\\\\\\\\\\\\\\ ADDING NEW TABLES /////////////////////////////////////#
 
     #\\\\\\\\\\\\\\\\\\\\\\\\ UTF-8 >---> ASCII (HEAD) ///////////////////////////////////////#
@@ -69,7 +75,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
             column_bindings = {}
             for i in range(len(db_column_names)):
                 column_bindings[db_column_names[i]] = source_column_names[i]
-            template = DatauploadTabletemplates(table=table, pkey_col="", skiprows=skiprows, created_by_id=user_id,
+            template = DatauploadTabletemplates(table=table, pkey_col=df.iloc[:, 0], skiprows=skiprows, created_by_id=user_id,
                                                 append="Hozzáfűzés duplikációk szűrésével", extension_format=extension_format, source_column_names=dumps(column_bindings))
             template.save()
             df.to_sql(table, engine, index=False)
@@ -98,22 +104,22 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
             j for i, j in column_bindings.items() if i in numeric_cols] if numeric_cols else []
         date_cols_source = [
             j for i, j in column_bindings.items() if i in date_cols] if date_cols else []
-    for i in df.columns:
-        try:
-            if numeric_cols_source and i in numeric_cols_source:
-                lst = []
-                for x in df[i]:
-                    if type(x) == str and ',' in x:
-                        lst.append(x.replace(',', '.'))
-                    else:
-                        lst.append(x)
-                df[i] = lst
-                df[i] = df[i].astype(float)
-            if date_cols_source and i in date_cols_source:
-                df[i] = df[i].astype(dtype='datetime64[ns]')
-        except ValueError as e:
-            return print(
-                "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
+        for i in df.columns:
+            try:
+                if numeric_cols_source and i in numeric_cols_source:
+                    lst = []
+                    for x in df[i]:
+                        if type(x) == str and ',' in x:
+                            lst.append(x.replace(',', '.'))
+                        else:
+                            lst.append(x)
+                    df[i] = lst
+                    df[i] = df[i].astype(float)
+                if date_cols_source and i in date_cols_source:
+                    df[i] = df[i].astype(dtype='datetime64[ns]')
+            except ValueError as e:
+                return print(
+                    "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -134,17 +140,16 @@ def handle_uploaded_file(file, table, special_queries, table_template, extension
 
     if table_template.append == "Felülírás":
         cur.execute("TRUNCATE "+table+";")
-        cur.execute(base_query)
         conn.commit()
     elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
         primary_key_source = table_template.pkey_col
-        primary_key_db = [
-            i for i, j in column_bindings.items() if j == primary_key_source]
-        cur.execute(base_query + " WHERE \"" +
-                    primary_key_source+"\" NOT IN (SELECT \""+"".join(primary_key_db)+"\" FROM "+table+");")
-    elif table_template.append == "Hozzáfűzés":
-        cur.execute(base_query)
+        primary_key_db = "".join(
+            [i for i, j in column_bindings.items() if j == primary_key_source])
+        cur.execute(
+            f"DELETE FROM {table} WHERE \"{primary_key_db}\" IN (SELECT \"{primary_key_source}\" FROM temporary);")
         conn.commit()
+    cur.execute(base_query)
+    conn.commit()
 
     # dropping temporary table
     cur.execute("DROP TABLE temporary;")

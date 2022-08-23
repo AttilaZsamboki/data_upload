@@ -154,12 +154,12 @@ class DatauploadImporttemplates(models.Model):
 class DatauploadTabletemplates(models.Model):
     id = models.BigAutoField(primary_key=True)
     table = models.CharField(max_length=30)
-    pkey_col = models.CharField(max_length=30)
+    pkey_col = models.CharField(max_length=30, blank=True, null=True)
     skiprows = models.CharField(max_length=10)
     created_by_id = models.IntegerField()
     append = models.CharField(max_length=40)
     extension_format = models.CharField(max_length=10)
-    source_column_names = models.CharField(max_length=2000)
+    source_column_names = models.TextField(blank=True, null=True)
 
     class Meta:
         managed = False

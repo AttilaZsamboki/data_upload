@@ -8,9 +8,8 @@ export default function SpecialQueries() {
 		return <Navigate to='/login' />;
 	}
 
+	const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 	const tables = ["templates", "special-queries"];
-
-	const filter = (input) => input.created_by_id === Userfront.user.userId;
 
 	useEffect(() => {
 		document.title = "Import Config";
@@ -18,7 +17,12 @@ export default function SpecialQueries() {
 
 	return (
 		<div>
-			<DataFrame tables={tables} initialFilter={filter} dataPickerLabel='Config neve' prefix={false} />
+			<DataFrame
+				tables={tables}
+				initialFilter={(input) => input.table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()}
+				dataPickerLabel='Config neve'
+				prefix={false}
+			/>
 		</div>
 	);
 }

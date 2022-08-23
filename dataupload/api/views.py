@@ -1,11 +1,8 @@
 from http.client import HTTPResponse
-from django.shortcuts import redirect
 from rest_framework import generics
 from django.http import JsonResponse
 import psycopg2
-from rest_framework import viewsets, authentication, exceptions
-from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets
 from . import models, serializers
 from .permissions import AuthorAllUser
 
@@ -16,19 +13,27 @@ conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
 
 
 def ColumnNames(request):
+    conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
+                            password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
     if request.method == 'GET':
         cur = conn.cursor()
         cur.execute(
             "select table_name, column_name from information_schema.columns where table_schema = 'public'")
         return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
+    cur.close()
+    conn.close()
 
 
 def TableNames(request):
+    conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
+                            password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
     if request.method == 'GET':
         cur = conn.cursor()
         cur.execute(
             "select string_agg(table_name, ', ') from information_schema.tables where table_schema = 'public';")
         return JsonResponse(list(cur.fetchone())[0].split(", "), safe=False, json_dumps_params={'ensure_ascii': False})
+    cur.close()
+    conn.close()
 
 # dataupload config
 
@@ -36,7 +41,7 @@ def TableNames(request):
 class TemplatesList(generics.ListCreateAPIView):
     queryset = models.DatauploadTabletemplates.objects.all()
     serializer_class = serializers.TemplatesSerializer
-    permission_classes = [AuthorAllUser]
+    # permission_classes = [AuthorAllUser]
 
 
 class TemplateDetail(generics.RetrieveUpdateDestroyAPIView):
