@@ -6,8 +6,6 @@ from rest_framework import viewsets
 from . import models, serializers
 from .permissions import AuthorAllUser
 
-conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
-                        password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
 
 #----------------------------------------------------GENERIC-------------------------------------------------------#
 
