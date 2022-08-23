@@ -40,7 +40,8 @@ export default function AddTemplate() {
 	};
 
 	return (
-		<div>
+		<div className='center-form all-white-bg'>
+			<h1 className='bg-slate-200 pb-6'>Template Hozzáadása</h1>
 			<Autocomplete
 				disablePortal
 				value={state.table}

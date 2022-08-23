@@ -22,8 +22,8 @@ function App() {
 		<React.Fragment>
 			<QueryClientProvider client={queryClient}>
 				<CssBaseline enableColorScheme />
-				<NavBar />
 				<BrowserRouter>
+					<NavBar />
 					<Routes>
 						<Route path='/adatok' element={<Adatok />} />
 						<Route path='/login' element={<Login />} />

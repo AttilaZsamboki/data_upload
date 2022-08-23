@@ -5,28 +5,34 @@ import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
 
 import "ag-grid-community/styles/ag-grid.css";
-import "ag-grid-community/styles/ag-theme-alpine.css";
+import "ag-grid-community/styles/ag-theme-material.css";
 import { useState } from "react";
 import { AgGridReact } from "ag-grid-react";
 import { useEffect, useMemo } from "react";
+import { Box } from "@mui/system";
+import axios from "axios";
 
 function DataFrame({ importConfig }: { importConfig: boolean }) {
-	const [inputTable, setInputTable] = useState<string | unknown>();
+	const gridRef = React.useRef();
+	const [inputTable, setInputTable] = useState<string>();
 	const [columnDefs, setColumnDefs] = useState(null);
-	const tables: any = importConfig ? { data: ["Templates", "Special queries"] } : useTableOptions();
+	const tables: any = useTableOptions();
 	const table: any = useTable(inputTable);
+	const importConfigTypes = ["Templates", "Special queries"];
 
 	useEffect(() => {
-		if (table.data) {
+		if (table.data && inputTable) {
 			setColumnDefs(Object.keys(table.data[0]).map((col) => ({ field: col })));
 		}
-	}, [table]);
+	}, [inputTable, table]);
 
 	const defaultColDef = useMemo(
 		() => ({
 			floatingFilter: true,
 			filter: true,
 			minWidth: 200,
+			editable: true,
+			sortable: true,
 			flex: 1,
 			filterParams: {
 				debounceMs: 0,
@@ -35,32 +41,57 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		[]
 	);
 
-	if (tables.isLoading) return <span>Loading...</span>;
-	if (tables.isError) return <span>Error: {tables.error.message}</span>;
+	const onBtWhich = (event: any) => {
+		axios.put(`/api/${inputTable.toLowerCase().replace(" ", "-")}/${event.data.id}/`, event.data);
+	};
+
+	const getRowId = useMemo(() => {
+		return (params: any) => {
+			return params.data.id;
+		};
+	}, []);
+
 	return (
-		<>
+		<div>
+			<h1 className='flex flex-col items-center justify-center mb-3'>
+				{!importConfig ? "Adatok" : "Import Konfigurációk"}
+			</h1>
 			<Autocomplete
+				className='m-auto flex flex-col items-center justify-center'
 				id='table'
-				options={tables.data}
+				options={importConfig ? importConfigTypes : tables.data}
 				sx={{ width: 300 }}
-				renderInput={(params) => <TextField {...params} label={"Table name"} />}
+				renderInput={(params) => <TextField {...params} label={importConfig ? "Konfig neve" : "Tábla neve"} />}
 				onChange={(e, v) => setInputTable(v)}
 			/>
 			{importConfig && typeof inputTable === "string" && (
-				<Button
-					variant='contained'
-					href={`/add-${inputTable.toLowerCase().replace(" ", "-")}/`}
-					disabled={!inputTable}>{`Add-${inputTable ? inputTable : ""}`}</Button>
+				<Box textAlign='center' marginTop={5}>
+					<Button
+						sx={{
+							"&:hover": { color: "white" },
+							"backgroundColor": "#057D55",
+						}}
+						variant='contained'
+						href={`/add-${inputTable.toLowerCase().replace(" ", "-")}/`}
+						disabled={!inputTable}>{`${inputTable ? inputTable.slice(0, -1) : ""} hozzáadása`}</Button>
+				</Box>
 			)}
-			<div className='ag-theme-alpine' style={{ width: "100%", height: 700, marginTop: 50 }}>
-				<AgGridReact
-					defaultColDef={defaultColDef}
-					rowSelection={"multiple"}
-					rowData={table.data}
-					columnDefs={columnDefs}
-				/>
+			<div className='mx-auto flex flex-col items-center justify-center '>
+				<div className='ag-theme-material' style={{ width: "92%", height: 700, marginTop: 50 }}>
+					<AgGridReact
+						ref={gridRef}
+						animateRows={true}
+						defaultColDef={defaultColDef}
+						rowSelection={"multiple"}
+						rowData={table.data}
+						columnDefs={columnDefs}
+						getRowId={getRowId}
+						stopEditingWhenCellsLoseFocus={true}
+						onCellValueChanged={onBtWhich}
+					/>
+				</div>
 			</div>
-		</>
+		</div>
 	);
 }
 

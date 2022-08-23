@@ -34,19 +34,21 @@ export default function CreateTable() {
 	};
 
 	return (
-		<div>
-			<FormControl>
-				<InputLabel htmlFor='table'>Tábla neve</InputLabel>
-				<Input
-					id='table'
-					name='table'
-					type='text'
-					value={inputTable}
-					onChange={({ target }) => setInputTable(target.value)}
-				/>
-			</FormControl>
+		<div className='center-form mx-80 py-20 my-32'>
+			<div className='flex justify-center'>
+				<div className='mb-3 w-96 object-left-top'>
+					<label htmlFor='formFile'>Válassz ki egy fájlt:</label>
+					<input
+						className='form-control	block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
+						type='file'
+						id='formFile'
+						onChange={(e) => setSelectedFile(e.target.files[0])}
+					/>
+				</div>
+			</div>
 			<br />
 			<Autocomplete
+				className='bg-white'
 				disablePortal
 				id='format'
 				options={formatOptions}
@@ -55,18 +57,27 @@ export default function CreateTable() {
 				onChange={(event, values) => setFormat(values)}
 			/>
 			<br />
+			<FormControl>
+				<InputLabel htmlFor='table'>Tábla neve</InputLabel>
+				<Input
+					className='better-base-input bg-white'
+					sx={{ height: 50 }}
+					id='table'
+					name='table'
+					type='text'
+					value={inputTable}
+					onChange={({ target }) => setInputTable(target.value)}
+				/>
+			</FormControl>
+			<br />
 			<TextField
 				type='number'
+				className='bg-white'
 				name='skiprows'
 				label='Kihagyott sorok száma'
 				value={skiprows}
 				onChange={({ target }) => setSkiprows(target.value)}
 			/>
-			<br />
-			<FormControl>
-				<input id='file' name='file' type='file' onChange={({ target }) => setSelectedFile(target.files[0])} />
-				<FormHelperText>Példa File</FormHelperText>
-			</FormControl>
 			<br />
 			<Button
 				onClick={onFileUpload}

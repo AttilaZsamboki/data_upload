@@ -1,222 +1,251 @@
 import * as React from "react";
-import AppBar from "@mui/material/AppBar";
+import Userfront from "@userfront/react";
+import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import MuiDrawer from "@mui/material/Drawer";
+import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
-import Button from "@mui/material/Button";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import Userfront from "@userfront/core";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import InboxIcon from "@mui/icons-material/MoveToInbox";
+import MailIcon from "@mui/icons-material/Mail";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import StorageIcon from "@mui/icons-material/Storage";
+import ImportExportIcon from "@mui/icons-material/ImportExport";
+import TableViewIcon from "@mui/icons-material/TableView";
+import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
+import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
 import LogoutButton from "./Auth";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { Link } from "react-router-dom";
+import LoginIcon from "@mui/icons-material/Login";
 
-const pages = ["Adatok", "Import config"];
-const settings = [
-	"Profile",
-	"Account",
-	"Settings",
-	Userfront.accessToken() ? (
-		<LogoutButton />
-	) : (
-		<Button variant='contained' href='/login' sx={{ "&:hover": { color: "white" } }}>
-			Login
-		</Button>
-	),
-];
+const drawerWidth = 280;
 
-const NavBar = () => {
-	const [anchorElNav, setAnchorElNav] = React.useState(null);
-	const [anchorElUser, setAnchorElUser] = React.useState(null);
+const openedMixin = (theme) => ({
+	width: drawerWidth,
+	transition: theme.transitions.create("width", {
+		easing: theme.transitions.easing.sharp,
+		duration: theme.transitions.duration.enteringScreen,
+	}),
+	overflowX: "hidden",
+});
 
-	const handleOpenNavMenu = (event) => {
-		setAnchorElNav(event.currentTarget);
+const closedMixin = (theme) => ({
+	transition: theme.transitions.create("width", {
+		easing: theme.transitions.easing.sharp,
+		duration: theme.transitions.duration.leavingScreen,
+	}),
+	overflowX: "hidden",
+	width: `calc(${theme.spacing(7)} + 1px)`,
+	[theme.breakpoints.up("sm")]: {
+		width: `calc(${theme.spacing(8)} + 1px)`,
+	},
+});
+
+const DrawerHeader = styled("div")(({ theme }) => ({
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "flex-end",
+	padding: theme.spacing(0, 1),
+	// necessary for content to be below app bar
+	...theme.mixins.toolbar,
+}));
+
+const AppBar = styled(MuiAppBar, {
+	shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => ({
+	zIndex: theme.zIndex.drawer + 1,
+	transition: theme.transitions.create(["width", "margin"], {
+		easing: theme.transitions.easing.sharp,
+		duration: theme.transitions.duration.leavingScreen,
+	}),
+	...(open && {
+		marginLeft: drawerWidth,
+		width: `calc(100% - ${drawerWidth}px)`,
+		transition: theme.transitions.create(["width", "margin"], {
+			easing: theme.transitions.easing.sharp,
+			duration: theme.transitions.duration.enteringScreen,
+		}),
+	}),
+}));
+
+const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== "open" })(({ theme, open }) => ({
+	width: drawerWidth,
+	flexShrink: 0,
+	whiteSpace: "nowrap",
+	boxSizing: "border-box",
+	...(open && {
+		...openedMixin(theme),
+		"& .MuiDrawer-paper": openedMixin(theme),
+	}),
+	...(!open && {
+		...closedMixin(theme),
+		"& .MuiDrawer-paper": closedMixin(theme),
+	}),
+}));
+
+export default function MiniDrawer() {
+	const sideBar = ["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)
+		? {
+				upper: {
+					"Upload": { href: "/upload/", icon: <UploadFileIcon /> },
+					"Adatok": { href: "/adatok/", icon: <StorageIcon /> },
+					"Import Konfig": { href: "/import-config/", icon: <ImportExportIcon /> },
+					"Tábla Létrehozása": { href: "/create-table/", icon: <TableViewIcon /> },
+					"Felhasználó Hozzáadása": { href: "/signup/", icon: <AssignmentIndIcon /> },
+				},
+				lower: {
+					Fiók: { href: "/upload", icon: <AccountCircleSharpIcon /> },
+					Kijelentkezés: {
+						href: "/login",
+						icon: (
+							<LogoutIcon
+								onClick={(event) => {
+									event.preventDefault();
+									Userfront.logout();
+								}}
+							/>
+						),
+					},
+				},
+		  }
+		: Userfront.accessToken()
+		? {
+				upper: {
+					Upload: { href: "/upload/", icon: <UploadFileIcon /> },
+					Adatok: { href: "/adatok/", icon: <StorageIcon /> },
+				},
+				lower: {
+					Fiók: { href: "/upload", icon: <AccountCircleSharpIcon /> },
+					Kijelentkezés: {
+						href: "/login",
+						icon: (
+							<LogoutIcon
+								onClick={(event) => {
+									event.preventDefault();
+									Userfront.logout();
+								}}
+							/>
+						),
+					},
+				},
+		  }
+		: { upper: { Bejelentkezés: { href: "/login/", icon: <LoginIcon /> } }, lower: {} };
+	const theme = useTheme();
+	const [open, setOpen] = React.useState(false);
+
+	React.useEffect(() => {
+		setOpen(JSON.parse(window.sessionStorage.getItem("open")));
+	}, []);
+
+	React.useEffect(() => {
+		window.sessionStorage.setItem("open", open);
+	}, [open]);
+
+	const handleDrawerOpen = () => {
+		setOpen(true);
 	};
-	const handleOpenUserMenu = (event) => {
-		setAnchorElUser(event.currentTarget);
-	};
 
-	const handleCloseNavMenu = () => {
-		setAnchorElNav(null);
-	};
-
-	const handleCloseUserMenu = () => {
-		setAnchorElUser(null);
+	const handleDrawerClose = () => {
+		setOpen(false);
 	};
 
 	return (
-		<AppBar position='static' sx={{ marginBottom: 5, backgroundColor: "#013970" }}>
-			<Container maxWidth='xl'>
-				<Toolbar disableGutters>
-					<CloudUploadIcon sx={{ display: { xs: "none", md: "flex" }, mr: 1 }} />
-					<Typography
-						variant='h6'
-						noWrap
-						component='a'
-						href='/upload'
+		<Box sx={{ display: "flex", marginBottom: 20 }}>
+			<CssBaseline />
+			<AppBar position='fixed' open={open} sx={{ backgroundColor: "#013970" }}>
+				<Toolbar>
+					<IconButton
+						color='inherit'
+						aria-label='open drawer'
+						onClick={handleDrawerOpen}
+						edge='start'
 						sx={{
-							"mr": 2,
-							"display": { xs: "none", md: "flex" },
-							"fontFamily": "monospace",
-							"fontWeight": 700,
-							"letterSpacing": ".3rem",
-							"color": "inherit",
-							"textDecoration": "none",
-							"&:hover": { color: "#04010A" },
+							marginRight: 5,
+							...(open && { display: "none" }),
 						}}>
-						UPLOAD
+						<MenuIcon />
+					</IconButton>
+					<Typography variant='h6' noWrap component='div'>
+						Adatfeltöltés
 					</Typography>
-
-					<Box sx={{ flexGrow: 1, display: { xs: "flex", md: "none" } }}>
-						<IconButton
-							size='large'
-							aria-label='account of current user'
-							aria-controls='menu-appbar'
-							aria-haspopup='true'
-							onClick={handleOpenNavMenu}
-							color='inherit'>
-							<MenuIcon />
-						</IconButton>
-						<Menu
-							id='menu-appbar'
-							anchorEl={anchorElNav}
-							anchorOrigin={{
-								vertical: "bottom",
-								horizontal: "left",
-							}}
-							keepMounted
-							transformOrigin={{
-								vertical: "top",
-								horizontal: "left",
-							}}
-							open={Boolean(anchorElNav)}
-							onClose={handleCloseNavMenu}
-							sx={{
-								display: { xs: "block", md: "none" },
-							}}>
-							{pages.map((page) => (
-								<MenuItem key={page} onClick={handleCloseNavMenu}>
-									<Typography textAlign='center'>
-										<Button href={`/${page.toLowerCase().replace(" ", "-")}`}>{page}</Button>
-									</Typography>
-								</MenuItem>
-							))}
-							{["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(
-								Userfront.user.username
-							) && (
-								<>
-									<MenuItem key='create-table' onClick={handleCloseNavMenu}>
-										<Typography textAlign='center'>
-											<Button href={"/create-table"}>Tábla létrehozása</Button>
-										</Typography>
-									</MenuItem>
-									<MenuItem key='signup' onClick={handleCloseNavMenu}>
-										<Typography textAlign='center'>
-											<Button onClick={handleCloseNavMenu} href={"/signup"}>
-												Felhasználó regisztrálása
-											</Button>
-										</Typography>
-									</MenuItem>
-								</>
-							)}
-						</Menu>
-					</Box>
-					<CloudUploadIcon sx={{ display: { xs: "flex", md: "none" }, mr: 1 }} />
-					<Typography
-						variant='h5'
-						noWrap
-						component='a'
-						href='/upload'
-						sx={{
-							"mr": 2,
-							"display": { xs: "flex", md: "none" },
-							"flexGrow": 1,
-							"fontFamily": "monospace",
-							"fontWeight": 700,
-							"letterSpacing": ".3rem",
-							"color": "inherit",
-							"textDecoration": "none",
-							"&:hover": { color: "#04010A" },
-						}}>
-						UPLOAD
-					</Typography>
-					<Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" } }}>
-						{pages.map((page) => (
-							<Button
-								key={page}
-								onClick={handleCloseNavMenu}
-								sx={{ "my": 2, "color": "white", "display": "block", "&:hover": { color: "#04010A" } }}
-								href={`/${page.toLowerCase().replace(" ", "-")}`}>
-								{page}
-							</Button>
-						))}
-						{["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(
-							Userfront.user.username
-						) && (
-							<>
-								<Button
-									key='Tábla létrehozása'
-									onClick={handleCloseNavMenu}
-									sx={{
-										"my": 2,
-										"color": "white",
-										"display": "block",
-										"&:hover": { color: "#04010A" },
-									}}
-									href={"/create-table"}>
-									Tábla létrehozása
-								</Button>
-								<Button
-									key='Felhasználó regisztrálása'
-									onClick={handleCloseNavMenu}
-									sx={{
-										"my": 2,
-										"color": "white",
-										"display": "block",
-										"&:hover": { color: "#04010A" },
-									}}
-									href={"/signup"}>
-									Felhasználó regisztrálása
-								</Button>
-							</>
-						)}
-					</Box>
-
-					<Box sx={{ flexGrow: 0 }}>
-						<Tooltip title='Open settings'>
-							<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
-								<Avatar alt='Remy Sharp' src='/static/images/avatar/2.jpg' />
-							</IconButton>
-						</Tooltip>
-						<Menu
-							sx={{ mt: "45px" }}
-							id='menu-appbar'
-							anchorEl={anchorElUser}
-							anchorOrigin={{
-								vertical: "top",
-								horizontal: "right",
-							}}
-							keepMounted
-							transformOrigin={{
-								vertical: "top",
-								horizontal: "right",
-							}}
-							open={Boolean(anchorElUser)}
-							onClose={handleCloseUserMenu}>
-							{settings.map((setting) => (
-								<MenuItem key={setting} onClick={handleCloseUserMenu}>
-									<Typography textAlign='center'>{setting}</Typography>
-								</MenuItem>
-							))}
-						</Menu>
-					</Box>
 				</Toolbar>
-			</Container>
-		</AppBar>
+			</AppBar>
+			<Drawer variant='permanent' open={open} sx={{ marginLeft: 10 }}>
+				<DrawerHeader>
+					<IconButton onClick={handleDrawerClose}>
+						{theme.direction === "rtl" ? <ChevronRightIcon /> : <ChevronLeftIcon />}
+					</IconButton>
+				</DrawerHeader>
+				<Divider />
+				<List>
+					{Object.keys(sideBar.upper).map((text) => (
+						<Link to={sideBar.upper[text].href}>
+							<ListItem key={text} disablePadding sx={{ display: "block" }}>
+								<ListItemButton
+									sx={{
+										minHeight: 48,
+										justifyContent: open ? "initial" : "center",
+										px: 2.5,
+									}}>
+									<ListItemIcon
+										sx={{
+											minWidth: 0,
+											mr: open ? 3 : "auto",
+											justifyContent: "center",
+										}}>
+										{sideBar.upper[text].icon}
+									</ListItemIcon>
+									<ListItemText primary={text} sx={{ color: "gray", opacity: open ? 1 : 0 }} />
+								</ListItemButton>
+							</ListItem>
+						</Link>
+					))}
+				</List>
+				<Divider />
+				<List>
+					{Object.keys(sideBar.lower).map((text) => (
+						<ListItem key={text} disablePadding sx={{ display: "block" }}>
+							<ListItemButton
+								sx={{
+									minHeight: 48,
+									justifyContent: open ? "initial" : "center",
+									px: 2.5,
+								}}>
+								<ListItemIcon
+									sx={{
+										minWidth: 0,
+										mr: open ? 3 : "auto",
+										justifyContent: "center",
+									}}>
+									{sideBar.lower[text].icon}
+								</ListItemIcon>
+								<ListItemText
+									primary={
+										text === "Kijelentkezés" ? (
+											<LogoutButton />
+										) : (
+											<Link to={sideBar.lower[text].href}>{text}</Link>
+										)
+									}
+									sx={{ color: "gray", opacity: open ? 1 : 0 }}
+								/>
+							</ListItemButton>
+						</ListItem>
+					))}
+				</List>
+			</Drawer>
+		</Box>
 	);
-};
-export default NavBar;
+}
