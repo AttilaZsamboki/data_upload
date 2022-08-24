@@ -1,1 +1,1 @@
-export {};
+import "./styles/main.css";

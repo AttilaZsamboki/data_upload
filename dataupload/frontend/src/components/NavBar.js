@@ -1,85 +1,136 @@
-import { jsx as _jsx, Fragment as _Fragment, jsxs as _jsxs } from "react/jsx-runtime";
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import * as React from "react";
-import AppBar from "@mui/material/AppBar";
+import Userfront from "@userfront/react";
+import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
+import MuiDrawer from "@mui/material/Drawer";
+import MuiAppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
+import List from "@mui/material/List";
+import CssBaseline from "@mui/material/CssBaseline";
 import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
-import Container from "@mui/material/Container";
-import Avatar from "@mui/material/Avatar";
-import Tooltip from "@mui/material/Tooltip";
-import MenuItem from "@mui/material/MenuItem";
-import Button from "@mui/material/Button";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import Userfront from "@userfront/core";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
+import StorageIcon from "@mui/icons-material/Storage";
+import ImportExportIcon from "@mui/icons-material/ImportExport";
+import TableViewIcon from "@mui/icons-material/TableView";
+import AssignmentIndIcon from "@mui/icons-material/AssignmentInd";
+import AccountCircleSharpIcon from "@mui/icons-material/AccountCircleSharp";
 import LogoutButton from "./Auth";
-const pages = ["Adatok", "Import config"];
-const settings = [
-    "Profile",
-    "Account",
-    "Settings",
-    Userfront.accessToken() ? (_jsx(LogoutButton, {})) : (_jsx(Button, Object.assign({ variant: 'contained', href: '/login', sx: { "&:hover": { color: "white" } } }, { children: "Login" }))),
-];
-const NavBar = () => {
-    const [anchorElNav, setAnchorElNav] = React.useState(null);
-    const [anchorElUser, setAnchorElUser] = React.useState(null);
-    const handleOpenNavMenu = (event) => {
-        setAnchorElNav(event.currentTarget);
+import LogoutIcon from "@mui/icons-material/Logout";
+import { Link } from "react-router-dom";
+import LoginIcon from "@mui/icons-material/Login";
+const drawerWidth = 280;
+const openedMixin = (theme) => ({
+    width: drawerWidth,
+    transition: theme.transitions.create("width", {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+    }),
+    overflowX: "hidden",
+});
+const closedMixin = (theme) => ({
+    transition: theme.transitions.create("width", {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+    }),
+    overflowX: "hidden",
+    width: `calc(${theme.spacing(7)} + 1px)`,
+    [theme.breakpoints.up("sm")]: {
+        width: `calc(${theme.spacing(8)} + 1px)`,
+    },
+});
+const DrawerHeader = styled("div")(({ theme }) => (Object.assign({ display: "flex", alignItems: "center", justifyContent: "flex-end", padding: theme.spacing(0, 1) }, theme.mixins.toolbar)));
+const AppBar = styled(MuiAppBar, {
+    shouldForwardProp: (prop) => prop !== "open",
+})(({ theme, open }) => (Object.assign({ zIndex: theme.zIndex.drawer + 1, transition: theme.transitions.create(["width", "margin"], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.leavingScreen,
+    }) }, (open && {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(["width", "margin"], {
+        easing: theme.transitions.easing.sharp,
+        duration: theme.transitions.duration.enteringScreen,
+    }),
+}))));
+const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== "open" })(({ theme, open }) => (Object.assign(Object.assign({ width: drawerWidth, flexShrink: 0, whiteSpace: "nowrap", boxSizing: "border-box" }, (open && Object.assign(Object.assign({}, openedMixin(theme)), { "& .MuiDrawer-paper": openedMixin(theme) }))), (!open && Object.assign(Object.assign({}, closedMixin(theme)), { "& .MuiDrawer-paper": closedMixin(theme) })))));
+export default function MiniDrawer() {
+    const sideBar = ["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)
+        ? {
+            upper: {
+                "Upload": { href: "/upload/", icon: _jsx(UploadFileIcon, {}) },
+                "Adatok": { href: "/adatok/", icon: _jsx(StorageIcon, {}) },
+                "Import Konfig": { href: "/import-config/", icon: _jsx(ImportExportIcon, {}) },
+                "Tábla Létrehozása": { href: "/create-table/", icon: _jsx(TableViewIcon, {}) },
+                "Felhasználó Hozzáadása": { href: "/signup/", icon: _jsx(AssignmentIndIcon, {}) },
+            },
+            lower: {
+                Fiók: { href: "/upload", icon: _jsx(AccountCircleSharpIcon, {}) },
+                Kijelentkezés: {
+                    href: "/login",
+                    icon: (_jsx(LogoutIcon, { onClick: (event) => {
+                            event.preventDefault();
+                            Userfront.logout();
+                        } })),
+                },
+            },
+        }
+        : Userfront.accessToken()
+            ? {
+                upper: {
+                    Upload: { href: "/upload/", icon: _jsx(UploadFileIcon, {}) },
+                    Adatok: { href: "/adatok/", icon: _jsx(StorageIcon, {}) },
+                },
+                lower: {
+                    Fiók: { href: "/upload", icon: _jsx(AccountCircleSharpIcon, {}) },
+                    Kijelentkezés: {
+                        href: "/login",
+                        icon: (_jsx(LogoutIcon, { onClick: (event) => {
+                                event.preventDefault();
+                                Userfront.logout();
+                            } })),
+                    },
+                },
+            }
+            : { upper: { Bejelentkezés: { href: "/login/", icon: _jsx(LoginIcon, {}) } }, lower: {} };
+    const theme = useTheme();
+    const [open, setOpen] = React.useState(false);
+    React.useEffect(() => {
+        setOpen(JSON.parse(window.sessionStorage.getItem("open")));
+    }, []);
+    React.useEffect(() => {
+        window.sessionStorage.setItem("open", open);
+    }, [open]);
+    const handleDrawerOpen = () => {
+        setOpen(true);
     };
-    const handleOpenUserMenu = (event) => {
-        setAnchorElUser(event.currentTarget);
+    const handleDrawerClose = () => {
+        setOpen(false);
     };
-    const handleCloseNavMenu = () => {
-        setAnchorElNav(null);
-    };
-    const handleCloseUserMenu = () => {
-        setAnchorElUser(null);
-    };
-    return (_jsx(AppBar, Object.assign({ position: 'static', sx: { marginBottom: 5, backgroundColor: "#013970" } }, { children: _jsx(Container, Object.assign({ maxWidth: 'xl' }, { children: _jsxs(Toolbar, Object.assign({ disableGutters: true }, { children: [_jsx(CloudUploadIcon, { sx: { display: { xs: "none", md: "flex" }, mr: 1 } }), _jsx(Typography, Object.assign({ variant: 'h6', noWrap: true, component: 'a', href: '/upload', sx: {
-                            "mr": 2,
-                            "display": { xs: "none", md: "flex" },
-                            "fontFamily": "monospace",
-                            "fontWeight": 700,
-                            "letterSpacing": ".3rem",
-                            "color": "inherit",
-                            "textDecoration": "none",
-                            "&:hover": { color: "#04010A" },
-                        } }, { children: "UPLOAD" })), _jsxs(Box, Object.assign({ sx: { flexGrow: 1, display: { xs: "flex", md: "none" } } }, { children: [_jsx(IconButton, Object.assign({ size: 'large', "aria-label": 'account of current user', "aria-controls": 'menu-appbar', "aria-haspopup": 'true', onClick: handleOpenNavMenu, color: 'inherit' }, { children: _jsx(MenuIcon, {}) })), _jsxs(Menu, Object.assign({ id: 'menu-appbar', anchorEl: anchorElNav, anchorOrigin: {
-                                    vertical: "bottom",
-                                    horizontal: "left",
-                                }, keepMounted: true, transformOrigin: {
-                                    vertical: "top",
-                                    horizontal: "left",
-                                }, open: Boolean(anchorElNav), onClose: handleCloseNavMenu, sx: {
-                                    display: { xs: "block", md: "none" },
-                                } }, { children: [pages.map((page) => (_jsx(MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: _jsx(Typography, Object.assign({ textAlign: 'center' }, { children: _jsx(Button, Object.assign({ href: `/${page.toLowerCase().replace(" ", "-")}` }, { children: page })) })) }), page))), ["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username) && (_jsxs(_Fragment, { children: [_jsx(MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: _jsx(Typography, Object.assign({ textAlign: 'center' }, { children: _jsx(Button, Object.assign({ href: "/create-table" }, { children: "T\u00E1bla l\u00E9trehoz\u00E1sa" })) })) }), 'create-table'), _jsx(MenuItem, Object.assign({ onClick: handleCloseNavMenu }, { children: _jsx(Typography, Object.assign({ textAlign: 'center' }, { children: _jsx(Button, Object.assign({ onClick: handleCloseNavMenu, href: "/signup" }, { children: "Felhaszn\u00E1l\u00F3 regisztr\u00E1l\u00E1sa" })) })) }), 'signup')] }))] }))] })), _jsx(CloudUploadIcon, { sx: { display: { xs: "flex", md: "none" }, mr: 1 } }), _jsx(Typography, Object.assign({ variant: 'h5', noWrap: true, component: 'a', href: '/upload', sx: {
-                            "mr": 2,
-                            "display": { xs: "flex", md: "none" },
-                            "flexGrow": 1,
-                            "fontFamily": "monospace",
-                            "fontWeight": 700,
-                            "letterSpacing": ".3rem",
-                            "color": "inherit",
-                            "textDecoration": "none",
-                            "&:hover": { color: "#04010A" },
-                        } }, { children: "UPLOAD" })), _jsxs(Box, Object.assign({ sx: { flexGrow: 1, display: { xs: "none", md: "flex" } } }, { children: [pages.map((page) => (_jsx(Button, Object.assign({ onClick: handleCloseNavMenu, sx: { "my": 2, "color": "white", "display": "block", "&:hover": { color: "#04010A" } }, href: `/${page.toLowerCase().replace(" ", "-")}` }, { children: page }), page))), ["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username) && (_jsxs(_Fragment, { children: [_jsx(Button, Object.assign({ onClick: handleCloseNavMenu, sx: {
-                                            "my": 2,
-                                            "color": "white",
-                                            "display": "block",
-                                            "&:hover": { color: "#04010A" },
-                                        }, href: "/create-table" }, { children: "T\u00E1bla l\u00E9trehoz\u00E1sa" }), 'T\u00E1bla l\u00E9trehoz\u00E1sa'), _jsx(Button, Object.assign({ onClick: handleCloseNavMenu, sx: {
-                                            "my": 2,
-                                            "color": "white",
-                                            "display": "block",
-                                            "&:hover": { color: "#04010A" },
-                                        }, href: "/signup" }, { children: "Felhaszn\u00E1l\u00F3 regisztr\u00E1l\u00E1sa" }), 'Felhaszn\u00E1l\u00F3 regisztr\u00E1l\u00E1sa')] }))] })), _jsxs(Box, Object.assign({ sx: { flexGrow: 0 } }, { children: [_jsx(Tooltip, Object.assign({ title: 'Open settings' }, { children: _jsx(IconButton, Object.assign({ onClick: handleOpenUserMenu, sx: { p: 0 } }, { children: _jsx(Avatar, { alt: 'Remy Sharp', src: '/static/images/avatar/2.jpg' }) })) })), _jsx(Menu, Object.assign({ sx: { mt: "45px" }, id: 'menu-appbar', anchorEl: anchorElUser, anchorOrigin: {
-                                    vertical: "top",
-                                    horizontal: "right",
-                                }, keepMounted: true, transformOrigin: {
-                                    vertical: "top",
-                                    horizontal: "right",
-                                }, open: Boolean(anchorElUser), onClose: handleCloseUserMenu }, { children: settings.map((setting) => (_jsx(MenuItem, Object.assign({ onClick: handleCloseUserMenu }, { children: _jsx(Typography, Object.assign({ textAlign: 'center' }, { children: setting })) }), setting))) }))] }))] })) })) })));
-};
-export default NavBar;
+    return (_jsxs(Box, Object.assign({ sx: { display: "flex", marginBottom: 20 } }, { children: [_jsx(CssBaseline, {}), _jsx(AppBar, Object.assign({ position: 'fixed', open: open, sx: { backgroundColor: "#013970" } }, { children: _jsxs(Toolbar, { children: [_jsx(IconButton, Object.assign({ color: 'inherit', "aria-label": 'open drawer', onClick: handleDrawerOpen, edge: 'start', sx: Object.assign({ marginRight: 5 }, (open && { display: "none" })) }, { children: _jsx(MenuIcon, {}) })), _jsx(Typography, Object.assign({ variant: 'h6', noWrap: true, component: 'div' }, { children: "Adatfelt\u00F6lt\u00E9s" }))] }) })), _jsxs(Drawer, Object.assign({ variant: 'permanent', open: open, sx: { marginLeft: 10 } }, { children: [_jsx(DrawerHeader, { children: _jsx(IconButton, Object.assign({ onClick: handleDrawerClose }, { children: theme.direction === "rtl" ? _jsx(ChevronRightIcon, {}) : _jsx(ChevronLeftIcon, {}) })) }), _jsx(Divider, {}), _jsx(List, { children: Object.keys(sideBar.upper).map((text) => (_jsx(Link, Object.assign({ to: sideBar.upper[text].href }, { children: _jsx(ListItem, Object.assign({ disablePadding: true, sx: { display: "block" } }, { children: _jsxs(ListItemButton, Object.assign({ sx: {
+                                        minHeight: 48,
+                                        justifyContent: open ? "initial" : "center",
+                                        px: 2.5,
+                                    } }, { children: [_jsx(ListItemIcon, Object.assign({ sx: {
+                                                minWidth: 0,
+                                                mr: open ? 3 : "auto",
+                                                justifyContent: "center",
+                                            } }, { children: sideBar.upper[text].icon })), _jsx(ListItemText, { primary: text, sx: { color: "gray", opacity: open ? 1 : 0 } })] })) }), text) })))) }), _jsx(Divider, {}), _jsx(List, { children: Object.keys(sideBar.lower).map((text) => (_jsx(ListItem, Object.assign({ disablePadding: true, sx: { display: "block" } }, { children: _jsxs(ListItemButton, Object.assign({ sx: {
+                                    minHeight: 48,
+                                    justifyContent: open ? "initial" : "center",
+                                    px: 2.5,
+                                } }, { children: [_jsx(ListItemIcon, Object.assign({ sx: {
+                                            minWidth: 0,
+                                            mr: open ? 3 : "auto",
+                                            justifyContent: "center",
+                                        } }, { children: sideBar.lower[text].icon })), _jsx(ListItemText, { primary: text === "Kijelentkezés" ? (_jsx(LogoutButton, {})) : (_jsx(Link, Object.assign({ to: sideBar.lower[text].href }, { children: text }))), sx: { color: "gray", opacity: open ? 1 : 0 } })] })) }), text))) })] }))] })));
+}

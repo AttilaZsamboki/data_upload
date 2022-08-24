@@ -1,2 +1,2 @@
 /// <reference types="react" />
-export default function SpecialQueries(): JSX.Element;
+export default function DataUpload(): JSX.Element;

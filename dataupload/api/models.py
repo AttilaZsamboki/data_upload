@@ -666,7 +666,7 @@ class FolStockReport(models.Model):
     inventory_value_layer = models.FloatField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     sales = models.BigIntegerField(blank=True, null=True)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateField(blank=True, null=True)
 
     class Meta:
         managed = False
@@ -1384,3 +1384,565 @@ class StartingClosingCf(models.Model):
     class Meta:
         managed = False
         db_table = 'starting_closing_cf'
+
+
+class FolStockTransactionReport(models.Model):
+    # Field name made lowercase.
+    operation_identifier = models.TextField(primary_key=True,
+                                            db_column='Operation_identifier', blank=True)
+    # Field name made lowercase.
+    product = models.TextField(db_column='Product', blank=True, null=True)
+    # Field name made lowercase.
+    warehouse = models.TextField(db_column='Warehouse', blank=True, null=True)
+    # Field name made lowercase.
+    operation_status = models.TextField(
+        db_column='Operation_status', blank=True, null=True)
+    # Field name made lowercase.
+    operation_item_status = models.TextField(
+        db_column='Operation_item_status', blank=True, null=True)
+    # Field name made lowercase.
+    operation_direction = models.TextField(
+        db_column='Operation_direction', blank=True, null=True)
+    # Field name made lowercase.
+    quantity = models.BigIntegerField(
+        db_column='Quantity', blank=True, null=True)
+    # Field name made lowercase.
+    done_quantity = models.BigIntegerField(
+        db_column='Done_quantity', blank=True, null=True)
+    # Field name made lowercase.
+    before_quantity = models.FloatField(
+        db_column='Before_quantity', blank=True, null=True)
+    # Field name made lowercase.
+    after_quantity = models.FloatField(
+        db_column='After_quantity', blank=True, null=True)
+    # Field name made lowercase.
+    reason = models.TextField(db_column='Reason', blank=True, null=True)
+    # Field name made lowercase.
+    item_notes = models.CharField(
+        db_column='Item_notes', max_length=255, blank=True, null=True)
+    # Field name made lowercase.
+    related_identifier = models.TextField(
+        db_column='Related_identifier', blank=True, null=True)
+    # Field name made lowercase.
+    assigned_user = models.TextField(
+        db_column='Assigned_user', blank=True, null=True)
+    # Field name made lowercase.
+    created = models.TextField(db_column='Created', blank=True, null=True)
+    # Field name made lowercase.
+    finished = models.TextField(db_column='Finished', blank=True, null=True)
+    # Field name made lowercase.
+    cancelled = models.FloatField(db_column='Cancelled', blank=True, null=True)
+    # Field name made lowercase.
+    cancelled_by = models.FloatField(
+        db_column='Cancelled_by', blank=True, null=True)
+    # Field name made lowercase.
+    shipment_supplier_name = models.TextField(
+        db_column='Shipment_supplier_name', blank=True, null=True)
+    # Field name made lowercase.
+    is_dynamic = models.TextField(
+        db_column='Is_dynamic', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'fol_stock_transaction_report'
+
+
+class FolStockAging(models.Model):
+    index = models.BigIntegerField(blank=True, primary_key=True,)
+    sku = models.TextField(blank=True, null=True)
+    shipment = models.BigIntegerField(blank=True, null=True)
+    shipment_now = models.BigIntegerField(blank=True, null=True)
+    current_stock = models.BigIntegerField(blank=True, null=True)
+    date = models.DateTimeField(blank=True, null=True)
+    age = models.BigIntegerField(blank=True, null=True)
+    weighted_archimetric_mean = models.FloatField(blank=True, null=True)
+    shipment_supplier_name = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'fol_stock_aging'
+
+
+class FolReturnOrderShippingFee(models.Model):
+    Order_Id = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Tax = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_return_order_shipping_fee"
+
+
+class FolReturnOrderItem(models.Model):
+    Order_Id = models.TextField()
+    Sku = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Discount = models.IntegerField()
+    Tax = models.IntegerField()
+    Subtotal = models.IntegerField()
+    Cogs = models.IntegerField()
+    Weight = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_return_order_item"
+
+
+class FolReturnOrder(models.Model):
+    Order_Id = models.TextField()
+    Weight = models.IntegerField()
+    Order_Total = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_return_order"
+
+
+class FolOrderShippingFee(models.Model):
+    Order_Id = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Tax = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Status = models.TextField()
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_order_shipping_fee"
+
+
+class FolOrderItem(models.Model):
+    Order_Id = models.TextField()
+    Sku = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Discount = models.IntegerField()
+    Tax = models.IntegerField()
+    Subtotal = models.IntegerField()
+    Cogs = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Status = models.TextField()
+    Order_Date = models.IntegerField()
+    Exchange_Rate = models.IntegerField()
+    Weight = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_order_shipping_item"
+
+
+class FolOrderFee(models.Model):
+    Order_Id = models.IntegerField()
+    Product_Name = models.IntegerField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Tax = models.IntegerField()
+    Currency = models.IntegerField()
+    Order_Status = models.IntegerField()
+    Order_Date = models.IntegerField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_order_fee"
+
+
+class FolOrderEtc(models.Model):
+    Row_Type = models.TextField()
+    Order_Id = models.TextField()
+    Sku = models.TextField()
+    Product_Name = models.TextField()
+    Default_Supplier_Unit_Price = models.TextField()
+    Default_Supplier_Currency = models.TextField()
+    Quantity = models.TextField()
+    Unit_Price = models.TextField()
+    Discount = models.TextField()
+    Tax = models.TextField()
+    Subtotal = models.TextField()
+    Cogs = models.TextField()
+    Margin = models.TextField()
+    MarginPercent = models.TextField(db_column="Margin_")
+    Item_Note = models.TextField()
+    Weight = models.TextField()
+    Webshop_Id = models.TextField()
+    Order_Total = models.TextField()
+    Currency = models.TextField()
+    Source = models.TextField()
+    Source_Name = models.TextField()
+    Order_Status = models.TextField()
+    Order_Date = models.TextField()
+    Memo = models.TextField()
+    Billing_Email = models.TextField()
+    Billing_Address_1 = models.TextField()
+    Billing_Address_2 = models.TextField()
+    Billing_Country = models.TextField()
+    Billing_City = models.TextField()
+    Billing_Zip_Code = models.TextField()
+    Billing_Last_Name = models.TextField()
+    Billing_First_Name = models.TextField()
+    Billing_Tax_Number = models.TextField()
+    Billing_Company = models.TextField()
+    Manual_Invoicing = models.TextField()
+    Manual_Proforma = models.TextField()
+    Shipping_Email = models.TextField()
+    Shipping_Address_1 = models.TextField()
+    Shipping_Address_2 = models.TextField()
+    Shipping_Country = models.TextField()
+    Shipping_City = models.TextField()
+    Shipping_Zip_Code = models.TextField()
+    Shipping_Last_Name = models.TextField()
+    Shipping_First_Name = models.TextField()
+    Shipping_Company = models.TextField()
+    Delivery_Note = models.TextField()
+    Shipping_Method = models.TextField()
+    Payment_Method = models.TextField()
+    Discount_Value = models.TextField()
+    Exchange_Rate = models.TextField()
+    Payment_Status = models.TextField()
+    Warehouse = models.TextField()
+    Delivery_Date = models.TextField()
+    Proforma_Invoice_Id = models.TextField()
+    Proforma_Invoice_Id_2 = models.TextField()
+    Invoice_Id = models.TextField()
+    Reverse_Invoice_Id = models.TextField()
+    Prepayment_Reverse_Invoice_Id = models.TextField()
+    Prepayment_Invoice_Id_2 = models.TextField()
+    Tags = models.TextField()
+    Customer_classes = models.TextField()
+    Created_by = models.TextField()
+    Assigned_User = models.TextField()
+    Default_Customer_Class = models.TextField()
+    Completed_Date = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_order_fee"
+
+
+class FolOrderBase(models.Model):
+    Order_Id = models.TextField()
+    Weight = models.IntegerField
+    Webshop_Id = models.TextField()
+    Order_Total = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Source = models.TextField()
+    Source_Name = models.TextField()
+    Order_Status = models.TextField()
+    Order_Date = models.DateField()
+    Billing_Email = models.TextField()
+    Billing_Country = models.TextField()
+    Billing_City = models.TextField()
+    Billing_Last_Name = models.TextField()
+    Billing_First_Name = models.TextField()
+    Shipping_Method = models.TextField()
+    Payment_Method = models.TextField()
+    Discount_Value = models.IntegerField()
+    Exchange_Rate = models.IntegerField()
+    Payment_Status = models.TextField()
+    Warehouse = models.TextField()
+    Tags = models.TextField()
+    Created_by = models.TextField()
+    Assigned_User = models.TextField(blank=True, null=True)
+    Completed_Date = models.DateField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_order_base"
+
+
+class ProStockTransactionReport(models.Model):
+    # Field name made lowercase.
+    operation_identifier = models.TextField(primary_key=True,
+                                            db_column='Operation_identifier', blank=True)
+    # Field name made lowercase.
+    product = models.TextField(db_column='Product', blank=True, null=True)
+    # Field name made lowercase.
+    warehouse = models.TextField(db_column='Warehouse', blank=True, null=True)
+    # Field name made lowercase.
+    operation_status = models.TextField(
+        db_column='Operation_status', blank=True, null=True)
+    # Field name made lowercase.
+    operation_item_status = models.TextField(
+        db_column='Operation_item_status', blank=True, null=True)
+    # Field name made lowercase.
+    operation_direction = models.TextField(
+        db_column='Operation_direction', blank=True, null=True)
+    # Field name made lowercase.
+    quantity = models.BigIntegerField(
+        db_column='Quantity', blank=True, null=True)
+    # Field name made lowercase.
+    done_quantity = models.BigIntegerField(
+        db_column='Done_quantity', blank=True, null=True)
+    # Field name made lowercase.
+    before_quantity = models.FloatField(
+        db_column='Before_quantity', blank=True, null=True)
+    # Field name made lowercase.
+    after_quantity = models.FloatField(
+        db_column='After_quantity', blank=True, null=True)
+    # Field name made lowercase.
+    reason = models.TextField(db_column='Reason', blank=True, null=True)
+    # Field name made lowercase.
+    item_notes = models.CharField(
+        db_column='Item_notes', max_length=255, blank=True, null=True)
+    # Field name made lowercase.
+    related_identifier = models.TextField(
+        db_column='Related_identifier', blank=True, null=True)
+    # Field name made lowercase.
+    assigned_user = models.TextField(
+        db_column='Assigned_user', blank=True, null=True)
+    # Field name made lowercase.
+    created = models.TextField(db_column='Created', blank=True, null=True)
+    # Field name made lowercase.
+    finished = models.TextField(db_column='Finished', blank=True, null=True)
+    # Field name made lowercase.
+    cancelled = models.FloatField(db_column='Cancelled', blank=True, null=True)
+    # Field name made lowercase.
+    cancelled_by = models.FloatField(
+        db_column='Cancelled_by', blank=True, null=True)
+    # Field name made lowercase.
+    shipment_supplier_name = models.TextField(
+        db_column='Shipment_supplier_name', blank=True, null=True)
+    # Field name made lowercase.
+    is_dynamic = models.TextField(
+        db_column='Is_dynamic', blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Pro_stock_transaction_report'
+
+
+class ProStockAging(models.Model):
+    index = models.BigIntegerField(blank=True, null=True)
+    sku = models.TextField(blank=True, null=True)
+    shipment = models.BigIntegerField(blank=True, null=True)
+    shipment_now = models.BigIntegerField(blank=True, null=True)
+    current_stock = models.BigIntegerField(blank=True, null=True)
+    date = models.DateTimeField(blank=True, null=True)
+    age = models.BigIntegerField(blank=True, null=True)
+    weighted_archimetric_mean = models.FloatField(blank=True, null=True)
+    shipment_supplier_name = models.TextField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'Pro_stock_aging'
+
+
+class ProReturnOrderShippingFee(models.Model):
+    Order_Id = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Tax = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_return_order_shipping_fee"
+
+
+class ProReturnOrderItem(models.Model):
+    Order_Id = models.TextField()
+    Sku = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Discount = models.IntegerField()
+    Tax = models.IntegerField()
+    Subtotal = models.IntegerField()
+    Cogs = models.IntegerField()
+    Weight = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_return_order_item"
+
+
+class ProReturnOrder(models.Model):
+    Order_Id = models.TextField()
+    Weight = models.IntegerField()
+    Order_Total = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_return_order"
+
+
+class ProOrderShippingFee(models.Model):
+    Order_Id = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Tax = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Status = models.TextField()
+    Order_Date = models.DateField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_order_shipping_fee"
+
+
+class ProOrderItem(models.Model):
+    Order_Id = models.TextField()
+    Sku = models.TextField()
+    Product_Name = models.TextField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Discount = models.IntegerField()
+    Tax = models.IntegerField()
+    Subtotal = models.IntegerField()
+    Cogs = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Order_Status = models.TextField()
+    Order_Date = models.IntegerField()
+    Exchange_Rate = models.IntegerField()
+    Weight = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_order_shipping_item"
+
+
+class ProOrderFee(models.Model):
+    Order_Id = models.IntegerField()
+    Product_Name = models.IntegerField()
+    Quantity = models.IntegerField()
+    Unit_Price = models.IntegerField()
+    Tax = models.IntegerField()
+    Currency = models.IntegerField()
+    Order_Status = models.IntegerField()
+    Order_Date = models.IntegerField()
+    Exchange_Rate = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_order_fee"
+
+
+class ProOrderEtc(models.Model):
+    Row_Type = models.TextField()
+    Order_Id = models.TextField()
+    Sku = models.TextField()
+    Product_Name = models.TextField()
+    Default_Supplier_Unit_Price = models.TextField()
+    Default_Supplier_Currency = models.TextField()
+    Quantity = models.TextField()
+    Unit_Price = models.TextField()
+    Discount = models.TextField()
+    Tax = models.TextField()
+    Subtotal = models.TextField()
+    Cogs = models.TextField()
+    Margin = models.TextField()
+    MarginPercent = models.TextField(db_column="Margin_")
+    Item_Note = models.TextField()
+    Weight = models.TextField()
+    Webshop_Id = models.TextField()
+    Order_Total = models.TextField()
+    Currency = models.TextField()
+    Source = models.TextField()
+    Source_Name = models.TextField()
+    Order_Status = models.TextField()
+    Order_Date = models.TextField()
+    Memo = models.TextField()
+    Billing_Email = models.TextField()
+    Billing_Address_1 = models.TextField()
+    Billing_Address_2 = models.TextField()
+    Billing_Country = models.TextField()
+    Billing_City = models.TextField()
+    Billing_Zip_Code = models.TextField()
+    Billing_Last_Name = models.TextField()
+    Billing_First_Name = models.TextField()
+    Billing_Tax_Number = models.TextField()
+    Billing_Company = models.TextField()
+    Manual_Invoicing = models.TextField()
+    Manual_Proforma = models.TextField()
+    Shipping_Email = models.TextField()
+    Shipping_Address_1 = models.TextField()
+    Shipping_Address_2 = models.TextField()
+    Shipping_Country = models.TextField()
+    Shipping_City = models.TextField()
+    Shipping_Zip_Code = models.TextField()
+    Shipping_Last_Name = models.TextField()
+    Shipping_First_Name = models.TextField()
+    Shipping_Company = models.TextField()
+    Delivery_Note = models.TextField()
+    Shipping_Method = models.TextField()
+    Payment_Method = models.TextField()
+    Discount_Value = models.TextField()
+    Exchange_Rate = models.TextField()
+    Payment_Status = models.TextField()
+    Warehouse = models.TextField()
+    Delivery_Date = models.TextField()
+    Proforma_Invoice_Id = models.TextField()
+    Proforma_Invoice_Id_2 = models.TextField()
+    Invoice_Id = models.TextField()
+    Reverse_Invoice_Id = models.TextField()
+    Prepayment_Reverse_Invoice_Id = models.TextField()
+    Prepayment_Invoice_Id_2 = models.TextField()
+    Tags = models.TextField()
+    Customer_classes = models.TextField()
+    Created_by = models.TextField()
+    Assigned_User = models.TextField()
+    Default_Customer_Class = models.TextField()
+    Completed_Date = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_order_fee"
+
+
+class ProOrderBase(models.Model):
+    Order_Id = models.TextField()
+    Weight = models.IntegerField
+    Webshop_Id = models.TextField()
+    Order_Total = models.IntegerField()
+    Currency = models.CharField(max_length=3)
+    Source = models.TextField()
+    Source_Name = models.TextField()
+    Order_Status = models.TextField()
+    Order_Date = models.DateField()
+    Billing_Email = models.TextField()
+    Billing_Country = models.TextField()
+    Billing_City = models.TextField()
+    Billing_Last_Name = models.TextField()
+    Billing_First_Name = models.TextField()
+    Shipping_Method = models.TextField()
+    Payment_Method = models.TextField()
+    Discount_Value = models.IntegerField()
+    Exchange_Rate = models.IntegerField()
+    Payment_Status = models.TextField()
+    Warehouse = models.TextField()
+    Tags = models.TextField()
+    Created_by = models.TextField()
+    Assigned_User = models.TextField(blank=True, null=True)
+    Completed_Date = models.DateField()
+
+    class Meta:
+        managed = False
+        db_table = "Pro_order_base"

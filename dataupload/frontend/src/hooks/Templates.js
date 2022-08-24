@@ -1,29 +1,28 @@
 import axios from "axios";
-import { useQuery, useMutation } from "react-query";
+import { useQuery } from "react-query";
 import getCookie from "../utils/GetCookie";
 export async function fetchColumnNames(table) {
-    if (!table)
-        return;
     const response = await axios.get("/api/column-names");
-    return response.data.filter((column) => column[0] === table && column[1] !== "id").map((column) => column[1]);
+    const filteredData = response.data
+        .filter((column) => column[0] === table && column[1] !== "id")
+        .map((column) => column[1]);
+    return filteredData;
 }
 export function useColumnNames(table) {
-    if (!table)
-        return;
-    return useQuery(["column-names", table], () => fetchColumnNames(table));
+    return useQuery(["column-names", table], () => {
+        if (typeof table === "string") {
+            return fetchColumnNames(table);
+        }
+    });
 }
 function addTemplate(formData) {
     const csrftoken = getCookie("csrftoken");
-    axios({
-        method: "post",
-        url: "/api/templates/",
-        data: formData,
+    axios
+        .post("/api/templates/", formData, {
         headers: {
             "X-CSRFToken": csrftoken,
             "Content-Type": "multipart/form-data",
         },
-    }).then((res) => res.data);
-}
-export function useCreateTemplate() {
-    return useMutation(addTemplate);
+    })
+        .then((res) => res.data);
 }

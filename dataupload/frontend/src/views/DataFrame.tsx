@@ -87,7 +87,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 				<div className='ag-theme-material' style={{ width: "92%", height: 700, marginTop: 50 }}>
 					<AgGridReact
 						ref={gridRef}
-						animateRows={true}
+						animateRows={importConfig ? true : false}
 						defaultColDef={defaultColDef}
 						rowSelection={"multiple"}
 						rowData={table.data}

@@ -30,6 +30,66 @@ class TemplatesSerializer(serializers.ModelSerializer):
 # FOl
 
 
+class FolReturnOrderShippingFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolReturnOrderShippingFee
+        fields = '__all__'
+
+
+class FolReturnOrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolReturnOrderItem
+        fields = '__all__'
+
+
+class FolReturnOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolReturnOrder
+        fields = '__all__'
+
+
+class FolOrderShippingFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolOrderShippingFee
+        fields = '__all__'
+
+
+class FolOrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolOrderItem
+        fields = '__all__'
+
+
+class FolOrderFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolOrderFee
+        fields = '__all__'
+
+
+class FolOrderEtcSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolOrderEtc
+        fields = '__all__'
+
+
+class FolOrderBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolOrderBase
+        fields = '__all__'
+
+
+class FolStockTransactionReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolStockTransactionReport
+        fields = '__all__'
+
+
+class FolStockAgingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolStockAging
+        fields = '__all__'
+
+
 class FolBevetelekSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source='owner.username')
 
@@ -117,4 +177,64 @@ class ProStockReportSerializer(serializers.ModelSerializer):
 class ProSzamlakSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProSzmlk
+        fields = '__all__'
+
+
+class ProReturnOrderShippingFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProReturnOrderShippingFee
+        fields = '__all__'
+
+
+class ProReturnOrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProReturnOrderItem
+        fields = '__all__'
+
+
+class ProReturnOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProReturnOrder
+        fields = '__all__'
+
+
+class ProOrderShippingFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProOrderShippingFee
+        fields = '__all__'
+
+
+class ProOrderItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProOrderItem
+        fields = '__all__'
+
+
+class ProOrderFeeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProOrderFee
+        fields = '__all__'
+
+
+class ProOrderEtcSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProOrderEtc
+        fields = '__all__'
+
+
+class ProOrderBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProOrderBase
+        fields = '__all__'
+
+
+class ProStockTransactionReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProStockTransactionReport
+        fields = '__all__'
+
+
+class ProStockAgingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProStockAging
         fields = '__all__'

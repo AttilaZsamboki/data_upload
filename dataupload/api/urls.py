@@ -46,6 +46,57 @@ urlpatterns = [
     path('pro_stock_report/<int:pk>/', views.ProStockReportDetail.as_view()),
     path('pro_számlák/', views.ProSzamlakList.as_view()),
     path('pro_számlák/<int:pk>', views.ProSzamlaDetail.as_view()),
+
+    path('fol_stock_transaction_report/',
+         views.FolStockTransactionReportList.as_view()),
+    path('fol_stock_transaction_report/<int:pk>/',
+         views.FolStockTransactionReportDetail.as_view()),
+
+    path('fol_stock_aging/',
+         views.FolStockAgingList.as_view()),
+    path('fol_stock_aging/<int:pk>/',
+         views.FolStockAgingDetail.as_view()),
+
+    path('fol_return_order_shipping_fee/',
+         views.FolReturnOrderShippingFeeList.as_view()),
+    path('fol_return_order_shipping_fee/<int:pk>/',
+         views.FolReturnOrderShippingFeeDetail.as_view()),
+
+    path('fol_return_order_item/',
+         views.FolReturnOrderItemList.as_view()),
+    path('fol_return_order_item/<int:pk>/',
+         views.FolReturnOrderItemDetail.as_view()),
+
+    path('fol_return_order/',
+         views.FolReturnOrderList.as_view()),
+    path('fol_return_order/<int:pk>/',
+         views.FolReturnOrderDetail.as_view()),
+
+    path('fol_order_shipping_fee/',
+         views.FolOrderShippingFeeList.as_view()),
+    path('fol_order_shipping_fee/<int:pk>/',
+         views.FolOrderShippingFeeDetail.as_view()),
+
+    path('fol_order_item/',
+         views.FolOrderItemList.as_view()),
+    path('fol_order_item/<int:pk>/',
+         views.FolOrderItemDetail.as_view()),
+
+    path('fol_order_fee/',
+         views.FolOrderFeeList.as_view()),
+    path('fol_order_fee/<int:pk>/',
+         views.FolOrderFeeDetail.as_view()),
+
+    path('fol_order_etc/',
+         views.FolOrderEtcList.as_view()),
+    path('fol_order_etc/<int:pk>/',
+         views.FolOrderEtcDetail.as_view()),
+
+    path('fol_order_base/',
+         views.FolOrderBaseList.as_view()),
+    path('fol_order_base/<int:pk>/',
+         views.FolOrderBaseDetail.as_view()),
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
