@@ -28,7 +28,6 @@ export default function AddTemplate() {
         // 	skiprows: state.skiprows,
         // 	created_by_id: Userfront.user.userId,
         // 	append: state.append,
-        // 	extension_format: state.extension_format,
         // 	source_column_names: state.source_column_names,
         // });
         console.log({ state });
