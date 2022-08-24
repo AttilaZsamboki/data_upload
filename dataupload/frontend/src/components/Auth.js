@@ -12,6 +12,6 @@ export default class LogoutButton extends React.Component {
         Userfront.logout();
     }
     render() {
-        return (_jsx("button", Object.assign({ id: 'logout-button', onClick: this.handleCLick }, { children: "Logout" })));
+        return (_jsx("button", Object.assign({ id: 'logout-button', onClick: this.handleCLick }, { children: "Kijelentkez\u00E9s" })));
     }
 }

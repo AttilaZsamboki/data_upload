@@ -186,6 +186,128 @@ class FolGlsElszámolásDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.FolGlsElszámolsSerializer
     permission_classes = [AuthorAllUser]
 
+
+class FolStockTransactionReportList(generics.ListCreateAPIView):
+    queryset = models.FolStockTransactionReport.objects.all()
+    serializer_class = serializers.FolStockTransactionReportSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolStockTransactionReportDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolStockTransactionReport.objects.all()
+    serializer_class = serializers.FolStockTransactionReportSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolStockAgingList(generics.ListCreateAPIView):
+    queryset = models.FolStockAging.objects.all()
+    serializer_class = serializers.FolStockAgingSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolReturnOrderShippingFeeList(generics.ListCreateAPIView):
+    queryset = models.FolReturnOrderShippingFee.objects.all()
+    serializer_class = serializers.FolReturnOrderShippingFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolReturnOrderItemList(generics.ListCreateAPIView):
+    queryset = models.FolReturnOrderItem.objects.all()
+    serializer_class = serializers.FolReturnOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolReturnOrderList(generics.ListCreateAPIView):
+    queryset = models.FolReturnOrder.objects.all()
+    serializer_class = serializers.FolReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderShippingFeeList(generics.ListCreateAPIView):
+    queryset = models.FolReturnOrder.objects.all()
+    serializer_class = serializers.FolReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderItemList(generics.ListCreateAPIView):
+    queryset = models.FolOrderItem.objects.all()
+    serializer_class = serializers.FolOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderFeeList(generics.ListCreateAPIView):
+    queryset = models.FolOrderFee.objects.all()
+    serializer_class = serializers.FolOrderFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderEtcList(generics.ListCreateAPIView):
+    queryset = models.FolOrderEtc.objects.all()
+    serializer_class = serializers.FolOrderEtcSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderBaseList(generics.ListCreateAPIView):
+    queryset = models.FolOrderBase.objects.all()
+    serializer_class = serializers.FolOrderBaseSerializer
+    permission_classes = [AuthorAllUser]
+
+#
+
+
+class FolStockAgingDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolStockAging.objects.all()
+    serializer_class = serializers.FolStockAgingSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolReturnOrderShippingFeeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolReturnOrderShippingFee.objects.all()
+    serializer_class = serializers.FolReturnOrderShippingFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolReturnOrderItemDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolReturnOrderItem.objects.all()
+    serializer_class = serializers.FolReturnOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolReturnOrderDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolReturnOrder.objects.all()
+    serializer_class = serializers.FolReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderShippingFeeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolReturnOrder.objects.all()
+    serializer_class = serializers.FolReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderItemDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolOrderItem.objects.all()
+    serializer_class = serializers.FolOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderFeeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolOrderFee.objects.all()
+    serializer_class = serializers.FolOrderFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderEtcDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolOrderEtc.objects.all()
+    serializer_class = serializers.FolOrderEtcSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrderBaseDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolOrderBase.objects.all()
+    serializer_class = serializers.FolOrderBaseSerializer
+    permission_classes = [AuthorAllUser]
+
     #------------------------------------------------PRO----------------------------------------------------------------#
 
 
@@ -267,4 +389,126 @@ class ProSzamlakList(generics.ListCreateAPIView):
 class ProSzamlaDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.ProSzmlk.objects.all()
     serializer_class = serializers.ProSzamlakSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProStockTransactionReportList(generics.ListCreateAPIView):
+    queryset = models.ProStockTransactionReport.objects.all()
+    serializer_class = serializers.ProStockTransactionReportSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProStockTransactionReportDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProStockTransactionReport.objects.all()
+    serializer_class = serializers.ProStockTransactionReportSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProStockAgingList(generics.ListCreateAPIView):
+    queryset = models.ProStockAging.objects.all()
+    serializer_class = serializers.ProStockAgingSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProReturnOrderShippingFeeList(generics.ListCreateAPIView):
+    queryset = models.ProReturnOrderShippingFee.objects.all()
+    serializer_class = serializers.ProReturnOrderShippingFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProReturnOrderItemList(generics.ListCreateAPIView):
+    queryset = models.ProReturnOrderItem.objects.all()
+    serializer_class = serializers.ProReturnOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProReturnOrderList(generics.ListCreateAPIView):
+    queryset = models.ProReturnOrder.objects.all()
+    serializer_class = serializers.ProReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderShippingFeeList(generics.ListCreateAPIView):
+    queryset = models.ProReturnOrder.objects.all()
+    serializer_class = serializers.ProReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderItemList(generics.ListCreateAPIView):
+    queryset = models.ProOrderItem.objects.all()
+    serializer_class = serializers.ProOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderFeeList(generics.ListCreateAPIView):
+    queryset = models.ProOrderFee.objects.all()
+    serializer_class = serializers.ProOrderFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderEtcList(generics.ListCreateAPIView):
+    queryset = models.ProOrderEtc.objects.all()
+    serializer_class = serializers.ProOrderEtcSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderBaseList(generics.ListCreateAPIView):
+    queryset = models.ProOrderBase.objects.all()
+    serializer_class = serializers.ProOrderBaseSerializer
+    permission_classes = [AuthorAllUser]
+
+#
+
+
+class ProStockAgingDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProStockAging.objects.all()
+    serializer_class = serializers.ProStockAgingSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProReturnOrderShippingFeeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProReturnOrderShippingFee.objects.all()
+    serializer_class = serializers.ProReturnOrderShippingFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProReturnOrderItemDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProReturnOrderItem.objects.all()
+    serializer_class = serializers.ProReturnOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProReturnOrderDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProReturnOrder.objects.all()
+    serializer_class = serializers.ProReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderShippingFeeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProReturnOrder.objects.all()
+    serializer_class = serializers.ProReturnOrderSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderItemDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProOrderItem.objects.all()
+    serializer_class = serializers.ProOrderItemSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderFeeDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProOrderFee.objects.all()
+    serializer_class = serializers.ProOrderFeeSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderEtcDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProOrderEtc.objects.all()
+    serializer_class = serializers.ProOrderEtcSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProOrderBaseDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProOrderBase.objects.all()
+    serializer_class = serializers.ProOrderBaseSerializer
     permission_classes = [AuthorAllUser]
