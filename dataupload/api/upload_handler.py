@@ -15,7 +15,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     for i in null_cols:
         del column_bindings[i]
 
-    _, extension_format = os.path.splitext(str(file))
+    filename, extension_format = os.path.splitext(str(file))
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -52,7 +52,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     source_column_names = df.columns
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
     if table in ["fol_stock_report", "pro_stock_report"]:
-        df["timestamp"] = dt.datetime.now()
+        df["timestamp"] = filename[-10:]
         column_bindings["timestamp"] = "timestamp"
 
     if table == 'fol_gls_elszámolás':
