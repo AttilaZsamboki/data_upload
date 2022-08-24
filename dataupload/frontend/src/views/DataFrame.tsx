@@ -72,7 +72,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 							"backgroundColor": "#057D55",
 						}}
 						variant='contained'
-						href={`/add-${inputTable.toLowerCase().replace(" ", "-")}/`}
+						href={`/add-${inputTable.toLowerCase().replace(" ", "-")}`}
 						disabled={!inputTable}>{`${inputTable ? inputTable.slice(0, -1) : ""} hozzáadása`}</Button>
 				</Box>
 			)}

@@ -657,7 +657,7 @@ class FolProductSuppliers(models.Model):
 
 
 class FolStockReport(models.Model):
-    id = models.BigIntegerField(blank=True, null=True)
+    id = models.BigIntegerField(blank=True, primary_key=True)
     name = models.TextField(blank=True, null=True)
     sku = models.TextField(blank=True, null=True)
     on_stock = models.BigIntegerField(blank=True, null=True)
@@ -668,7 +668,7 @@ class FolStockReport(models.Model):
     inventory_value_layer = models.FloatField(blank=True, null=True)
     date = models.DateField(blank=True, null=True)
     sales = models.BigIntegerField(blank=True, null=True)
-    index = models.AutoField(primary_key=True)
+    timestamp = models.DateTimeField()
 
     class Meta:
         managed = False

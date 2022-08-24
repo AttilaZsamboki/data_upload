@@ -7,9 +7,9 @@ from . import views
 urlpatterns = [
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
     path('templates/', views.TemplatesList.as_view()),
-    path('templates/<int:pk>', views.TemplateDetail.as_view()),
+    path('templates/<int:pk>/', views.TemplateDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),
-    path('special-queries/<int:pk>', views.SpecialQueryDetail.as_view()),
+    path('special-queries/<int:pk>/', views.SpecialQueryDetail.as_view()),
     #----------------------------------GENERIC------------------------------------#
     path('table-names', views.TableNames),
     path('column-names/', views.ColumnNames),
