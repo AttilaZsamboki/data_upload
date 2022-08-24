@@ -27,7 +27,6 @@ export default function CreateTable() {
 				file: selectedFile,
 				user_id: Userfront.user.userId,
 				is_new_table: true,
-				extension_format: format,
 				skiprows: skiprows,
 			},
 		});

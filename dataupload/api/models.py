@@ -158,7 +158,6 @@ class DatauploadTabletemplates(models.Model):
     skiprows = models.CharField(max_length=10)
     created_by_id = models.IntegerField()
     append = models.CharField(max_length=40)
-    extension_format = models.CharField(max_length=10)
     source_column_names = models.TextField(blank=True, null=True)
 
     class Meta:
@@ -171,7 +170,6 @@ class DatauploadUploadmodel(models.Model):
     file = models.FileField(upload_to='upload_files/', max_length=200)
     user_id = models.IntegerField()
     is_new_table = models.BooleanField()
-    extension_format = models.CharField(max_length=10, blank=True)
     skiprows = models.IntegerField(blank=True)
 
     class Meta:

@@ -3,7 +3,7 @@ import { useTable, useTableOptions } from "../hooks/Tables";
 import { Autocomplete, TextField, Button } from "@mui/material";
 import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
-
+import getCookie from "../utils/GetCookie";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
 import { useState } from "react";
@@ -11,6 +11,8 @@ import { AgGridReact } from "ag-grid-react";
 import { useEffect, useMemo } from "react";
 import { Box } from "@mui/system";
 import axios from "axios";
+
+const csrftoken = getCookie("csrftoken");
 
 function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const gridRef = React.useRef();
@@ -42,7 +44,12 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 	);
 
 	const onBtWhich = (event: any) => {
-		axios.put(`/api/${inputTable.toLowerCase().replace(" ", "-")}/${event.data.id}/`, event.data);
+		axios.put(`/api/${inputTable.toLowerCase().replace(" ", "-")}/${event.data.id}/`, event.data, {
+			headers: {
+				"X-CSRFToken": csrftoken,
+				"Content-Type": "multipart/form-data",
+			},
+		});
 	};
 
 	const getRowId = useMemo(() => {

@@ -14,7 +14,6 @@ type TemplateType = {
 	skiprows: number;
 	created_by_id: number;
 	append: "Felülírás" | "Hozzáfűzés" | "Hozzáfűzés duplikációk szűrésével";
-	extension_format: "xlsx" | "csc" | "tsv";
 	source_column_names: string;
 };
 
@@ -46,11 +45,11 @@ export default function DataUpload() {
 	};
 
 	return (
-		<div className='center-form'>
+		<form className='center-form' onSubmit={onFileUpload}>
 			<h1 className='pb-16'>Fájl Feltöltése</h1>
 			<div className='flex justify-center'>
 				<div className='mb-3 w-96 object-left-top'>
-					<label htmlFor='formFile'>Válassz ki egy fájlt:</label>
+					<label htmlFor='formFile'>Válassz ki egy fájlt (.xlsx, .csv, .tsv):</label>
 					<input
 						className='form-control	block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none'
 						type='file'
@@ -79,7 +78,6 @@ export default function DataUpload() {
 			/>
 			<br />
 			<Button
-				onClick={onFileUpload}
 				disabled={!inputFile}
 				variant='contained'
 				className=''
@@ -93,6 +91,6 @@ export default function DataUpload() {
 				Feltöltés
 			</Button>
 			{isSuccess && <Navigate to='/upload' replace={true} />}
-		</div>
+		</form>
 	);
 }

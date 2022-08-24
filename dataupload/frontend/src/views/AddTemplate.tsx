@@ -33,7 +33,6 @@ export default function AddTemplate() {
 				skiprows: state.skiprows,
 				created_by_id: Userfront.user.userId,
 				append: state.append,
-				extension_format: state.extension_format,
 				source_column_names: JSON.stringify(sourceColumns),
 			},
 		});
@@ -75,16 +74,6 @@ export default function AddTemplate() {
 				renderInput={(params) => <TextField {...params} label='Hozááfűzés formája' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, append: v }))}
 				value={state.append}
-			/>
-			<br />
-			<Autocomplete
-				disablePortal
-				id='format'
-				options={formatOptions}
-				sx={{ width: 300 }}
-				renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
-				onChange={(e, v) => setState((prev) => ({ ...prev, extension_format: v }))}
-				value={state.extension_format}
 			/>
 			<br />
 			{columnNames.data && (

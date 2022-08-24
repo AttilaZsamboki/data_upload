@@ -7,12 +7,15 @@ import os
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from .utils.upload import col_by_dtype
 from json import dumps
+import os
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, extension_format, user_id, is_new_table, skiprows, column_bindings):
+def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings):
     null_cols = [i for i, j in column_bindings.items() if j == '']
     for i in null_cols:
         del column_bindings[i]
+
+    _, extension_format = os.path.splitext(str(file))
 
     keepalive_kwargs = {
         "keepalives": 1,

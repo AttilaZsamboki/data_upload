@@ -8,7 +8,6 @@ type TemplateData = {
 	skiprows: number;
 	created_by_id: number;
 	append: string;
-	extension_format: string;
 	source_column_names: string;
 };
 
