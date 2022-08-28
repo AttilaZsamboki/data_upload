@@ -14,4 +14,5 @@ urlpatterns = [
     path('add-templates/', views.main),
     path('add-special-queries/', views.main),
     path('create-table/', views.main),
+    path('uploads/', views.main)
 ]

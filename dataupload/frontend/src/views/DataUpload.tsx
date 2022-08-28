@@ -19,7 +19,6 @@ type TemplateType = {
 
 export default function DataUpload() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
-	const inputRef = useRef(null);
 	const [inputTable, setInputTable] = useState<string>();
 	const [inputFile, setInputFile] = useState<File>();
 	const tableOptions = useTableOptions();

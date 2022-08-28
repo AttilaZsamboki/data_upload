@@ -14,6 +14,7 @@ import Footer from "./components/Footer";
 import CreateTable from "./views/CreateTable";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
+import Uploads from "./views/Uploads";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ function App() {
 						<Route path='/import-config' element={<ImportConfig />} />
 						<Route path='/add-special-queries' element={<AddSpecialQueries />} />
 						<Route path='/create-table' element={<CreateTable />} />
+						<Route path='/uploads' element={<Uploads />} />
 					</Routes>
 				</BrowserRouter>
 				<Footer />

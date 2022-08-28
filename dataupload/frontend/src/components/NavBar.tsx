@@ -1,3 +1,4 @@
+import DownloadingIcon from "@mui/icons-material/Downloading";
 import * as React from "react";
 import Userfront from "@userfront/react";
 import { styled, useTheme } from "@mui/material/styles";
@@ -100,6 +101,7 @@ export default function MiniDrawer() {
 		? {
 				upper: {
 					"Upload": { href: "/upload/", icon: <UploadFileIcon /> },
+					"Feltöltések": { href: "/uploads", icon: <DownloadingIcon /> },
 					"Adatok": { href: "/adatok/", icon: <StorageIcon /> },
 					"Import Konfig": { href: "/import-config/", icon: <ImportExportIcon /> },
 					"Tábla Létrehozása": { href: "/create-table/", icon: <TableViewIcon /> },
@@ -124,6 +126,7 @@ export default function MiniDrawer() {
 		? {
 				upper: {
 					Upload: { href: "/upload/", icon: <UploadFileIcon /> },
+					Feltöltések: { href: "/uploads", icon: <DownloadingIcon /> },
 					Adatok: { href: "/adatok/", icon: <StorageIcon /> },
 				},
 				lower: {
