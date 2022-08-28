@@ -13,12 +13,14 @@ import os
 def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings):
     upload_model = DatauploadUploadmodel.objects.get(
         file=file, table=table, user_id=user_id)
-    upload_model.status = "Feldolgozásra került"
+    upload_model.status_description = "Feldolgozás alatt"
+    upload_model.status = "under upload"
+    upload_model.save()
     null_cols = [i for i, j in column_bindings.items() if j == '']
     for i in null_cols:
         del column_bindings[i]
 
-    _, extension_format = os.path.splitext(str(file))
+    filename, extension_format = os.path.splitext(str(file))
 
     keepalive_kwargs = {
         "keepalives": 1,
@@ -55,7 +57,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     source_column_names = df.columns
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
     if table in ["fol_stock_report", "pro_stock_report"]:
-        df["timestamp"] = dt.datetime.now()
+        df["timestamp"] = filename[-10:]
         column_bindings["timestamp"] = "timestamp"
 
     if table == 'fol_gls_elszámolás':
@@ -124,8 +126,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
                 if date_cols_source and i in date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
             except ValueError as e:
-                return print(
-                    f"Egy hiba lépett fel az egyik sor tartalmát illetően: {e.replac}")
+                upload_model = DatauploadUploadmodel.objects.get(
+                    file=file, table=table, user_id=user_id)
+                upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {str(e).split(' ')[-1]}"
+                upload_model.status = "error"
+                upload_model.save()
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")

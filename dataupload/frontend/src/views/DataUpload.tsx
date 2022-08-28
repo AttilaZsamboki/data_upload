@@ -7,16 +7,6 @@ import { FormControl, TextField, Box, Button } from "@mui/material";
 import usePostData from "../hooks/general";
 import { useTableOptions } from "../hooks/Tables";
 
-type TemplateType = {
-	id: number;
-	table: string;
-	pkey_col: string;
-	skiprows: number;
-	created_by_id: number;
-	append: "Felülírás" | "Hozzáfűzés" | "Hozzáfűzés duplikációk szűrésével";
-	source_column_names: string;
-};
-
 export default function DataUpload() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const [inputTable, setInputTable] = useState<string>();
@@ -29,6 +19,7 @@ export default function DataUpload() {
 	}, []);
 
 	const onFileUpload = (e) => {
+		e.preventDefault();
 		postFormData({
 			path: "uploadmodel",
 			formData: {
@@ -36,12 +27,16 @@ export default function DataUpload() {
 				file: inputFile,
 				user_id: Userfront.user.userId,
 				is_new_table: false,
+				status_description: "Feldolgozásra vár",
+				status: "waiting",
+				timestamp: new Date(),
 			},
 		});
-		if (isSuccess) {
-			window.location.reload(false);
-		}
 	};
+
+	if (isSuccess) {
+		window.location.reload(false);
+	}
 
 	return (
 		<form className='center-form' onSubmit={onFileUpload}>
@@ -89,7 +84,6 @@ export default function DataUpload() {
 				type='submit'>
 				Feltöltés
 			</Button>
-			{isSuccess && <Navigate to='/upload' replace={true} />}
 		</form>
 	);
 }
