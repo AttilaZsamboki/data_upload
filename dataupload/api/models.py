@@ -171,6 +171,10 @@ class DatauploadUploadmodel(models.Model):
     user_id = models.IntegerField()
     is_new_table = models.BooleanField()
     skiprows = models.IntegerField(blank=True)
+    status_description = models.CharField(
+        max_length=100, default="Feldolgozásra vár")
+    status = models.CharField(max_length=100)
+    timestamp = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = False

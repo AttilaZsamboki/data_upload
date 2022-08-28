@@ -11,6 +11,11 @@ import os
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings):
+    upload_model = DatauploadUploadmodel.objects.get(
+        file=file, table=table, user_id=user_id)
+    upload_model.status_description = "Feldolgozás alatt"
+    upload_model.status = "under upload"
+    upload_model.save()
     null_cols = [i for i, j in column_bindings.items() if j == '']
     for i in null_cols:
         del column_bindings[i]
@@ -121,8 +126,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
                 if date_cols_source and i in date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
             except ValueError as e:
-                return print(
-                    "Egy hiba lépett fel az egyik sor tartalmát illetően:\n", e)
+                upload_model = DatauploadUploadmodel.objects.get(
+                    file=file, table=table, user_id=user_id)
+                upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {str(e).split(' ')[-1]}"
+                upload_model.status = "error"
+                upload_model.save()
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
