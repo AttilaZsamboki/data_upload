@@ -174,7 +174,7 @@ class DatauploadUploadmodel(models.Model):
     status_description = models.CharField(
         max_length=100, default="Feldolgozásra vár")
     status = models.CharField(max_length=100)
-    timestamp = models.DateField()
+    timestamp = models.DateTimeField()
 
     class Meta:
         managed = False
