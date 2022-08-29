@@ -49,10 +49,11 @@ function StatusRenderer(props: any) {
 
 export default function Uploads() {
 	const gridRef = React.useRef();
-	const uploads = useQuery(["uploads"], async () => {
+	const [uploads, setUploads] = React.useState(null);
+	setInterval(async () => {
 		const response = await axios.get("/api/uploadmodel");
-		return response.data;
-	});
+		setUploads(response.data);
+	}, 5000);
 	const [columnDefs] = React.useState([
 		{ field: "id", headerCheckboxSelection: true, checkboxSelection: true, showDisabledCheckboxes: true },
 		{ field: "timestamp" },
@@ -87,7 +88,7 @@ export default function Uploads() {
 			<div className='ag-theme-material' style={{ height: 400, width: "80%" }}>
 				<AgGridReact
 					ref={gridRef}
-					rowData={uploads.data}
+					rowData={uploads}
 					columnDefs={columnDefs}
 					animateRows={true}
 					rowSelection={"multiple"}
