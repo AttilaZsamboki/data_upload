@@ -73,6 +73,18 @@ class UploadmodelViewSet(viewsets.ModelViewSet):
             table=table, file=file, user_id=user_id)
         return HTTPResponse({"message": "File uploaded"}, status=200)
 
+
+class UploadCheckerList(generics.ListCreateAPIView):
+    queryset = models.DatauploadUploadchecker.objects.all()
+    serializer_class = serializers.UploadCheckerSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class UploadCheckerDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.DatauploadUploadchecker.objects.all()
+    serializer_class = serializers.UploadCheckerSerializer
+    permission_classes = [AuthorAllUser]
+
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #
     # ------------------------------------------------FOL-------------------------------------------------------------#
 

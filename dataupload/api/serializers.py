@@ -15,6 +15,12 @@ class UploadModelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class UploadCheckerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DatauploadUploadchecker
+        fields = '__all__'
+
+
 class ImportTemplatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DatauploadImporttemplates

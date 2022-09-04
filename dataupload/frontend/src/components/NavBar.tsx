@@ -18,8 +18,6 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import MailIcon from "@mui/icons-material/Mail";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import StorageIcon from "@mui/icons-material/Storage";
 import ImportExportIcon from "@mui/icons-material/ImportExport";
@@ -100,7 +98,7 @@ export default function MiniDrawer() {
 	const sideBar = ["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)
 		? {
 				upper: {
-					"Upload": { href: "/upload/", icon: <UploadFileIcon /> },
+					"Upload": { href: "/upload-start/", icon: <UploadFileIcon /> },
 					"Feltöltések": { href: "/uploads", icon: <DownloadingIcon /> },
 					"Adatok": { href: "/adatok/", icon: <StorageIcon /> },
 					"Import Konfig": { href: "/import-config/", icon: <ImportExportIcon /> },
@@ -108,7 +106,7 @@ export default function MiniDrawer() {
 					"Felhasználó Hozzáadása": { href: "/signup/", icon: <AssignmentIndIcon /> },
 				},
 				lower: {
-					Fiók: { href: "/upload", icon: <AccountCircleSharpIcon /> },
+					Fiók: { href: "/upload-start", icon: <AccountCircleSharpIcon /> },
 					Kijelentkezés: {
 						href: "/login",
 						icon: (
@@ -125,7 +123,7 @@ export default function MiniDrawer() {
 		: Userfront.accessToken()
 		? {
 				upper: {
-					Upload: { href: "/upload/", icon: <UploadFileIcon /> },
+					Upload: { href: "/upload-start/", icon: <UploadFileIcon /> },
 					Feltöltések: { href: "/uploads", icon: <DownloadingIcon /> },
 					Adatok: { href: "/adatok/", icon: <StorageIcon /> },
 				},

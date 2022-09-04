@@ -1,6 +1,7 @@
 import * as React from "react";
+import { Provider } from "jotai";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import DataUpload from "./views/DataUpload";
+import { DataUploadChecker, DataUploadInput, DataUploadStart } from "./views/DataUpload";
 import HomePage from "./views/HomePage";
 import Signup from "./views/SignupPage";
 import PwdReset from "./views/PasswordReset";
@@ -15,6 +16,7 @@ import CreateTable from "./views/CreateTable";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { ReactQueryDevtools } from "react-query/devtools";
 import Uploads from "./views/Uploads";
+import UploadTester from "./views/UploadTesterView";
 
 const queryClient = new QueryClient();
 
@@ -22,25 +24,29 @@ function App() {
 	return (
 		<React.Fragment>
 			<QueryClientProvider client={queryClient}>
-				<CssBaseline enableColorScheme />
-				<BrowserRouter>
-					<NavBar />
-					<Routes>
-						<Route path='/adatok' element={<Adatok />} />
-						<Route path='/login' element={<Login />} />
-						<Route path='/reset' element={<PwdReset />} />
-						<Route path='/signup' element={<Signup />} />
-						<Route path='/upload' element={<DataUpload />} />
-						<Route path='/' element={<HomePage />} />
-						<Route path='/add-templates' element={<AddTemplate />} />
-						<Route path='/import-config' element={<ImportConfig />} />
-						<Route path='/add-special-queries' element={<AddSpecialQueries />} />
-						<Route path='/create-table' element={<CreateTable />} />
-						<Route path='/uploads' element={<Uploads />} />
-					</Routes>
-				</BrowserRouter>
-				<Footer />
-				<ReactQueryDevtools initialIsOpen={false} />
+				<Provider>
+					<CssBaseline enableColorScheme />
+					<BrowserRouter>
+						<NavBar />
+						<Routes>
+							<Route path='/adatok' element={<Adatok />} />
+							<Route path='/login' element={<Login />} />
+							<Route path='/reset' element={<PwdReset />} />
+							<Route path='/signup' element={<Signup />} />
+							<Route path='/' element={<HomePage />} />
+							<Route path='/add-templates' element={<AddTemplate />} />
+							<Route path='/import-config' element={<ImportConfig />} />
+							<Route path='/add-special-queries' element={<AddSpecialQueries />} />
+							<Route path='/create-table' element={<CreateTable />} />
+							<Route path='/upload-start' element={<DataUploadStart />} />
+							<Route path='/upload' element={<DataUploadInput />} />
+							<Route path='/upload-checker' element={<DataUploadChecker />} />
+							<Route path='/uploads' element={<Uploads />} />
+						</Routes>
+					</BrowserRouter>
+					<Footer />
+					<ReactQueryDevtools initialIsOpen={false} />
+				</Provider>
 			</QueryClientProvider>
 		</React.Fragment>
 	);

@@ -169,8 +169,8 @@ class DatauploadUploadmodel(models.Model):
     table = models.CharField(max_length=50)
     file = models.FileField(upload_to='upload_files/', max_length=200)
     user_id = models.IntegerField()
-    is_new_table = models.BooleanField()
-    skiprows = models.IntegerField(blank=True)
+    is_new_table = models.BooleanField(blank=True, null=True)
+    skiprows = models.IntegerField(blank=True, null=True)
     status_description = models.CharField(
         max_length=100, default="Feldolgozásra vár")
     status = models.CharField(max_length=100)
@@ -179,6 +179,23 @@ class DatauploadUploadmodel(models.Model):
     class Meta:
         managed = False
         db_table = 'dataupload_uploadmodel'
+
+
+class DatauploadUploadchecker(models.Model):
+    id = models.AutoField(primary_key=True)
+    table = models.CharField(max_length=50)
+    file = models.FileField(upload_to='upload_files/', max_length=200)
+    user_id = models.IntegerField()
+    file_extension_status = models.TextField(blank=True, null=True)
+    header_status = models.TextField(blank=True, null=True)
+    column_content_status = models.TextField(blank=True, null=True)
+    overall_status = models.TextField()
+    timestamp = models.DateTimeField()
+
+
+    class Meta:
+        managed = False
+        db_table = 'dataupload_uploadchecker'
 
 
 class DjangoAdminLog(models.Model):
