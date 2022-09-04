@@ -107,7 +107,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     if table in tables_in_sql:
         numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
                                     'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
-        date_cols = col_by_dtype(['date', 'timestamp'], table)
+        date_cols = col_by_dtype(['date', 'timestamp', 'timestamp without time zone'], table)
         numeric_cols_source = [
             j for i, j in column_bindings.items() if i in numeric_cols] if numeric_cols else []
         date_cols_source = [
@@ -125,10 +125,10 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
                     df[i] = df[i].astype(float)
                 if date_cols_source and i in date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
-            except ValueError as e:
+            except (ValueError, psycopg2.errors.DatatypeMismatch) as e:
                 upload_model = DatauploadUploadmodel.objects.get(
                     file=file, table=table, user_id=user_id)
-                upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {str(e).split(' ')[-1]}"
+                upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}"
                 upload_model.status = "error"
                 upload_model.save()
 
@@ -170,6 +170,5 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     cur.close()
     conn.close()
 
-    os.remove('/home/atti/googleds/dataupload/media/' + str(file))
     DatauploadUploadmodel.objects.get(
         table=table, file=file, user_id=user_id).delete()

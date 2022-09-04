@@ -7,13 +7,13 @@ import Userfront from "@userfront/react";
 import { Autocomplete, TextField } from "@mui/material";
 import { useColumnNames } from "../hooks/Templates";
 import usePostData from "../hooks/general";
-import { useTableOptions } from "../hooks/Tables";
+import { useTableOptionsNoPrefix } from "../hooks/Tables";
 
 export default function AddTemplate() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
 	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
 	const formatOptions = ["xlsx", "csv", "tsv"];
-	const tableOptions = useTableOptions();
+	const tableOptions = useTableOptionsNoPrefix();
 	const [state, setState] = useState({});
 	const [sourceColumns, setSourceColumns] = useState({});
 	const columnNames = useColumnNames(state.table);

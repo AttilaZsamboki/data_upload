@@ -19,7 +19,11 @@ def upload_file():
     for upload in DatauploadUploadmodel.objects.all():
         table, file, is_new_table, skiprows = (
             upload.table, upload.file, upload.is_new_table, upload.skiprows)
-        if not is_new_table:
+        if is_new_table:
+            special_queries = {}
+            table_template = {}
+            column_bindings = {}
+        else:
             special_queries = DatauploadImporttemplates.objects.filter(
                 table=table, created_by_id=upload.user_id)
             table_template = DatauploadTabletemplates.objects.get(
@@ -28,11 +32,7 @@ def upload_file():
             try:
                 column_bindings = json.loads(
                     table_template.source_column_names)
-            except:
+            except UnboundLocalError:
                 print("Json convert error")
-        else:
-            special_queries = {}
-            table_template = {}
-            column_bindings = {}
         handle_uploaded_file(file, table, special_queries,
                              table_template, upload.user_id, is_new_table, skiprows, column_bindings)

@@ -29,7 +29,7 @@ export default function DataUpload() {
 				is_new_table: false,
 				status_description: "Feldolgozásra vár",
 				status: "waiting",
-				timestamp: new Date(),
+				timestamp: new Date().toJSON(),
 			},
 		});
 	};

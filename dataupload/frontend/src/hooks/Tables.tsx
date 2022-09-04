@@ -9,14 +9,18 @@ async function fetchTable(table: string) {
 	return response.data;
 }
 
-async function fetchTableNames(): Promise<string[]> {
+async function fetchTableNames(prefix: boolean): Promise<string[]> {
 	const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 	const response = await axios.get("/api/table-names");
+	if (prefix) return response.data;
 	return response.data.filter((table: string) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase());
 }
-
 export function useTableOptions() {
-	return useQuery(["tables"], () => fetchTableNames());
+	return useQuery(["tables-prefix"], () => fetchTableNames(false));
+}
+
+export function useTableOptionsNoPrefix() {
+	return useQuery(["tables"], () => fetchTableNames(true));
 }
 
 export function useTable(table: string) {

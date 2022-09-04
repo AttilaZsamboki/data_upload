@@ -72,9 +72,11 @@ export default function Uploads() {
 	]);
 	const onRemoveSelected = () => {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
-		gridRef.current.api.applyTransaction({ remove: selectedRowData });
 		selectedRowData.forEach((element: uploadmodel) => {
-			axios.delete(`/api/uploadmodel/${element.id}`);
+			if (element.status === "waiting") {
+				gridRef.current.api.applyTransaction({ remove: element });
+				axios.delete(`/api/uploadmodel/${element.id}`);
+			}
 		});
 	};
 	return (

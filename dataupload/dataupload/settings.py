@@ -86,7 +86,7 @@ DATABASES = {
 }
 
 CRONJOBS = [
-    ('*/1 * * * *', 'api.cron.upload_file')
+    ('*/10 * * * *', 'api.cron.upload_file')
 ]
 
 # Password validation

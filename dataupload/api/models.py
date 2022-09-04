@@ -174,7 +174,7 @@ class DatauploadUploadmodel(models.Model):
     status_description = models.CharField(
         max_length=100, default="Feldolgozásra vár")
     status = models.CharField(max_length=100)
-    timestamp = models.DateField()
+    timestamp = models.DateTimeField()
 
     class Meta:
         managed = False
@@ -1729,7 +1729,7 @@ class ProStockTransactionReport(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'Pro_stock_transaction_report'
+        db_table = 'pro_stock_transaction_report'
 
 
 class ProStockAging(models.Model):
@@ -1745,7 +1745,7 @@ class ProStockAging(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'Pro_stock_aging'
+        db_table = 'pro_stock_aging'
 
 
 class ProReturnOrderShippingFee(models.Model):
@@ -1760,7 +1760,7 @@ class ProReturnOrderShippingFee(models.Model):
 
     class Meta:
         managed = False
-        db_table = "Pro_return_order_shipping_fee"
+        db_table = "pro_return_order_shipping_fee"
 
 
 class ProReturnOrderItem(models.Model):
@@ -1780,7 +1780,7 @@ class ProReturnOrderItem(models.Model):
 
     class Meta:
         managed = False
-        db_table = "Pro_return_order_item"
+        db_table = "pro_return_order_item"
 
 
 class ProReturnOrder(models.Model):
@@ -1793,7 +1793,7 @@ class ProReturnOrder(models.Model):
 
     class Meta:
         managed = False
-        db_table = "Pro_return_order"
+        db_table = "pro_return_order"
 
 
 class ProOrderShippingFee(models.Model):
@@ -1806,10 +1806,11 @@ class ProOrderShippingFee(models.Model):
     Order_Status = models.TextField()
     Order_Date = models.DateField()
     Exchange_Rate = models.IntegerField()
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
-        db_table = "Pro_order_shipping_fee"
+        db_table = "pro_order_shipping_fee"
 
 
 class ProOrderItem(models.Model):
@@ -1824,29 +1825,31 @@ class ProOrderItem(models.Model):
     Cogs = models.IntegerField()
     Currency = models.CharField(max_length=3)
     Order_Status = models.TextField()
-    Order_Date = models.IntegerField()
+    Order_Date = models.DateField()
     Exchange_Rate = models.IntegerField()
     Weight = models.IntegerField()
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
-        db_table = "Pro_order_shipping_item"
+        db_table = "pro_order_item"
 
 
 class ProOrderFee(models.Model):
-    Order_Id = models.IntegerField()
-    Product_Name = models.IntegerField()
+    Order_Id = models.TextField()
+    Product_Name = models.TextField()
     Quantity = models.IntegerField()
     Unit_Price = models.IntegerField()
     Tax = models.IntegerField()
-    Currency = models.IntegerField()
-    Order_Status = models.IntegerField()
-    Order_Date = models.IntegerField()
+    Currency = models.TextField()
+    Order_Status = models.TextField()
+    Order_Date = models.DateField()
     Exchange_Rate = models.IntegerField()
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
-        db_table = "Pro_order_fee"
+        db_table = "pro_order_fee"
 
 
 class ProOrderEtc(models.Model):
@@ -1915,10 +1918,11 @@ class ProOrderEtc(models.Model):
     Assigned_User = models.TextField()
     Default_Customer_Class = models.TextField()
     Completed_Date = models.TextField()
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
-        db_table = "Pro_order_fee"
+        db_table = "pro_order_fee"
 
 
 class ProOrderBase(models.Model):
@@ -1946,7 +1950,8 @@ class ProOrderBase(models.Model):
     Created_by = models.TextField()
     Assigned_User = models.TextField(blank=True, null=True)
     Completed_Date = models.DateField()
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
-        db_table = "Pro_order_base"
+        db_table = "pro_order_base"
