@@ -7,7 +7,6 @@ import os
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from .utils.upload import col_by_dtype
 from json import dumps
-import os
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings):

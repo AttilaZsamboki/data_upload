@@ -10,6 +10,8 @@ urlpatterns = [
     path('templates/<int:pk>/', views.TemplateDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),
     path('special-queries/<int:pk>/', views.SpecialQueryDetail.as_view()),
+    path('upload-checker/', views.UploadCheckerList.as_view()),
+    path('upload-checker/<int:pk>/', views.UploadCheckerDetail.as_view()),
     #----------------------------------GENERIC------------------------------------#
     path('table-names', views.TableNames),
     path('column-names/', views.ColumnNames),
