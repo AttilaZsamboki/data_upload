@@ -192,7 +192,6 @@ class DatauploadUploadchecker(models.Model):
     overall_status = models.TextField()
     timestamp = models.DateTimeField()
 
-
     class Meta:
         managed = False
         db_table = 'dataupload_uploadchecker'
@@ -1469,7 +1468,7 @@ class FolStockTransactionReport(models.Model):
 
 
 class FolStockAging(models.Model):
-    index = models.BigIntegerField(blank=True, primary_key=True,)
+    index = models.BigIntegerField(blank=True, primary_key=True)
     sku = models.TextField(blank=True, null=True)
     shipment = models.BigIntegerField(blank=True, null=True)
     shipment_now = models.BigIntegerField(blank=True, null=True)
@@ -1560,24 +1559,24 @@ class FolOrderItem(models.Model):
     Cogs = models.IntegerField()
     Currency = models.CharField(max_length=3)
     Order_Status = models.TextField()
-    Order_Date = models.IntegerField()
+    Order_Date = models.DateField()
     Exchange_Rate = models.IntegerField()
     Weight = models.IntegerField()
 
     class Meta:
         managed = False
-        db_table = "fol_order_shipping_item"
+        db_table = "fol_order_item"
 
 
 class FolOrderFee(models.Model):
-    Order_Id = models.IntegerField()
-    Product_Name = models.IntegerField()
+    Order_Id = models.TextField()
+    Product_Name = models.TextField()
     Quantity = models.IntegerField()
     Unit_Price = models.IntegerField()
     Tax = models.IntegerField()
-    Currency = models.IntegerField()
-    Order_Status = models.IntegerField()
-    Order_Date = models.IntegerField()
+    Currency = models.TextField()
+    Order_Status = models.TextField()
+    Order_Date = models.DateField()
     Exchange_Rate = models.IntegerField()
 
     class Meta:

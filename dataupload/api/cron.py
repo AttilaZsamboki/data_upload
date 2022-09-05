@@ -18,7 +18,7 @@ def upload_file():
             os.remove(f'/home/atti/googleds/dataupload/media/{actual_file}')
     for upload in DatauploadUploadmodel.objects.all():
         table, file, is_new_table, skiprows, status = (
-            upload.table, upload.file, upload.is_new_table, upload.skiprows, status)
+            upload.table, upload.file, upload.is_new_table, upload.skiprows, upload.status)
         if status == "ready":
             if not is_new_table:
                 special_queries = DatauploadImporttemplates.objects.filter(

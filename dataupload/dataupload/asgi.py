@@ -1,18 +1,17 @@
+import django
+django.setup()
+from django.core.asgi import get_asgi_application
+from channels.security.websocket import AllowedHostsOriginValidator
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+from api.consumers import UploadConsumer
+from django.urls import path
 import api.routing
 import os
-from django.urls import path
-from api.consumers import UploadConsumer
 
-from channels.auth import AuthMiddlewareStack
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.security.websocket import AllowedHostsOriginValidator
-from django.core.asgi import get_asgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
-# Initialize Django ASGI application early to ensure the AppRegistry
-# is populated before importing code that may import ORM models.
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dataupload.settings")
 django_asgi_app = get_asgi_application()
-
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,

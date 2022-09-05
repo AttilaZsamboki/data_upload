@@ -10,7 +10,9 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
+import getCookie from "../utils/GetCookie";
 
+const csrftoken = getCookie("csrftoken");
 const idAtom = atom(null);
 
 export function DataUploadStart() {
@@ -137,7 +139,7 @@ export function DataUploadChecker() {
 	});
 	React.useEffect(() => {
 		if (uploadId) {
-			const uploadSocket = new WebSocket(`ws://${window.location.host}/ws/upload/${uploadId}/`);
+			const uploadSocket = new WebSocket(`wss://${window.location.host}/ws/upload/${uploadId}/`);
 			wsRef.current = uploadSocket;
 			uploadSocket.onmessage = function (e) {
 				const data = JSON.parse(e.data);
@@ -154,7 +156,12 @@ export function DataUploadChecker() {
 		}
 	}, [uploadId]);
 	const deleteUpload = async () => {
-		await axios.delete(`/api/uploadmodel/${uploadId}/`);
+		await axios.delete(`/api/uploadmodel/${uploadId}/`, {
+			headers: {
+				"X-CSRFToken": csrftoken,
+				"Content-Type": "multipart/form-data",
+			},
+		});
 		window.localStorage.setItem("upload_id", "");
 		!window.localStorage.getItem("upload_id") && setIsDeleted(true);
 		setUploadId("");
@@ -166,7 +173,6 @@ export function DataUploadChecker() {
 		!window.localStorage.getItem("upload_id") && setIsSuccess(true);
 		setUploadId("");
 	};
-	console.log(columnNamesStatus);
 	return (
 		<div>
 			<div className='upload-checker-container'>

@@ -52,12 +52,6 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		});
 	};
 
-	const getRowId = useMemo(() => {
-		return (params: any) => {
-			return params.data.id;
-		};
-	}, []);
-
 	return (
 		<div>
 			<h1 className='flex flex-col items-center justify-center mb-3'>
@@ -92,7 +86,6 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 						rowSelection={"multiple"}
 						rowData={table.data}
 						columnDefs={columnDefs}
-						getRowId={getRowId}
 						stopEditingWhenCellsLoseFocus={true}
 						onCellValueChanged={onBtWhich}
 					/>
