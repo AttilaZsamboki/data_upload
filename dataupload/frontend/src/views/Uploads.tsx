@@ -50,6 +50,12 @@ function StatusRenderer(props: any) {
 export default function Uploads() {
 	const gridRef = React.useRef();
 	const [uploads, setUploads] = React.useState(null);
+	React.useEffect(() => {
+		const fetchData = async () => {
+			const response = await axios.get("/api/uploadmodel");
+			return setUploads(response.data);
+		};
+	}, []);
 	const [columnDefs] = React.useState([
 		{ field: "id", headerCheckboxSelection: true, checkboxSelection: true, showDisabledCheckboxes: true },
 		{ field: "timestamp" },
