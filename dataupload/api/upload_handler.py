@@ -177,5 +177,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     conn.close()
 
     if not is_feed:
-        DatauploadUploadmodel.objects.get(
-            table=table, file=file, user_id=user_id).delete()
+        upload_model = DatauploadUploadmodel.objects.get(
+            file=file, table=table, user_id=user_id)
+    else:
+        upload_model = DatauploadUploadmodel(
+            file=file, table=table, user_id=user_id)
+    upload_model.status_description = "Sikeres feltöltés!"
+    upload_model.status = "success"
+    upload_model.save()

@@ -18,6 +18,7 @@ interface uploadmodel {
 	status_description: string;
 	status: string;
 	skiprows: number | undefined;
+	upload_timestamp: Date;
 }
 
 function StatusRenderer(props: any) {
@@ -40,6 +41,9 @@ function StatusRenderer(props: any) {
 			image = "noun-unpublished-3644027.png";
 			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "-5%", margin: "auto" };
 			break;
+		case "success":
+			image = "checked.png";
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "-5%", margin: "auto" };
 	}
 	const imageSource = `../../static/images/${image}`;
 	return (
@@ -66,6 +70,7 @@ export default function Uploads() {
 	}, []);
 	const [columnDefs] = React.useState([
 		{ field: "id", headerCheckboxSelection: true, checkboxSelection: true, showDisabledCheckboxes: true },
+		{ field: "upload_timestamp" },
 		{
 			field: "table",
 			cellRenderer: (params) => {
