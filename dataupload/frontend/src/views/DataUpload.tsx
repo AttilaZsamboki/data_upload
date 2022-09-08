@@ -79,6 +79,7 @@ export function DataUploadInput() {
 					user_id: Userfront.user.userId,
 					status: "waiting for processing",
 					status_description: "Nem ellenőrzött feltöltés",
+					upload_timestamp: new Date(),
 				},
 			});
 		}

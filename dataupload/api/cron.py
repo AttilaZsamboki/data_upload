@@ -3,7 +3,8 @@ from .models import DatauploadUploadmodel, DatauploadImporttemplates, Dataupload
 from .upload_handler import handle_uploaded_file
 import os
 import requests
-from datetime import date
+from datetime import date, datetime
+from .utils.utils import diff_month
 
 
 def upload_file():
@@ -68,3 +69,9 @@ def upload_feed():
             print("Json convert error")
         handle_uploaded_file(file, upload["table"], special_queries,
                              table_template, 1, False, skiprows, column_bindings, True)
+
+
+def delete_log():
+    for upload in DatauploadUploadmodel.objects.all():
+        if diff_month(upload.upload_timestamp, datetime.now()) > 1:
+            upload.delete()
