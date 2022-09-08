@@ -64,8 +64,17 @@ class UploadConsumer(AsyncWebsocketConsumer):
             self.gotten_column_names = ", ".join(df.columns.sort_values())
             self.wrong_cols = ", ".join(
                 list(set(self.gotten_column_names.split(", ")) - set(self.source_column_names.split(", "))))
-            self.missing_cols = ", ".join(
-                list(set(self.source_column_names.split(", ")) - set(self.gotten_column_names.split(", "))))
+            if self.template.table == "pro_költségek":
+                missing_cols = list(set(self.source_column_names.split(
+                    ", ")) - set(self.gotten_column_names.split(", ")))
+                cols_to_remove = [
+                    "1_alkategoria", "2_alkategoria", "3_alkategoria", "4_alkategoria"]
+                missing_cols = [
+                    i for i in missing_cols if i not in cols_to_remove]
+            else:
+                missing_cols = list(set(self.source_column_names.split(
+                    ", ")) - set(self.gotten_column_names.split(", ")))
+            self.missing_cols = ", ".join(missing_cols)
             if self.missing_cols:
                 self.column_over_stat = False
             else:
@@ -79,6 +88,8 @@ class UploadConsumer(AsyncWebsocketConsumer):
                 j for i, j in self.source_column_names_raw.items() if i in date_cols] if date_cols else []
             column_content_stat = True
             column_content_error = []
+            if self.template.table == 'fol_gls_elszámolás':
+                df = df[df['Súly'].notna()]
             for i in df.columns:
                 try:
                     if numeric_cols_source and i in numeric_cols_source:
@@ -142,6 +153,7 @@ class UploadConsumer(AsyncWebsocketConsumer):
     def set_upload_status(self):
         upload = DatauploadUploadmodel.objects.get(id=self.upload_id)
         setattr(upload, "status", "ready")
+        setattr(upload, "status_description", "Feltöltésre vár")
         upload.save()
 
     async def status(self, event):

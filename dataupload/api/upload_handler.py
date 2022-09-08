@@ -7,14 +7,16 @@ import os
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from .utils.upload import col_by_dtype
 from json import dumps
+from datetime import date
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings):
-    upload_model = DatauploadUploadmodel.objects.get(
-        file=file, table=table, user_id=user_id)
-    upload_model.status_description = "Feldolgozás alatt"
-    upload_model.status = "under upload"
-    upload_model.save()
+def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed):
+    if not is_feed:
+        upload_model = DatauploadUploadmodel.objects.get(
+            file=file, table=table, user_id=user_id)
+        upload_model.status_description = "Feldolgozás alatt"
+        upload_model.status = "under upload"
+        upload_model.save()
     null_cols = [i for i, j in column_bindings.items() if j == '']
     for i in null_cols:
         del column_bindings[i]
@@ -56,7 +58,10 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     source_column_names = df.columns
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
     if table in ["fol_stock_report", "pro_stock_report"]:
-        df["timestamp"] = filename[-10:]
+        if is_feed:
+            df["timestamp"] = date.today()
+        else:
+            df["timestamp"] = filename[-10:]
         column_bindings["timestamp"] = "timestamp"
 
     if table == 'fol_gls_elszámolás':
@@ -106,7 +111,8 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     if table in tables_in_sql:
         numeric_cols = col_by_dtype(['decimal', 'numeric', 'real', 'double precision',
                                     'smallserial', 'serial', 'bigserial', 'money', 'bigint'], table)
-        date_cols = col_by_dtype(['date', 'timestamp', 'timestamp without time zone'], table)
+        date_cols = col_by_dtype(
+            ['date', 'timestamp', 'timestamp without time zone'], table)
         numeric_cols_source = [
             j for i, j in column_bindings.items() if i in numeric_cols] if numeric_cols else []
         date_cols_source = [
@@ -125,11 +131,12 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
                 if date_cols_source and i in date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
             except (ValueError, psycopg2.errors.DatatypeMismatch) as e:
-                upload_model = DatauploadUploadmodel.objects.get(
-                    file=file, table=table, user_id=user_id)
-                upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}"
-                upload_model.status = "error"
-                upload_model.save()
+                if not is_feed:
+                    upload_model = DatauploadUploadmodel.objects.get(
+                        file=file, table=table, user_id=user_id)
+                    upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}"
+                    upload_model.status = "error"
+                    upload_model.save()
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -169,5 +176,6 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     cur.close()
     conn.close()
 
-    DatauploadUploadmodel.objects.get(
-        table=table, file=file, user_id=user_id).delete()
+    if not is_feed:
+        DatauploadUploadmodel.objects.get(
+            table=table, file=file, user_id=user_id).delete()

@@ -15,12 +15,6 @@ class UploadModelSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class UploadCheckerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.DatauploadUploadchecker
-        fields = '__all__'
-
-
 class ImportTemplatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DatauploadImporttemplates
@@ -30,6 +24,11 @@ class ImportTemplatesSerializer(serializers.ModelSerializer):
 class TemplatesSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DatauploadTabletemplates
+        fields = '__all__'
+
+class TableoverviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DatauploadTableOverview
         fields = '__all__'
 
 # datas serializers
@@ -243,4 +242,10 @@ class ProStockTransactionReportSerializer(serializers.ModelSerializer):
 class ProStockAgingSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProStockAging
+        fields = '__all__'
+
+
+class ProProductsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.ProProducts
         fields = '__all__'

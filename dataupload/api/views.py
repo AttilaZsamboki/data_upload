@@ -74,16 +74,17 @@ class UploadmodelViewSet(viewsets.ModelViewSet):
         return HTTPResponse({"message": "File uploaded"}, status=200)
 
 
-class UploadCheckerList(generics.ListCreateAPIView):
-    queryset = models.DatauploadUploadchecker.objects.all()
-    serializer_class = serializers.UploadCheckerSerializer
+class TableOverviewDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.DatauploadTableOverview.objects.all()
+    serializer_class = serializers.TableoverviewSerializer
     permission_classes = [AuthorAllUser]
 
 
-class UploadCheckerDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.DatauploadUploadchecker.objects.all()
-    serializer_class = serializers.UploadCheckerSerializer
+class TableOverviewList(generics.ListCreateAPIView):
+    queryset = models.DatauploadTableOverview.objects.all()
+    serializer_class = serializers.TableoverviewSerializer
     permission_classes = [AuthorAllUser]
+
 
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #
     # ------------------------------------------------FOL-------------------------------------------------------------#
@@ -523,4 +524,16 @@ class ProOrderEtcDetail(generics.RetrieveUpdateDestroyAPIView):
 class ProOrderBaseDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.ProOrderBase.objects.all()
     serializer_class = serializers.ProOrderBaseSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProProductsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProProducts.objects.all()
+    serializer_class = serializers.ProProductsSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProProductsList(generics.ListCreateAPIView):
+    queryset = models.ProProducts.objects.all()
+    serializer_class = serializers.ProProductsSerializer
     permission_classes = [AuthorAllUser]

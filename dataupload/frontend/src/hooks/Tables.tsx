@@ -11,9 +11,12 @@ async function fetchTable(table: string) {
 
 async function fetchTableNames(prefix: boolean): Promise<string[]> {
 	const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
-	const response = await axios.get("/api/table-names");
+	const response = await axios.get("/api/table-overview");
 	if (prefix) return response.data;
-	return response.data.filter((table: string) => table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase());
+	return response.data.filter(
+		(table: { db_table: string; verbose_name: string; available_at: string }) =>
+			table.db_table.slice(0, 4).toLowerCase() === tablePrefix.toLowerCase()
+	);
 }
 export function useTableOptions() {
 	return useQuery(["tables-prefix"], () => fetchTableNames(false));

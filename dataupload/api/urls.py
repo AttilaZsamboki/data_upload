@@ -10,8 +10,8 @@ urlpatterns = [
     path('templates/<int:pk>/', views.TemplateDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),
     path('special-queries/<int:pk>/', views.SpecialQueryDetail.as_view()),
-    path('upload-checker/', views.UploadCheckerList.as_view()),
-    path('upload-checker/<int:pk>/', views.UploadCheckerDetail.as_view()),
+    path('table-overview/', views.TableOverviewList.as_view()),
+    path('table-overview/<str:pk>/', views.TableOverviewDetail.as_view()),
     #----------------------------------GENERIC------------------------------------#
     path('table-names', views.TableNames),
     path('column-names/', views.ColumnNames),
@@ -139,6 +139,9 @@ urlpatterns = [
          views.ProOrderBaseList.as_view()),
     path('pro_order_base/<int:pk>/',
          views.ProOrderBaseDetail.as_view()),
+
+    path('pro_products/', views.ProProductsList.as_view()),
+    path('pro_products/<int:pk>/', views.ProProductsDetail.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
