@@ -1,8 +1,10 @@
 import * as React from "react";
 import axios from "axios";
-import { useQuery } from "react-query";
 import { AgGridReact } from "ag-grid-react";
 import { Button } from "@mui/material";
+import Userfront from "@userfront/react";
+import { Navigate } from "react-router-dom";
+import getCookie from "../utils/GetCookie";
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -13,7 +15,6 @@ interface uploadmodel {
 	file: string;
 	is_new_table: boolean;
 	user_id: number;
-	timestamp: string;
 	status_description: string;
 	status: string;
 	skiprows: number | undefined;
@@ -27,12 +28,16 @@ function StatusRenderer(props: any) {
 			image = "close.png";
 			style = { width: 20, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
 			break;
-		case "waiting":
+		case "ready":
 			image = "time-left.png";
 			style = { width: 20, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
 			break;
 		case "under upload":
 			image = "engineering.png";
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "-5%", margin: "auto" };
+			break;
+		case "waiting for processing":
+			image = "noun-unpublished-3644027.png";
 			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "-5%", margin: "auto" };
 			break;
 	}
@@ -48,19 +53,36 @@ function StatusRenderer(props: any) {
 }
 
 export default function Uploads() {
+	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const gridRef = React.useRef();
 	const [uploads, setUploads] = React.useState(null);
 	React.useEffect(() => {
+		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 		const fetchData = async () => {
 			const response = await axios.get("/api/uploadmodel");
-			return setUploads(response.data);
+			return setUploads(response.data.filter((upload) => upload.table.slice(0, 4) === tablePrefix.toLowerCase()));
 		};
+		fetchData();
 	}, []);
 	const [columnDefs] = React.useState([
 		{ field: "id", headerCheckboxSelection: true, checkboxSelection: true, showDisabledCheckboxes: true },
-		{ field: "timestamp" },
-		{ field: "table" },
-		{ field: "file" },
+		{
+			field: "table",
+			cellRenderer: (params) => {
+				if (params.value) {
+					return params.value.slice(4);
+				}
+			},
+		},
+		{
+			field: "file",
+			cellRenderer: (params) => {
+				if (params.value) {
+					return params.value.slice(46);
+				}
+			},
+			width: 400,
+		},
 		{
 			field: "status",
 			flex: 1,
@@ -75,9 +97,17 @@ export default function Uploads() {
 	]);
 	const onRemoveSelected = () => {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
+		const csrftoken = getCookie("csrftoken");
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });
 		selectedRowData.forEach((element: uploadmodel) => {
-			axios.delete(`/api/uploadmodel/${element.id}`);
+			if (element.status !== "waiting for processing") {
+				axios.delete(`/api/uploadmodel/${element.id}`, {
+					headers: {
+						"X-CSRFToken": csrftoken && csrftoken,
+						"Content-Type": "multipart/form-data",
+					},
+				});
+			}
 		});
 	};
 	return (

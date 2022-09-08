@@ -14,9 +14,7 @@ import AddSpecialQueries from "./views/AddSpecialQuery";
 import Footer from "./components/Footer";
 import CreateTable from "./views/CreateTable";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ReactQueryDevtools } from "react-query/devtools";
 import Uploads from "./views/Uploads";
-import UploadTester from "./views/UploadTesterView";
 
 const queryClient = new QueryClient();
 
@@ -45,7 +43,6 @@ function App() {
 						</Routes>
 					</BrowserRouter>
 					<Footer />
-					<ReactQueryDevtools initialIsOpen={false} />
 				</Provider>
 			</QueryClientProvider>
 		</React.Fragment>

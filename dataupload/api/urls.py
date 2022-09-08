@@ -10,8 +10,8 @@ urlpatterns = [
     path('templates/<int:pk>/', views.TemplateDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),
     path('special-queries/<int:pk>/', views.SpecialQueryDetail.as_view()),
-    path('upload-checker/', views.UploadCheckerList.as_view()),
-    path('upload-checker/<int:pk>/', views.UploadCheckerDetail.as_view()),
+    path('table-overview/', views.TableOverviewList.as_view()),
+    path('table-overview/<str:pk>/', views.TableOverviewDetail.as_view()),
     #----------------------------------GENERIC------------------------------------#
     path('table-names', views.TableNames),
     path('column-names/', views.ColumnNames),
@@ -99,6 +99,49 @@ urlpatterns = [
     path('fol_order_base/<int:pk>/',
          views.FolOrderBaseDetail.as_view()),
 
+    #
+    path('pro_return_order_shipping_fee/',
+         views.ProReturnOrderShippingFeeList.as_view()),
+    path('pro_return_order_shipping_fee/<int:pk>/',
+         views.ProReturnOrderShippingFeeDetail.as_view()),
+
+    path('pro_return_order_item/',
+         views.ProReturnOrderItemList.as_view()),
+    path('pro_return_order_item/<int:pk>/',
+         views.ProReturnOrderItemDetail.as_view()),
+
+    path('pro_return_order/',
+         views.ProReturnOrderList.as_view()),
+    path('pro_return_order/<int:pk>/',
+         views.ProReturnOrderDetail.as_view()),
+
+    path('pro_order_shipping_fee/',
+         views.ProOrderShippingFeeList.as_view()),
+    path('pro_order_shipping_fee/<int:pk>/',
+         views.ProOrderShippingFeeDetail.as_view()),
+
+    path('pro_order_item/',
+         views.ProOrderItemList.as_view()),
+    path('pro_order_item/<int:pk>/',
+         views.ProOrderItemDetail.as_view()),
+
+    path('pro_order_fee/',
+         views.ProOrderFeeList.as_view()),
+    path('pro_order_fee/<int:pk>/',
+         views.ProOrderFeeDetail.as_view()),
+
+    path('pro_order_etc/',
+         views.ProOrderEtcList.as_view()),
+    path('pro_order_etc/<int:pk>/',
+         views.ProOrderEtcDetail.as_view()),
+
+    path('pro_order_base/',
+         views.ProOrderBaseList.as_view()),
+    path('pro_order_base/<int:pk>/',
+         views.ProOrderBaseDetail.as_view()),
+
+    path('pro_products/', views.ProProductsList.as_view()),
+    path('pro_products/<int:pk>/', views.ProProductsDetail.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

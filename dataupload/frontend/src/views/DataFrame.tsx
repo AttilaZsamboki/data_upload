@@ -18,8 +18,17 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const gridRef = React.useRef();
 	const [inputTable, setInputTable] = useState<string>();
 	const [columnDefs, setColumnDefs] = useState(null);
-	const tables: any = useTableOptions();
-	const table: any = useTable(inputTable);
+	const tableOverview = useTableOptions().data;
+	const tableOptions =
+		tableOverview &&
+		tableOverview.filter((table) => table.available_at.includes("grid")).map((table) => table.verbose_name);
+	const formattedInputTable =
+		tableOverview &&
+		tableOverview
+			.filter((table) => table.verbose_name === inputTable)
+			.map((table) => table.db_table)
+			.toString();
+	const table: any = useTable(formattedInputTable);
 	const importConfigTypes = ["Templates", "Special queries"];
 
 	useEffect(() => {
@@ -52,12 +61,6 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		});
 	};
 
-	const getRowId = useMemo(() => {
-		return (params: any) => {
-			return params.data.id;
-		};
-	}, []);
-
 	return (
 		<div>
 			<h1 className='flex flex-col items-center justify-center mb-3'>
@@ -66,7 +69,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			<Autocomplete
 				className='m-auto flex flex-col items-center justify-center'
 				id='table'
-				options={importConfig ? importConfigTypes : tables.data}
+				options={importConfig ? importConfigTypes : tableOptions}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label={importConfig ? "Konfig neve" : "Tábla neve"} />}
 				onChange={(e, v) => setInputTable(v)}
@@ -92,9 +95,10 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 						rowSelection={"multiple"}
 						rowData={table.data}
 						columnDefs={columnDefs}
-						getRowId={getRowId}
 						stopEditingWhenCellsLoseFocus={true}
 						onCellValueChanged={onBtWhich}
+						groupIncludeFooter={true}
+						groupIncludeTotalFooter={true}
 					/>
 				</div>
 			</div>

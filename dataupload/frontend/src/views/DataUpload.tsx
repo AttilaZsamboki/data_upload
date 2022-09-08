@@ -10,10 +10,14 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
+import getCookie from "../utils/GetCookie";
+import { green } from "@mui/material/colors";
 
+const csrftoken = getCookie("csrftoken");
 const idAtom = atom(null);
 
 export function DataUploadStart() {
+	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	return (
 		<>
 			{window.localStorage.getItem("upload_id") !== "" ? (
@@ -33,21 +37,30 @@ export function DataUploadStart() {
 }
 
 export function DataUploadInput() {
+	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const { data, mutate: postFormData, isSuccess } = usePostData();
 	const [selectedFile, setSelectedFile] = React.useState<any>(null);
 	const [isButton, setIsButton] = React.useState(false);
-	const tableOptionsRaw = useTableOptions();
+	const [loading, setLoading] = React.useState(false);
+	const tableOverview = useTableOptions().data;
 	const tableOptions =
-		typeof tableOptionsRaw.data !== "undefined" && tableOptionsRaw.data.map((table) => table.slice(4));
+		tableOverview &&
+		tableOverview.filter((table) => table.available_at.includes("upload")).map((table) => table.verbose_name);
+	const tables =
+		tableOverview &&
+		tableOverview
+			.filter((table) => table.available_at.includes("upload"))
+			.map((table) => table.db_table.slice(4).toLowerCase());
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	React.useEffect(() => {
+		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 		if (selectedFile && tableOptions) {
 			setSelectedTable("");
 			let foundTable = false;
-			tableOptions.forEach((table) => {
-				if (selectedFile.name.includes(table)) {
-					setSelectedTable(table);
+			tables.forEach((table) => {
+				if (selectedFile.name.includes(table.replaceAll("_", "-"))) {
+					setSelectedTable(tablePrefix + table);
 					foundTable = true;
 				}
 			});
@@ -55,18 +68,20 @@ export function DataUploadInput() {
 		}
 	}, [selectedFile]);
 	const startChecker = (e: any) => {
-		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
-		e.preventDefault();
-		postFormData({
-			path: "uploadmodel",
-			formData: {
-				file: selectedFile,
-				table: tablePrefix.toLowerCase() + selectedTable,
-				user_id: Userfront.user.userId,
-				status: "waiting for processing",
-				timestamp: new Date(),
-			},
-		});
+		if (!loading) {
+			e.preventDefault();
+			setLoading(true);
+			postFormData({
+				path: "uploadmodel",
+				formData: {
+					file: selectedFile,
+					table: selectedTable,
+					user_id: Userfront.user.userId,
+					status: "waiting for processing",
+					status_description: "Nem ellenőrzött feltöltés",
+				},
+			});
+		}
 	};
 	setUploadId(data?.data.id);
 	return (
@@ -85,13 +100,39 @@ export function DataUploadInput() {
 						sx={{ backgroundColor: "white" }}
 						options={tableOptions}
 						renderInput={(params) => <TextField {...params} label='Tábla neve' />}
-						onChange={(e, v) => setSelectedTable(v)}
+						onChange={(e, v) => {
+							tableOverview &&
+								setSelectedTable(
+									tableOverview
+										.filter((table) => table.verbose_name === v)
+										.map((table) => table.db_table)
+										.toString()
+								);
+						}}
 					/>
 				)}
 			</div>
-			<Button variant='contained' disabled={!selectedTable || !selectedFile} onClick={startChecker}>
-				Tovább
-			</Button>
+			<Box sx={{ m: 1, position: "relative" }}>
+				<Button
+					variant='contained'
+					disabled={!selectedTable || !selectedFile || loading}
+					onClick={startChecker}>
+					Tovább
+				</Button>
+				{loading && (
+					<CircularProgress
+						size={24}
+						sx={{
+							color: green[500],
+							position: "absolute",
+							top: "50%",
+							left: "50%",
+							marginTop: "-12px",
+							marginLeft: "-12px",
+						}}
+					/>
+				)}
+			</Box>
 			{isSuccess && <Navigate to='/upload-checker' replace={true} />}
 		</div>
 	);
@@ -122,6 +163,7 @@ interface ConentStatus {
 }
 
 export function DataUploadChecker() {
+	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	const [IsDeleted, setIsDeleted] = React.useState(false);
 	const [isSuccess, setIsSuccess] = React.useState(false);
@@ -137,7 +179,7 @@ export function DataUploadChecker() {
 	});
 	React.useEffect(() => {
 		if (uploadId) {
-			const uploadSocket = new WebSocket(`ws://${window.location.host}/ws/upload/${uploadId}/`);
+			const uploadSocket = new WebSocket(`wss://${window.location.host}/ws/upload/${uploadId}/`);
 			wsRef.current = uploadSocket;
 			uploadSocket.onmessage = function (e) {
 				const data = JSON.parse(e.data);
@@ -154,7 +196,12 @@ export function DataUploadChecker() {
 		}
 	}, [uploadId]);
 	const deleteUpload = async () => {
-		await axios.delete(`/api/uploadmodel/${uploadId}/`);
+		await axios.delete(`/api/uploadmodel/${uploadId}/`, {
+			headers: {
+				"X-CSRFToken": csrftoken,
+				"Content-Type": "multipart/form-data",
+			},
+		});
 		window.localStorage.setItem("upload_id", "");
 		!window.localStorage.getItem("upload_id") && setIsDeleted(true);
 		setUploadId("");
@@ -166,7 +213,6 @@ export function DataUploadChecker() {
 		!window.localStorage.getItem("upload_id") && setIsSuccess(true);
 		setUploadId("");
 	};
-	console.log(columnNamesStatus);
 	return (
 		<div>
 			<div className='upload-checker-container'>
@@ -284,7 +330,7 @@ export function DataUploadChecker() {
 					)}
 				</div>
 			)}
-			<div className='container mx-auto px-4'>
+			<div className='container mx-auto px-4 flex justify-between items-center justify-center'>
 				<Button variant='outlined' color='error' onClick={deleteUpload} sx={{ margin: 10 }}>
 					Feltöltés törlése
 				</Button>
