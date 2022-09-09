@@ -46,6 +46,7 @@ def upload_feed():
     UPLOADS = [{"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGWjVGWlN4Yk5TY25WUl9iRU1XMjNWY2dUUTJQdzU0WUZObWhDb0RhcmRJVnZBZm1VU1JXQ1NTeDRCZ3ZuMmx4NmxwYzZqczhOTFBySTZWbTBONUNTQXBvaFhjRXZQQzRqN0dkaWVjSGFJMTIxNE09", "table": "fol_orders"},
                {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGWjVGQW0tTi1JcmJYNjg4Yl83UnB6QjhTT0U4d1hTczhjQUQyZllxSWV4MFcwZ1lmaEQtQmhZcWVxUVBzNWhRWjVqZTh3NzNSdlo4NGFOOGdyTloyTmxLV3lTelp1MEtuOVBYVkxGdHBkNjVSbVE9", "table": "fol_stock_report"},
                {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGYXhMWDA5c3NZZ3NfaW5ic21QTkJfQ2JmM2V4NXJ0aXM5THIxUmJmbHpxaTdtb0c3bkt1MGZUcmtsZm5vLV9aVEx4OFNOUVM3d3lrVkx0YzZfTFBWMENfR0JHVjhNc3BWWlNxSURSaDhxTnNQd1E9", "table": "fol_stock_transaction_report"},
+               {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpHdUd3aFJkbWc5dnkwNWloQjYtYlVnaTBISzdrTU9qc05oQU5sMnlzRGQwYmVuam9WNWZhcVlWandUNEQ2NDZLR1hONlhVNkh1d3BjM3pHbEpvc1pPT2hLeFl3dms5aVdxVXVVX1NtUWdLaGg0ZGc9", "table": "fol_product_suppliers"},
                {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXZkdYREUxQ1diSXVlT1ptaTNaV1RNbnFkZ0ZsTEhLTkpjMHdLSWQ3MFVuT2N6ZWJjUUg0ejh6azA4LThxNlh5VTB2ZGlreXVIZjlQSmZYbGdseTdwNkxFX05BU3JPdDRJOXlweldwdkt2UVk9", "table": "pro_orders"},
                {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXWFlFYzQ2bkctRUdtXzdzaTRPV213WW50RTA3UV9zOVYtOE5Va3dTYkotWFM2OW9rWkQ2cDk1LXlVSkN5Q3VOcmdzalhodTIxdkszUHhCR0xpdS1CZW9xb3hkYmFULXpKVDB3YnN6MGZ2UDQ9", "table": "pro_stock_report"},
                {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXeDRoMU1FRzMzWmNkRGVMWnFHNHdrM0c0MVpsRkhEaEV6OE15NENRdlNpOFE1TXJhS3VUNTkwbUljOWF5N0w5NENDdkNtc3d4c0xtT09aWnJBcHVMdHQ0emF0d0NQTmpQTmJEalR0SzM1c0U9", "table": "pro_products"},
@@ -55,8 +56,13 @@ def upload_feed():
             file = requests.get(upload["url"]).content
         except:
             print("Not valid url for file")
-        open(
-            f"/home/atti/googleds/files/profishop/stock_report/{date.today()}", "wb").write(file)
+            continue
+        if upload["table"] == "pro_stock_report":
+            open(
+                f"/home/atti/googleds/files/profishop/stock_report/{date.today()}.xlsx", "wb").write(file)
+        elif upload["table"] == "fol_stock_report":
+            open(
+                f"/home/atti/googleds/files/foliasjuci/stock_report/{date.today()}.xlsx", "wb").write(file)
         special_queries = DatauploadImporttemplates.objects.filter(
             table=upload["table"])
         table_template = DatauploadTabletemplates.objects.get(
@@ -67,8 +73,12 @@ def upload_feed():
                 table_template.source_column_names)
         except:
             print("Json convert error")
-        handle_uploaded_file(file, upload["table"], special_queries,
-                             table_template, 1, False, skiprows, column_bindings, True)
+        try:
+            handle_uploaded_file(file, upload["table"], special_queries,
+                                 table_template, 1, False, skiprows, column_bindings, True)
+        except:
+            print("Could not upload file")
+            continue
 
 
 def delete_log():

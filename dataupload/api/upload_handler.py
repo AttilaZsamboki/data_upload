@@ -7,7 +7,7 @@ import os
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from .utils.upload import col_by_dtype
 from json import dumps
-from datetime import date
+from datetime import date, datetime
 
 
 def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed):
@@ -179,9 +179,11 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     if not is_feed:
         upload_model = DatauploadUploadmodel.objects.get(
             file=file, table=table, user_id=user_id)
+        upload_model.status_description = "Sikeres feltöltés!"
+        upload_model.status = "success"
+        upload_model.upload_timestamp = datetime.now()
+        upload_model.save()
     else:
         upload_model = DatauploadUploadmodel(
-            file=file, table=table, user_id=user_id)
-    upload_model.status_description = "Sikeres feltöltés!"
-    upload_model.status = "success"
-    upload_model.save()
+            file="file", table=table, user_id=user_id, status_description="Sikeres feltöltés!", status="success", upload_timestamp=datetime.now())
+        upload_model.save()
