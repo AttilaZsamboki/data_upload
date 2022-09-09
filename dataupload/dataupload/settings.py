@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--@^%b3wauz8qkdive2s#o8pc+2)^d9)7%&!^=6=g1a6p6lab&5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['www.dataupload.xyz', '164.92.166.60', '127.0.0.1']
 

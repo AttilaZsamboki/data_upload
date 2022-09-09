@@ -105,6 +105,11 @@ export default function Uploads() {
 		const csrftoken = getCookie("csrftoken");
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });
 		selectedRowData.forEach((element: uploadmodel) => {
+			const removeSocket = new WebSocket(`wss://${window.location.host}/ws/delete-upload/${element.id}/`);
+			removeSocket.onmessage = function (e) {
+				const data = JSON.parse(e.data);
+				console.log(data);
+			};
 			if (element.status !== "waiting for processing") {
 				axios.delete(`/api/uploadmodel/${element.id}`, {
 					headers: {
