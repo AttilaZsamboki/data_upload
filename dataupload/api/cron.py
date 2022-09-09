@@ -73,5 +73,5 @@ def upload_feed():
 
 def delete_log():
     for upload in DatauploadUploadmodel.objects.all():
-        if diff_month(upload.upload_timestamp, datetime.now()) > 1:
+        if diff_month(upload.upload_timestamp, datetime.now()) < -1:
             upload.delete()

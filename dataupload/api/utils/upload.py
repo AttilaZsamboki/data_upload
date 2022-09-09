@@ -6,12 +6,11 @@ DB_USER = "doadmin"
 DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
 DB_PORT = "25061"
 
-conn = connect(dbname=DB_NAME, user=DB_USER,
-               password=DB_PASS, host=DB_HOST, port=DB_PORT)
-cur = conn.cursor()
-
 
 def col_by_dtype(data_type, curr_table):
+    conn = connect(dbname=DB_NAME, user=DB_USER,
+                   password=DB_PASS, host=DB_HOST, port=DB_PORT)
+    cur = conn.cursor()
     data_type_str = ""
     for i in range(len(data_type)):
         if i != len(data_type)-1:
