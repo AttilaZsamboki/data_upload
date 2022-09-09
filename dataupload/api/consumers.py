@@ -175,3 +175,43 @@ class UploadConsumer(AsyncWebsocketConsumer):
                 "error": event["column_content"]["error"]
             }
         }))
+
+
+class UploadDeleteConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        self.upload_id = self.scope["url_route"]["kwargs"]["upload_id"]
+        self.upload = await self.get_upload()
+        self.upload_group_name = 'upload_%s' % self.upload_id
+        try:
+            await self.delete_upload()
+            os.remove(
+                f'/home/atti/googleds/dataupload/media/{self.upload.file}')
+            self.delete_status = "success"
+        except:
+            self.delete_status = "error"
+
+        await self.channel_layer.group_send(
+            self.upload_group_name,
+            {
+                "type": "delete-status",
+                "status": self.delete_status
+            })
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(
+            self.upload_group_name,
+            self.channel_name
+        )
+
+    @database_sync_to_async
+    def delete_upload(self):
+        upload = DatauploadUploadmodel.objects.get(id=self.upload_id)
+        upload.delete()
+
+    @database_sync_to_async
+    def get_upload(self):
+        return DatauploadUploadmodel.objects.get(id=self.upload_id)
+
+    async def status(self, event):
+        await self.send(text_data=json.dumps({
+            "status": event["status"]}))
