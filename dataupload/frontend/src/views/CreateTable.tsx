@@ -28,6 +28,8 @@ export default function CreateTable() {
 				user_id: Userfront.user.userId,
 				is_new_table: true,
 				skiprows: skiprows,
+				upload_timestamp: new Date(),
+				status: "ready",
 			},
 		});
 	};

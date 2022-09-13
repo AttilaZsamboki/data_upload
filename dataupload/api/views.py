@@ -537,3 +537,27 @@ class ProProductsList(generics.ListCreateAPIView):
     queryset = models.ProProducts.objects.all()
     serializer_class = serializers.ProProductsSerializer
     permission_classes = [AuthorAllUser]
+
+
+class ProProductsDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.ProProducts.objects.all()
+    serializer_class = serializers.ProProductsSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class ProProductsList(generics.ListCreateAPIView):
+    queryset = models.ProProducts.objects.all()
+    serializer_class = serializers.ProProductsSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolLearnDashDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolLearnDash.objects.all()
+    serializer_class = serializers.FolLearnDashSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolLearnDashList(generics.ListCreateAPIView):
+    queryset = models.FolLearnDash.objects.all()
+    serializer_class = serializers.FolLearnDashSerializer
+    permission_classes = [AuthorAllUser]

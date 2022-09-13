@@ -48,9 +48,9 @@ class UploadConsumer(AsyncWebsocketConsumer):
                 }
             )
         else:
-            if extension_format == 'csv':
+            if extension_format == '.csv':
                 data = pd.read_csv(file, skiprows=int(self.template.skiprows))
-            elif extension_format == 'tsv':
+            elif extension_format == '.tsv':
                 data = pd.read_csv(file, skiprows=int(
                     self.template.skiprows), delimiter='\t')
             else:
@@ -182,20 +182,9 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
         self.upload_id = self.scope["url_route"]["kwargs"]["upload_id"]
         self.upload = await self.get_upload()
         self.upload_group_name = 'upload_%s' % self.upload_id
-        try:
-            await self.delete_upload()
-            os.remove(
-                f'/home/atti/googleds/dataupload/media/{self.upload.file}')
-            self.delete_status = "success"
-        except:
-            self.delete_status = "error"
-
-        await self.channel_layer.group_send(
-            self.upload_group_name,
-            {
-                "type": "delete-status",
-                "status": self.delete_status
-            })
+        await self.delete_upload()
+        os.remove(
+            f'/home/atti/googleds/dataupload/media/{self.upload.file}')
 
     async def disconnect(self, code):
         await self.channel_layer.group_discard(
@@ -211,7 +200,3 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_upload(self):
         return DatauploadUploadmodel.objects.get(id=self.upload_id)
-
-    async def status(self, event):
-        await self.send(text_data=json.dumps({
-            "status": event["status"]}))

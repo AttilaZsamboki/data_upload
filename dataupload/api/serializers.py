@@ -26,6 +26,7 @@ class TemplatesSerializer(serializers.ModelSerializer):
         model = models.DatauploadTabletemplates
         fields = '__all__'
 
+
 class TableoverviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DatauploadTableOverview
@@ -248,4 +249,10 @@ class ProStockAgingSerializer(serializers.ModelSerializer):
 class ProProductsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProProducts
+        fields = '__all__'
+
+
+class FolLearnDashSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolLearnDash
         fields = '__all__'

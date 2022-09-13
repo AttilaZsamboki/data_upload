@@ -5,7 +5,6 @@ import { useTableOptions } from "../hooks/Tables";
 import { atom, useAtom } from "jotai";
 import Userfront from "@userfront/react";
 import usePostData from "../hooks/general";
-import axios from "axios";
 import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import DoneIcon from "@mui/icons-material/Done";
@@ -13,7 +12,6 @@ import ClearIcon from "@mui/icons-material/Clear";
 import getCookie from "../utils/GetCookie";
 import { green } from "@mui/material/colors";
 
-const csrftoken = getCookie("csrftoken");
 const idAtom = atom(null);
 
 export function DataUploadStart() {
@@ -80,6 +78,7 @@ export function DataUploadInput() {
 					status: "waiting for processing",
 					status_description: "Nem ellenőrzött feltöltés",
 					upload_timestamp: new Date(),
+					mode: "Kézi",
 				},
 			});
 		}
@@ -197,12 +196,7 @@ export function DataUploadChecker() {
 		}
 	}, [uploadId]);
 	const deleteUpload = async () => {
-		await axios.delete(`/api/uploadmodel/${uploadId}/`, {
-			headers: {
-				"X-CSRFToken": csrftoken,
-				"Content-Type": "multipart/form-data",
-			},
-		});
+		const removeSocket = new WebSocket(`wss://${window.location.host}/ws/delete-upload/${uploadId}/`);
 		window.localStorage.setItem("upload_id", "");
 		!window.localStorage.getItem("upload_id") && setIsDeleted(true);
 		setUploadId("");

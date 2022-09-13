@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure--@^%b3wauz8qkdive2s#o8pc+2)^d9)7%&!^=6=g1a6p6lab&5'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['www.dataupload.xyz', '164.92.166.60', '127.0.0.1']
 
@@ -88,8 +88,10 @@ DATABASES = {
 
 CRONJOBS = [
     ('*/10 * * * *', 'api.cron.upload_file'),
-    ('0 3 * * *', 'api.cron.upload_feed'),
+    ('0 1 * * *', 'api.cron.upload_feed'),
     ('0 0 * * *', 'api.cron.delete_log'),
+    ('0 * * * *', 'api.cron.order_feed'),
+    ('0 1 * * *', 'api.cron.email_uploads'),
 ]
 
 # Password validation

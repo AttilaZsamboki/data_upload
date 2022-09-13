@@ -175,6 +175,7 @@ class DatauploadUploadmodel(models.Model):
         max_length=100, default="Feldolgozásra vár", blank=True, null=True)
     status = models.CharField(max_length=100, blank=True, null=True)
     upload_timestamp = models.DateTimeField()
+    mode = models.TextField()
 
     class Meta:
         managed = False
@@ -2003,3 +2004,21 @@ class ProProducts(models.Model):
     class Meta:
         managed = False
         db_table = 'pro_products'
+
+
+class FolLearnDash(models.Model):
+    Sku = models.TextField()
+    Billing_First_Name = models.TextField()
+    Billing_Last_Name = models.TextField()
+    Billing_Email = models.TextField()
+    Product_Name = models.TextField()
+    Unit_Price = models.FloatField()
+    Quantity = models.IntegerField()
+    Order_Date = models.DateField()
+    id = models.TextField(primary_key=True)
+    learn_dash_id = models.IntegerField()
+    Order_Id = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_learn_dash"

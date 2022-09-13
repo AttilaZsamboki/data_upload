@@ -1,19 +1,24 @@
 import pandas as pd
 import unidecode
 import psycopg2
-import datetime as dt
+import datetime
 from sqlalchemy import create_engine
 import os
+import glob
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from .utils.upload import col_by_dtype
 from json import dumps
 from datetime import date, datetime
+from .utils.gmail import send_message, gmail_authenticate
+
+service = gmail_authenticate()
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed):
-    if not is_feed:
+def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed, is_email=None, sender_email=None):
+    errors = []
+    if not is_feed and not is_email:
         upload_model = DatauploadUploadmodel.objects.get(
-            file=file, table=table, user_id=user_id)
+            file=file, table=table, user_id=user_id, status="ready")
         upload_model.status_description = "Feldolgozás alatt"
         upload_model.status = "under upload"
         upload_model.save()
@@ -45,9 +50,9 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     column_binding_values_str = "".join(column_bindings.values())
 
     #\\\\\\\\\\\\\\\\\\\\\\\\\ data -->> pandas dataframe ///////////////////////////////////////////#
-    if extension_format == 'csv':
+    if extension_format == '.csv':
         data = pd.read_csv(file, skiprows=int(skiprows))
-    elif extension_format == 'tsv':
+    elif extension_format == '.tsv':
         data = pd.read_csv(file, skiprows=int(
             table_template.skiprows), delimiter='\t')
     else:
@@ -87,8 +92,8 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
             column_bindings = {}
             for i in range(len(db_column_names)):
                 column_bindings[db_column_names[i]] = source_column_names[i]
-            template = DatauploadTabletemplates(table=table, pkey_col=df.iloc[:, 0], skiprows=skiprows, created_by_id=user_id,
-                                                append="Hozzáfűzés duplikációk szűrésével", extension_format=extension_format, source_column_names=dumps(column_bindings))
+            template = DatauploadTabletemplates(table=table, pkey_col="", skiprows=skiprows, created_by_id=user_id,
+                                                append="Hozzáfűzés duplikációk szűrésével", source_column_names=dumps(column_bindings))
             template.save()
             df.to_sql(table, engine, index=False)
             cur.execute("TRUNCATE "+table)
@@ -131,12 +136,17 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
                 if date_cols_source and i in date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
             except (ValueError, psycopg2.errors.DatatypeMismatch) as e:
-                if not is_feed:
+                if not is_feed and not is_email:
                     upload_model = DatauploadUploadmodel.objects.get(
                         file=file, table=table, user_id=user_id)
                     upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}"
                     upload_model.status = "error"
                     upload_model.save()
+                elif is_email:
+                    send_message(service, sender_email, "Rossz tábla tartalom",
+                                 f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}")
+                    os.remove(str(file))
+                    return
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -151,6 +161,15 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     for i in column_bindings.values():
         if i not in df.columns:
             print(i + " not in source file, check your template")
+            errors.append(
+                f"{i} oszlop nincs benne a fájlban, biztosítsd azt, hogy benne van és próbáld újra")
+        if errors:
+            if is_email:
+                send_message(service, sender_email, "Feltöltésben akadt hibák", f"""Az alábbi hibák akadtak a feltöltésben: {", ".join(errors)}.
+
+                                A fenti okok miatt a feltöltés törlésre került.
+                                """)
+            os.remove(str(file))
 
     base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary" if column_binding_values_str else "INSERT INTO "+table+" SELECT * FROM temporary"
@@ -176,14 +195,25 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     cur.close()
     conn.close()
 
-    if not is_feed:
+    if not is_feed and not is_email:
         upload_model = DatauploadUploadmodel.objects.get(
-            file=file, table=table, user_id=user_id)
+            file=file, table=table, user_id=user_id, status="under upload")
         upload_model.status_description = "Sikeres feltöltés!"
         upload_model.status = "success"
         upload_model.upload_timestamp = datetime.now()
         upload_model.save()
+        os.remove("/home/atti/googleds/dataupload/media/" + str(file))
     else:
+        upload_mode = "Email" if is_email else "Feed"
         upload_model = DatauploadUploadmodel(
-            file="file", table=table, user_id=user_id, status_description="Sikeres feltöltés!", status="success", upload_timestamp=datetime.now())
+            file="file", table=table, user_id=user_id, status_description="Sikeres feltöltés!", status="success", upload_timestamp=datetime.now(), mode=upload_mode)
         upload_model.save()
+        if is_email:
+            if errors:
+                send_message(service, sender_email, "Feltöltésben akadt hibák", f"""Az alábbi hibák akadtak a feltöltésben: {", ".join(errors)}.
+
+                            A fenti okok miatt a feltöltés törlésre került.
+                            """)
+            os.remove(str(file))
+            send_message(service, sender_email, "Sikeres feltöltés",
+                         f"Feltöltésed ({filename.split('/')[-1]}) sikeresen felkerült az adatbázisba")

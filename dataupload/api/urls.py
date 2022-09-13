@@ -142,6 +142,9 @@ urlpatterns = [
 
     path('pro_products/', views.ProProductsList.as_view()),
     path('pro_products/<int:pk>/', views.ProProductsDetail.as_view()),
+
+    path("fol_learn_dash/", views.FolLearnDashList.as_view()),
+    path("fol_learn_dash/<int:pk>/", views.FolLearnDashDetail.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

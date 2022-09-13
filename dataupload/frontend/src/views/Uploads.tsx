@@ -4,7 +4,9 @@ import { AgGridReact } from "ag-grid-react";
 import { Button } from "@mui/material";
 import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
-import getCookie from "../utils/GetCookie";
+import formatDate from "../utils/date";
+import { useUserData } from "../hooks/users";
+import { useTableOptionsNoPrefix } from "../hooks/Tables";
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -27,11 +29,11 @@ function StatusRenderer(props: any) {
 	switch (props.value) {
 		case "error":
 			image = "close.png";
-			style = { width: 20, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
 			break;
 		case "ready":
 			image = "time-left.png";
-			style = { width: 20, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
 			break;
 		case "under upload":
 			image = "engineering.png";
@@ -56,28 +58,75 @@ function StatusRenderer(props: any) {
 	);
 }
 
+function ModeRenderer(props: any) {
+	let image;
+	let style;
+	switch (props.value) {
+		case "Email":
+			image = "email.png";
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "0%", margin: "auto" };
+			break;
+		case "Kézi":
+			image = "settings.png";
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "-10%", margin: "auto" };
+			break;
+		case "Feed":
+			image = "animal-feed.png";
+			style = { width: 30, height: "auto", display: "inline-block", verticalAlign: "-5%", margin: "auto" };
+			break;
+		default:
+			image = "question-mark.png";
+			style = { width: 30, height: "auto", display: "inline-block", margin: "auto" };
+			break;
+	}
+	const imageSource = `../../static/images/${image}`;
+	return (
+		<span className='text-center'>
+			<img src={imageSource} style={style} />
+			<p style={{ paddingLeft: 3, display: "inline-block", verticalAlign: "middle", marginLeft: 10 }}>
+				{props.value}
+			</p>
+		</span>
+	);
+}
+
 export default function Uploads() {
+	const tableOverview = useTableOptionsNoPrefix();
+	const tableGetter = (params) => {
+		if (params.data.table && tableOverview.isFetched) {
+			return tableOverview.data?.find((element) => element.db_table === params.data.table)?.verbose_name;
+		}
+	};
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const gridRef = React.useRef();
+	const userData = useUserData();
 	const [uploads, setUploads] = React.useState(null);
 	React.useEffect(() => {
 		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 		const fetchData = async () => {
 			const response = await axios.get("/api/uploadmodel");
+			if (["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username))
+				return setUploads(response.data);
 			return setUploads(response.data.filter((upload) => upload.table.slice(0, 4) === tablePrefix.toLowerCase()));
 		};
 		fetchData();
 	}, []);
-	const [columnDefs] = React.useState([
-		{ field: "id", headerCheckboxSelection: true, checkboxSelection: true, showDisabledCheckboxes: true },
-		{ field: "upload_timestamp" },
+	const [columnDefs, setColumnDefs] = React.useState([
 		{
-			field: "table",
+			field: "id",
+			headerCheckboxSelection: true,
+			checkboxSelection: true,
+			headerName: "Azonosító",
+		},
+		{
+			field: "upload_timestamp",
 			cellRenderer: (params) => {
 				if (params.value) {
-					return params.value.slice(4);
+					return formatDate(new Date(params.value));
 				}
 			},
+			headerName: "Feltöltés ideje",
+			initialSort: "desc",
 		},
 		{
 			field: "file",
@@ -87,36 +136,83 @@ export default function Uploads() {
 				}
 			},
 			width: 400,
+			headerName: "Fájl",
 		},
 		{
 			field: "status",
-			flex: 1,
-			editable: true,
-			resizable: true,
 			cellRendererSelector: () => {
 				return {
 					component: StatusRenderer,
 				};
 			},
+			headerName: "Státusz",
+		},
+		{
+			field: "mode",
+			cellRendererSelector: () => {
+				return {
+					component: ModeRenderer,
+				};
+			},
+			headerName: "Mód",
 		},
 	]);
+	React.useEffect(() => {
+		if (
+			["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username) &&
+			userData.isFetched &&
+			gridRef.current.api
+		) {
+			gridRef.current.api.setColumnDefs([
+				...columnDefs,
+				{
+					headerName: "Tulajdonos",
+					valueGetter: (params) => {
+						if (params.data.user_id && userData.isFetched) {
+							return userData.data?.results.find((element) => element.userId === params.data.user_id)
+								.name;
+						}
+					},
+				},
+			]);
+		}
+	}, [userData.isFetched]);
+	React.useEffect(() => {
+		if (!tableOverview.isLoading) {
+			const [x, y, ...z] = columnDefs;
+			setColumnDefs((prev) => [
+				x,
+				y,
+				{
+					field: "table",
+					valueGetter: tableGetter,
+					headerName: "Tábla",
+					colId: "table",
+				},
+				...z,
+			]);
+		}
+	}, [tableOverview.status]);
+
+	const defaultColDef = React.useMemo(
+		() => ({
+			floatingFilter: true,
+			filter: true,
+			sortable: true,
+			resizable: true,
+			flex: 1,
+			filterParams: {
+				debounceMs: 0,
+			},
+		}),
+		[]
+	);
 	const onRemoveSelected = () => {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
-		const csrftoken = getCookie("csrftoken");
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });
 		selectedRowData.forEach((element: uploadmodel) => {
-			const removeSocket = new WebSocket(`wss://${window.location.host}/ws/delete-upload/${element.id}/`);
-			removeSocket.onmessage = function (e) {
-				const data = JSON.parse(e.data);
-				console.log(data);
-			};
 			if (element.status !== "waiting for processing") {
-				axios.delete(`/api/uploadmodel/${element.id}`, {
-					headers: {
-						"X-CSRFToken": csrftoken && csrftoken,
-						"Content-Type": "multipart/form-data",
-					},
-				});
+				const removeSocket = new WebSocket(`wss://${window.location.host}/ws/delete-upload/${element.id}/`);
 			}
 		});
 	};
@@ -127,13 +223,14 @@ export default function Uploads() {
 				Feltöltés törlése
 			</Button>
 			<p className='text-xs mt-3'>Nem lehetséges miután a fájl feldolgozásra került</p>
-			<div className='ag-theme-material' style={{ height: 400, width: "80%" }}>
+			<div className='ag-theme-material' style={{ height: 800, width: "80%" }}>
 				<AgGridReact
 					ref={gridRef}
 					rowData={uploads}
 					columnDefs={columnDefs}
 					animateRows={true}
 					rowSelection={"multiple"}
+					defaultColDef={defaultColDef}
 				/>
 			</div>
 		</div>
