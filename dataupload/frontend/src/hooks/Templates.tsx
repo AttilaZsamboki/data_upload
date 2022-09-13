@@ -11,18 +11,26 @@ type TemplateData = {
 	source_column_names: string;
 };
 
-export async function fetchColumnNames(table: string) {
+export async function fetchColumnNames(table: string, dtype: boolean) {
 	const response = await axios.get("/api/column-names");
 	const filteredData = response.data
-		.filter((column: string[]) => column[0] === table && column[1] !== "id")
-		.map((column: string[]) => column[1]);
+		.filter((column: string[]) => column[0] === table)
+		.map((column: string[]) => (!dtype ? column[1] : [column[1], column[2]]));
 	return filteredData;
 }
 
 export function useColumnNames(table: string | undefined) {
 	return useQuery(["column-names", table], () => {
 		if (typeof table === "string") {
-			return fetchColumnNames(table);
+			return fetchColumnNames(table, false);
+		}
+	});
+}
+
+export function useColumnDtypes(table: string | undefined) {
+	return useQuery(["column-names", table], () => {
+		if (typeof table === "string") {
+			return fetchColumnNames(table, true);
 		}
 	});
 }

@@ -16,7 +16,7 @@ def ColumnNames(request):
     if request.method == 'GET':
         cur = conn.cursor()
         cur.execute(
-            "select table_name, column_name from information_schema.columns where table_schema = 'public'")
+            "select table_name, column_name, data_type from information_schema.columns where table_schema = 'public'")
         return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
     cur.close()
     conn.close()

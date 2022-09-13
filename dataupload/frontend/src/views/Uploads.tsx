@@ -217,13 +217,13 @@ export default function Uploads() {
 		});
 	};
 	return (
-		<div className='mx-auto flex flex-col items-center justify-center '>
+		<div className='mx-auto flex flex-col items-center justify-center'>
 			<h1 className='mb-5'>Feltöltések</h1>
 			<Button variant='outlined' onClick={onRemoveSelected}>
 				Feltöltés törlése
 			</Button>
 			<p className='text-xs mt-3'>Nem lehetséges miután a fájl feldolgozásra került</p>
-			<div className='ag-theme-material' style={{ height: 800, width: "80%" }}>
+			<div className='ag-theme-material' style={{ height: 700, width: "80%" }}>
 				<AgGridReact
 					ref={gridRef}
 					rowData={uploads}
@@ -231,6 +231,8 @@ export default function Uploads() {
 					animateRows={true}
 					rowSelection={"multiple"}
 					defaultColDef={defaultColDef}
+					pagination={true}
+					paginationAutoPageSize={true}
 				/>
 			</div>
 		</div>

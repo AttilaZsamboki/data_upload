@@ -11,6 +11,7 @@ import { AgGridReact } from "ag-grid-react";
 import { useEffect, useMemo } from "react";
 import { Box } from "@mui/system";
 import axios from "axios";
+import { useColumnDtypes } from "../hooks/Templates";
 
 const csrftoken = getCookie("csrftoken");
 
@@ -30,16 +31,52 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			.toString();
 	const table: any = useTable(formattedInputTable);
 	const importConfigTypes = ["Templates", "Special queries"];
+	const columnNames = useColumnDtypes(formattedInputTable);
 
 	useEffect(() => {
 		if (table.data && inputTable) {
-			setColumnDefs(Object.keys(table.data[0]).map((col) => ({ field: col })));
+			console.log(columnNames.data);
+			setColumnDefs(
+				Object.keys(table.data[0]).map((col) =>
+					columnNames.data.filter((element) => element[1] === "date").find((element) => element[0] === col)
+						? {
+								field: col,
+								filter: "agDateColumnFilter",
+								filterParams: {
+									// provide comparator function
+									comparator: (filterLocalDateAtMidnight, cellValue) => {
+										const dateAsString = cellValue;
+
+										if (dateAsString == null) {
+											return 0;
+										}
+
+										// In the example application, dates are stored as dd/mm/yyyy
+										// We create a Date object for comparison against the filter date
+										const dateParts = dateAsString.split("-");
+										const year = Number(dateParts[0]);
+										const month = Number(dateParts[1]) - 1;
+										const day = Number(dateParts[2]);
+										const cellDate = new Date(year, month, day);
+
+										// Now that both parameters are Date objects, we can compare
+										if (cellDate < filterLocalDateAtMidnight) {
+											return -1;
+										} else if (cellDate > filterLocalDateAtMidnight) {
+											return 1;
+										}
+										return 0;
+									},
+								},
+						  }
+						: { field: col, floatingFilter: true }
+				)
+			);
 		}
 	}, [inputTable, table]);
 
 	const defaultColDef = useMemo(
 		() => ({
-			floatingFilter: true,
 			filter: true,
 			minWidth: 200,
 			editable: true,
@@ -99,6 +136,8 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 						onCellValueChanged={onBtWhich}
 						groupIncludeFooter={true}
 						groupIncludeTotalFooter={true}
+						pagination={true}
+						paginationAutoPageSize={true}
 					/>
 				</div>
 			</div>
