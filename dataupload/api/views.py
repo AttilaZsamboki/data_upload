@@ -1,12 +1,30 @@
 from http.client import HTTPResponse
+from django.http import HttpResponse
+from django.core.files import File
 from rest_framework import generics
 from django.http import JsonResponse
 import psycopg2
 from rest_framework import viewsets
 from . import models, serializers
 from .permissions import AuthorAllUser
+from rest_framework.decorators import api_view
+import os
+import pandas as pd
+from rest_framework.response import Response
+from io import open
 
 
+@api_view(["GET"])
+def DownloadFile(request):
+    if request.method == "GET":
+        path_to_file = "/home/atti/googleds/files/" + request.GET.get("path")
+        if os.path.exists(path_to_file):
+            data = open(path_to_file, "rb")
+            response = HttpResponse(
+                File(data).read())
+            response['Content-Disposition'] = 'attachment; filename=%s' % path_to_file.split(
+                "/")[-1]
+            return response
 #----------------------------------------------------GENERIC-------------------------------------------------------#
 
 
@@ -60,18 +78,16 @@ class SpecialQueryDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AuthorAllUser]
 
 
-class UploadmodelViewSet(viewsets.ModelViewSet):
+class UploadmodelList(generics.ListCreateAPIView):
     queryset = models.DatauploadUploadmodel.objects.all()
     serializer_class = serializers.UploadModelSerializer
     permission_classes = [AuthorAllUser]
 
-    def post(self, request, *args, **kwargs):
-        table = request.data["table"]
-        file = request.data["file"]
-        user_id = request.data["table"]
-        models.DatauploadUploadmodel.create(
-            table=table, file=file, user_id=user_id)
-        return HTTPResponse({"message": "File uploaded"}, status=200)
+
+class UploadmodelDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.DatauploadUploadmodel.objects.all()
+    serializer_class = serializers.UploadModelSerializer
+    permission_classes = [AuthorAllUser]
 
 
 class TableOverviewDetail(generics.RetrieveUpdateDestroyAPIView):

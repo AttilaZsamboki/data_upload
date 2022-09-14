@@ -34,6 +34,7 @@
 		"esbuild": "^0.14.49",
 		"jotai": "^1.8.2",
 		"jquery": "^3.6.0",
+		"js-file-download": "^0.4.12",
 		"npm": "^8.15.0",
 		"postcss": "^8.4.16",
 		"postcss-cli": "^10.0.0",

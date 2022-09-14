@@ -52,12 +52,12 @@ export function DataUploadInput() {
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	React.useEffect(() => {
-		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
+		const tablePrefix = Userfront.user.name.slice(0, 3).toLowerCase() + "_";
 		if (selectedFile && tableOptions) {
 			setSelectedTable("");
 			let foundTable = false;
 			tables.forEach((table) => {
-				if (selectedFile.name.includes(table.replaceAll("_", "-"))) {
+				if (selectedFile.name.includes(table.replaceAll("_", "-")) || selectedFile.name.includes(table)) {
 					setSelectedTable(tablePrefix + table);
 					foundTable = true;
 				}

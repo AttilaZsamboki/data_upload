@@ -1,13 +1,15 @@
-from xml.etree.ElementInclude import include
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from . import views
 
 
 urlpatterns = [
+    path("download-log/", views.DownloadFile),
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
     path('templates/', views.TemplatesList.as_view()),
     path('templates/<int:pk>/', views.TemplateDetail.as_view()),
+    path('uploadmodel/', views.UploadmodelList.as_view()),
+    path('uploadmodel/<int:pk>/', views.UploadmodelDetail.as_view()),
     path('special-queries/', views.SpecialQueriesList.as_view()),
     path('special-queries/<int:pk>/', views.SpecialQueryDetail.as_view()),
     path('table-overview/', views.TableOverviewList.as_view()),

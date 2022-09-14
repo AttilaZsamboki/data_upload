@@ -167,7 +167,7 @@ class DatauploadTabletemplates(models.Model):
 
 class DatauploadUploadmodel(models.Model):
     table = models.CharField(max_length=50)
-    file = models.FileField(upload_to='upload_files/', max_length=200)
+    file = models.FileField(upload_to='upload_files/', max_length=200 )
     user_id = models.IntegerField()
     is_new_table = models.BooleanField(blank=True, null=True)
     skiprows = models.IntegerField(blank=True, null=True)

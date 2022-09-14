@@ -1,7 +1,7 @@
 import * as React from "react";
 import axios from "axios";
 import { AgGridReact } from "ag-grid-react";
-import { Button } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
 import formatDate from "../utils/date";
@@ -10,6 +10,8 @@ import { useTableOptionsNoPrefix } from "../hooks/Tables";
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
+
+const fileDownload = require("js-file-download");
 
 interface uploadmodel {
 	id: number;
@@ -90,6 +92,32 @@ function ModeRenderer(props: any) {
 	);
 }
 
+function FileRenderer(props: any) {
+	const [downloading, setDownloading] = React.useState(false);
+	const path = props.value.replace("http://127.0.0.1:8000/media", "");
+	const downloadFile = async () => {
+		if (downloading) {
+			setDownloading(false);
+			return false;
+		}
+		setDownloading(true);
+		const response = await axios(`/api/download-log?path=${props.data.table}/${path}`, { responseType: "blob" });
+		fileDownload(response.data, `${props.data.file.split("/").at(-1)}.${props.data.file.split(".").at(-1)}`);
+		setDownloading(false);
+	};
+	return (
+		<div>
+			{downloading ? (
+				<button onClick={downloadFile}>
+					<CircularProgress style={{ width: 30 }} />
+				</button>
+			) : (
+				<button onClick={downloadFile}>{path}</button>
+			)}
+		</div>
+	);
+}
+
 export default function Uploads() {
 	const tableOverview = useTableOptionsNoPrefix();
 	const tableGetter = (params) => {
@@ -127,13 +155,17 @@ export default function Uploads() {
 			},
 			headerName: "Feltöltés ideje",
 			initialSort: "desc",
+			filter: "agDateColumnFilter",
 		},
 		{
 			field: "file",
-			cellRenderer: (params) => {
-				if (params.value) {
-					return params.value.slice(46);
-				}
+			valueGetter: (params) => {
+				return params.data.file.split("/").at(-1);
+			},
+			cellRendererSelector: () => {
+				return {
+					component: FileRenderer,
+				};
 			},
 			width: 400,
 			headerName: "Fájl",

@@ -3,6 +3,8 @@ from rest_framework import serializers
 
 
 # database config serializers
+
+
 class DatabaseConnectionsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DatauploadDatabaseconnections
@@ -10,9 +12,19 @@ class DatabaseConnectionsSerializer(serializers.ModelSerializer):
 
 
 class UploadModelSerializer(serializers.ModelSerializer):
+    file = serializers.CharField()
+
     class Meta:
         model = models.DatauploadUploadmodel
-        fields = '__all__'
+        fields = ['table',
+                  'file',
+                  'user_id',
+                  'is_new_table',
+                  'skiprows',
+                  'status_description',
+                  'status',
+                  'upload_timestamp',
+                  'mode']
 
 
 class ImportTemplatesSerializer(serializers.ModelSerializer):

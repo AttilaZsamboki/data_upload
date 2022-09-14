@@ -201,8 +201,10 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
         upload_model.status_description = "Sikeres feltöltés!"
         upload_model.status = "success"
         upload_model.upload_timestamp = datetime.now()
+        upload_model.file = f"/home/atti/googleds/files/{table}/{str(file).split('/')[-1]}"
         upload_model.save()
-        os.remove("/home/atti/googleds/dataupload/media/" + str(file))
+        os.rename("/home/atti/googleds/dataupload/media/" + str(file),
+                  f"/home/atti/googleds/files/{table}/{str(file).split('/')[-1]}")
     else:
         upload_mode = "Email" if is_email else "Feed"
         upload_model = DatauploadUploadmodel(
