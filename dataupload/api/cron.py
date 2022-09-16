@@ -2,7 +2,7 @@ from base64 import urlsafe_b64decode
 from django.db import connection
 import os
 import json
-from .models import DatauploadUploadmodel, DatauploadTabletemplates
+from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed
 from .upload_handler import handle_uploaded_file
 import requests
 from datetime import date, datetime
@@ -26,48 +26,40 @@ def upload_file():
                 except:
                     print("Json convert error")
             else:
-                special_queries = {}
                 table_template = {}
                 column_bindings = {}
-            handle_uploaded_file(file, table, special_queries,
+            handle_uploaded_file(file, table,
                                  table_template, upload.user_id, is_new_table, skiprows, column_bindings, False)
 
 
-def upload_feed():
-    UPLOADS = [
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGWjVGQW0tTi1JcmJYNjg4Yl83UnB6QjhTT0U4d1hTczhjQUQyZllxSWV4MFcwZ1lmaEQtQmhZcWVxUVBzNWhRWjVqZTh3NzNSdlo4NGFOOGdyTloyTmxLV3lTelp1MEtuOVBYVkxGdHBkNjVSbVE9", "table": "fol_stock_report", "owner": 1},
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGYXhMWDA5c3NZZ3NfaW5ic21QTkJfQ2JmM2V4NXJ0aXM5THIxUmJmbHpxaTdtb0c3bkt1MGZUcmtsZm5vLV9aVEx4OFNOUVM3d3lrVkx0YzZfTFBWMENfR0JHVjhNc3BWWlNxSURSaDhxTnNQd1E9",
-            "table": "fol_stock_transaction_report", "owner": 1},
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXZkdYREUxQ1diSXVlT1ptaTNaV1RNbnFkZ0ZsTEhLTkpjMHdLSWQ3MFVuT2N6ZWJjUUg0ejh6azA4LThxNlh5VTB2ZGlreXVIZjlQSmZYbGdseTdwNkxFX05BU3JPdDRJOXlweldwdkt2UVk9", "table": "pro_orders", "owner": 3},
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXeDRoMU1FRzMzWmNkRGVMWnFHNHdrM0c0MVpsRkhEaEV6OE15NENRdlNpOFE1TXJhS3VUNTkwbUljOWF5N0w5NENDdkNtc3d4c0xtT09aWnJBcHVMdHQ0emF0d0NQTmpQTmJEalR0SzM1c0U9", "table": "pro_products"},
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpHdUd3aFJkbWc5dnkwNWloQjYtYlVnaTBISzdrTU9qc05oQU5sMnlzRGQwYmVuam9WNWZhcVlWandUNEQ2NDZLR1hONlhVNkh1d3BjM3pHbEpvc1pPT2hLeFl3dms5aVdxVXVVX1NtUWdLaGg0ZGc9", "table": "fol_product_suppliers"},
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGeEt1ZnUtdHljSU0yanozZnp0bHlHeC04R2NoZ0F3eG1IakxBYldVZnZhOG43OXhORDc5OGVNN2lJMkkxLUtVTTBHSG90czhfZEs4UHVONHE3bEZLdnZLd183SHRWWU5icUNmSmY4Zl9IdnpLdlU9", "table": "pro_product_suppliers"},
-        {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXWFlFYzQ2bkctRUdtXzdzaTRPV213WW50RTA3UV9zOVYtOE5Va3dTYkotWFM2OW9rWkQ2cDk1LXlVSkN5Q3VOcmdzalhodTIxdkszUHhCR0xpdS1CZW9xb3hkYmFULXpKVDB3YnN6MGZ2UDQ9", "table": "pro_stock_report", "owner": 3}]
-    for upload in UPLOADS:
-        table = upload["table"]
-        try:
-            file = requests.get(upload["url"]).content
-        except:
-            print("Not valid url for file")
-            continue
-        files_already_existing = [f for f in os.listdir(
-            f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
-        filename = f"/home/atti/googleds/files/{table}/{date.today()} {f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
-        open(filename, "wb").write(file)
-        table_template = DatauploadTabletemplates.objects.get(
-            table=table)
-        skiprows = table_template.skiprows
-        try:
-            column_bindings = json.loads(
-                table_template.source_column_names)
-        except:
-            print("Json convert error")
-        try:
-            handle_uploaded_file(file, table, special_queries,
-                                 table_template, upload["owner"], False, skiprows, column_bindings, True)
-        except:
-            print("Could not upload file")
-            continue
+def upload_feed_daily():
+    for upload in Feed.objects.all():
+        table, url, user_id, frequency = (
+            upload.table, upload.url, upload.user_id, upload.frequency)
+        if frequency == "1 nap":
+            try:
+                file = requests.get(url).content
+            except:
+                print("Not valid url for file")
+                continue
+            files_already_existing = [f for f in os.listdir(
+                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+            filename = f"/home/atti/googleds/files/{table}/{date.today()} {f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+            open(filename, "wb").write(file)
+            table_template = DatauploadTabletemplates.objects.get(
+                table=table)
+            skiprows = table_template.skiprows
+            try:
+                column_bindings = json.loads(
+                    table_template.source_column_names)
+            except:
+                print("Json convert error")
+            try:
+                handle_uploaded_file(file, table,
+                                     table_template, user_id, False, skiprows, column_bindings, True)
+            except:
+                print("Could not upload file")
+                continue
 
 
 def delete_log():
@@ -77,34 +69,34 @@ def delete_log():
             os.remove(upload.file)
 
 
-def order_feed():
-    UPLOADS = [{"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGWjVGWlN4Yk5TY25WUl9iRU1XMjNWY2dUUTJQdzU0WUZObWhDb0RhcmRJVnZBZm1VU1JXQ1NTeDRCZ3ZuMmx4NmxwYzZqczhOTFBySTZWbTBONUNTQXBvaFhjRXZQQzRqN0dkaWVjSGFJMTIxNE09", "table": "fol_orders"}]
-    for upload in UPLOADS:
-        table = upload["table"]
-        try:
-            file = requests.get(upload["url"]).content
-        except:
-            print("Not valid url for file")
-            continue
-        files_already_existing = [f for f in os.listdir(
-            f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
-        filename = f"/home/atti/googleds/files/{table}/{date.today()} ({len(files_already_existing)}).xlsx"
-        open(
-            filename, "wb").write(file)
-        table_template = DatauploadTabletemplates.objects.get(
-            table=table)
-        skiprows = table_template.skiprows
-        try:
-            column_bindings = json.loads(
-                table_template.source_column_names)
-        except:
-            print("Json convert error")
-        try:
-            handle_uploaded_file(file, table, special_queries,
-                                 table_template, 1, False, skiprows, column_bindings, True)
-        except:
-            print("Could not upload file")
-            continue
+def upload_feed_hourly():
+    for upload in Feed.objects.all():
+        table, url, user_id, frequency = (
+            upload.table, upload.url, upload.user_id, upload.frequency)
+        if frequency == "1 óra":
+            try:
+                file = requests.get(url).content
+            except:
+                print("Not valid url for file")
+                continue
+            files_already_existing = [f for f in os.listdir(
+                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+            filename = f"/home/atti/googleds/files/{table}/{date.today()} {f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+            open(filename, "wb").write(file)
+            table_template = DatauploadTabletemplates.objects.get(
+                table=table)
+            skiprows = table_template.skiprows
+            try:
+                column_bindings = json.loads(
+                    table_template.source_column_names)
+            except:
+                print("Json convert error")
+            try:
+                handle_uploaded_file(file, table,
+                                     table_template, user_id, False, skiprows, column_bindings, True)
+            except:
+                print("Could not upload file")
+                continue
 
 
 def email_uploads():
@@ -217,7 +209,7 @@ def email_uploads():
                                     uploadmodel = DatauploadUploadmodel(table=table, file=filepath, user_id=user_id, is_new_table=False,
                                                                         skiprows=skiprows, upload_timestamp=datetime.now(), mode="Email", status="ready")
                                     uploadmodel.save()
-                                    handle_uploaded_file(file=filepath, table=table, special_queries=special_queries,
+                                    handle_uploaded_file(file=filepath, table=table,
                                                          table_template=table_template, user_id=user_id, is_new_table=False, skiprows=skiprows, column_bindings=column_bindings, is_feed=False, is_email=True, sender_email=sender_email)
 
     def read_message(service, message):

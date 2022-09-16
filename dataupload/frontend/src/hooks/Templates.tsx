@@ -6,7 +6,6 @@ type TemplateData = {
 	table: string;
 	pkey_col: string;
 	skiprows: number;
-	created_by_id: number;
 	append: string;
 	source_column_names: string;
 };

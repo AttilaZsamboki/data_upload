@@ -87,9 +87,9 @@ DATABASES = {
 
 CRONJOBS = [
     ('*/10 * * * *', 'api.cron.upload_file'),
-    ('0 1 * * *', 'api.cron.upload_feed'),
+    ('0 1 * * *', 'api.cron.upload_feed_daily'),
+    ('0 * * * *', 'api.cron.upload_feed_hourly'),
     ('0 0 * * *', 'api.cron.delete_log'),
-    ('0 * * * *', 'api.cron.order_feed'),
     ('0 1 * * *', 'api.cron.email_uploads'),
 ]
 

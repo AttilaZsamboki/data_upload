@@ -21,27 +21,26 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const gridRef = React.useRef();
 	const [inputTable, setInputTable] = useState<string>();
 	const [columnDefs, setColumnDefs] = useState(null);
-	const [deleteLoading, setDeleteLoading] = useState(false);
 	const tableOverview = useTableOptions().data;
 	const tableOptions =
 		tableOverview &&
-		tableOverview.filter((table) => table.available_at.includes("grid")).map((table) => table.verbose_name);
+		tableOverview?.filter((table) => table.available_at.includes("grid")).map((table) => table.verbose_name);
 	const formattedInputTable = !importConfig
 		? tableOverview &&
 		  tableOverview
-				.filter((table) => table.verbose_name === inputTable)
+				?.filter((table) => table.verbose_name === inputTable)
 				.map((table) => table.db_table)
 				.toString()
-		: "Templates";
+		: inputTable?.replace(" ", "-").toLowerCase();
 	const table: any = useTable(formattedInputTable);
-	const importConfigTypes = ["Templates", "Special queries"];
+	const importConfigTypes = ["Templates", "Table Overview", "Feed"];
 	const columnNames = useColumnDtypes(formattedInputTable);
 
 	useEffect(() => {
-		if (table.data && inputTable) {
+		if (table.data && table.data.length && inputTable) {
 			setColumnDefs(
 				Object.keys(table.data[0]).map((col) =>
-					columnNames.data.filter((element) => element[1] === "date").find((element) => element[0] === col)
+					columnNames.data?.filter((element) => element[1] === "date").find((element) => element[0] === col)
 						? {
 								field: col,
 								filter: "agDateColumnFilter",
@@ -102,18 +101,17 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			},
 		});
 	};
+	console.log(formattedInputTable);
 	const onRemoveSelected = async () => {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });
-		setDeleteLoading(true);
 		await selectedRowData.forEach((element: uploadmodel) => {
-			axios.delete(`/api/templates/${element.id}`, {
+			axios.delete(`/api/${formattedInputTable}/${element.id}`, {
 				headers: {
 					"X-CSRFToken": csrftoken,
 				},
 			});
 		});
-		setDeleteLoading(false);
 	};
 	return (
 		<div>
@@ -139,7 +137,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 						variant='contained'
 						href={`/add-${inputTable?.toLowerCase().replace(" ", "-")}`}
 						disabled={!inputTable}>
-						Template hozzáadása
+						{inputTable} hozzáadása
 					</Button>
 					<br />
 					<Button

@@ -9,7 +9,9 @@ async function fetchTable(table: string) {
 	return response.data;
 }
 
-async function fetchTableNames(prefix: boolean): Promise<string[]> {
+async function fetchTableNames(
+	prefix: boolean
+): Promise<{ db_table: string; available_at: string; verbose_name: string }> {
 	const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 	const response = await axios.get("/api/table-overview");
 	if (prefix) return response.data;

@@ -124,26 +124,11 @@ class DatauploadBevtelek(models.Model):
         db_table = 'dataupload_bevételek'
 
 
-class DatauploadDatabaseconnections(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=40)
-    host = models.CharField(max_length=150)
-    database = models.CharField(max_length=40)
-    username = models.CharField(max_length=40)
-    password = models.CharField(max_length=40)
-    created_by_id = models.IntegerField()
-    port = models.CharField(max_length=10)
-
-    class Meta:
-        managed = False
-        db_table = 'dataupload_databaseconnections'
-
 class DatauploadTabletemplates(models.Model):
     id = models.BigAutoField(primary_key=True)
     table = models.CharField(max_length=30)
     pkey_col = models.CharField(max_length=30, blank=True, null=True)
     skiprows = models.CharField(max_length=10)
-    created_by_id = models.IntegerField()
     append = models.CharField(max_length=40)
     source_column_names = models.TextField(blank=True, null=True)
 
@@ -154,7 +139,7 @@ class DatauploadTabletemplates(models.Model):
 
 class DatauploadUploadmodel(models.Model):
     table = models.CharField(max_length=50)
-    file = models.FileField(upload_to='upload_files/', max_length=200 )
+    file = models.FileField(upload_to='upload_files/', max_length=200)
     user_id = models.IntegerField()
     is_new_table = models.BooleanField(blank=True, null=True)
     skiprows = models.IntegerField(blank=True, null=True)
@@ -170,9 +155,10 @@ class DatauploadUploadmodel(models.Model):
 
 
 class DatauploadTableOverview(models.Model):
-    db_table = models.CharField(primary_key=True, max_length=255)
+    db_table = models.CharField(max_length=255)
     verbose_name = models.CharField(max_length=255)
     available_at = models.CharField(max_length=255)
+    id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
@@ -2009,3 +1995,15 @@ class FolLearnDash(models.Model):
     class Meta:
         managed = False
         db_table = "fol_learn_dash"
+
+
+class Feed(models.Model):
+    url = models.TextField()
+    table = models.TextField()
+    user_id = models.IntegerField()
+    frequency = models.TextField()
+    id = models.AutoField(primary_key=True)
+
+    class Meta:
+        managed = False
+        db_table = "feed"

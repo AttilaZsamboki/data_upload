@@ -10,12 +10,12 @@ urlpatterns = [
     path('templates/<int:pk>/', views.TemplateDetail.as_view()),
     path('uploadmodel/', views.UploadmodelList.as_view()),
     path('uploadmodel/<int:pk>/', views.UploadmodelDetail.as_view()),
-    path('special-queries/', views.SpecialQueriesList.as_view()),
-    path('special-queries/<int:pk>/', views.SpecialQueryDetail.as_view()),
     path('table-overview/', views.TableOverviewList.as_view()),
-    path('table-overview/<str:pk>/', views.TableOverviewDetail.as_view()),
+    path('table-overview/<int:pk>/', views.TableOverviewDetail.as_view()),
+    path('feed/', views.FeedList.as_view()),
+    path('feed/<str:pk>/', views.FeedDetail.as_view()),
     #----------------------------------GENERIC------------------------------------#
-    path('table-names', views.TableNames),
+    path('table-names/', views.TableNames),
     path('column-names/', views.ColumnNames),
     #----------------------------------DATAS--------------------------------------#
     #-----------------------------------FOL---------------------------------------#
@@ -147,6 +147,7 @@ urlpatterns = [
 
     path("fol_learn_dash/", views.FolLearnDashList.as_view()),
     path("fol_learn_dash/<int:pk>/", views.FolLearnDashDetail.as_view()),
+
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

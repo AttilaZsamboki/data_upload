@@ -5,12 +5,6 @@ from rest_framework import serializers
 # database config serializers
 
 
-class DatabaseConnectionsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.DatauploadDatabaseconnections
-        fields = '__all__'
-
-
 class UploadModelSerializer(serializers.ModelSerializer):
     file = serializers.FileField(use_url=False)
 
@@ -26,6 +20,7 @@ class UploadModelSerializer(serializers.ModelSerializer):
                   'status',
                   'upload_timestamp',
                   'mode']
+
 
 class TemplatesSerializer(serializers.ModelSerializer):
     class Meta:
@@ -261,4 +256,16 @@ class ProProductsSerializer(serializers.ModelSerializer):
 class FolLearnDashSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FolLearnDash
+        fields = '__all__'
+
+
+class TableOverviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DatauploadTableOverview
+        fields = '__all__'
+
+
+class FeedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Feed
         fields = '__all__'

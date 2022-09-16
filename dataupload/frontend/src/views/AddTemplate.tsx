@@ -29,7 +29,6 @@ export default function AddTemplate() {
 				table: state.table,
 				pkey_col: state.pkey_col,
 				skiprows: state.skiprows,
-				created_by_id: Userfront.user.userId,
 				append: state.append,
 				source_column_names: JSON.stringify(sourceColumns),
 			},

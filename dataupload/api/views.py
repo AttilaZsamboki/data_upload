@@ -565,3 +565,15 @@ class FolLearnDashList(generics.ListCreateAPIView):
     queryset = models.FolLearnDash.objects.all()
     serializer_class = serializers.FolLearnDashSerializer
     permission_classes = [AuthorAllUser]
+
+
+class FeedDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.Feed.objects.all()
+    serializer_class = serializers.FeedSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FeedList(generics.ListCreateAPIView):
+    queryset = models.Feed.objects.all()
+    serializer_class = serializers.FeedSerializer
+    permission_classes = [AuthorAllUser]

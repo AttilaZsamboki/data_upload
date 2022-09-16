@@ -13,7 +13,7 @@ from .utils.gmail import send_message, gmail_authenticate
 service = gmail_authenticate()
 
 
-def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed, is_email=None, sender_email=None):
+def handle_uploaded_file(file, table, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed, is_email=None, sender_email=None):
     errors = []
     if not is_feed:
         upload_model = DatauploadUploadmodel.objects.get(
@@ -155,10 +155,6 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
         conn.commit()
 
     df.to_sql("temporary", engine, index=False)
-
-    for query in special_queries:
-        cur.execute(query.special_query)
-        conn.commit()
 
     for i in column_bindings.values():
         if i not in df.columns:
