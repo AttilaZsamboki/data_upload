@@ -9,7 +9,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
-import getCookie from "../utils/GetCookie";
 import { green } from "@mui/material/colors";
 
 const idAtom = atom(null);

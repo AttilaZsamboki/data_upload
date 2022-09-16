@@ -12,13 +12,11 @@ import { useTableOptionsNoPrefix } from "../hooks/Tables";
 export default function AddTemplate() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
 	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
-	const formatOptions = ["xlsx", "csv", "tsv"];
 	const tableOptions = useTableOptionsNoPrefix();
 	const [state, setState] = useState({});
 	const [sourceColumns, setSourceColumns] = useState({});
 	const columnNames = useColumnNames(state.table);
 	const { mutate: postFormData, isSuccess } = usePostData();
-
 	const handleChange = ({ target }: { target: { name: string; value: string } }) => {
 		const { name, value } = target;
 		setState((values) => ({ ...values, [name]: value }));
@@ -39,13 +37,12 @@ export default function AddTemplate() {
 	};
 
 	return (
-		<div className='center-form all-white-bg'>
+		<div className='center-form all-white-bg p-5'>
 			<h1 className='bg-slate-200 pb-6'>Template Hozzáadása</h1>
 			<Autocomplete
 				disablePortal
-				value={state.table}
 				id='table'
-				options={tableOptions.data}
+				options={tableOptions.data?.map((table) => table.db_table)}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Tábla neve' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, table: v }))}
@@ -59,10 +56,15 @@ export default function AddTemplate() {
 				onChange={handleChange}
 			/>
 			<br />
-			<FormControl>
-				<InputLabel htmlFor='pkey_col'>Primary Key Column</InputLabel>
-				<Input id='pkey_col' name='pkey_col' type='text' value={state.pkey_col} onChange={handleChange} />
-			</FormControl>
+			<Autocomplete
+				disablePortal
+				id='primary-key'
+				options={columnNames.data?.map((column) => column)}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Elsődleges kulcs' />}
+				onChange={(e, v) => setState((prev) => ({ ...prev, pkey_col: v }))}
+				disabled={!columnNames.data}
+			/>
 			<br />
 			<Autocomplete
 				disablePortal
@@ -103,6 +105,7 @@ export default function AddTemplate() {
 				sx={{
 					"backgroundColor": "#057D55",
 					"&:hover": { color: "white" },
+					"marginTop": 3,
 				}}
 				endIcon={<KeyboardArrowUpIcon />}
 				type='submit'>

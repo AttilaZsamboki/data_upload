@@ -138,19 +138,6 @@ class DatauploadDatabaseconnections(models.Model):
         managed = False
         db_table = 'dataupload_databaseconnections'
 
-
-class DatauploadImporttemplates(models.Model):
-    id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=30)
-    table = models.CharField(max_length=30)
-    special_query = models.CharField(max_length=1000)
-    created_by_id = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = 'dataupload_importtemplates'
-
-
 class DatauploadTabletemplates(models.Model):
     id = models.BigAutoField(primary_key=True)
     table = models.CharField(max_length=30)

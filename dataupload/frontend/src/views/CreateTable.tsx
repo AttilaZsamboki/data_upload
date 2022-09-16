@@ -1,8 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import { green } from "@mui/material/colors";
+import React, { useState } from "react";
 import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
+import Box from "@mui/material";
+import CircularProgress from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { FormControl, Input, InputLabel, Button, FormHelperText, Autocomplete, TextField } from "@mui/material";
+import {
+	FormControl,
+	Input,
+	InputLabel,
+	Button,
+	FormHelperText,
+	Autocomplete,
+	TextField,
+	Box,
+	CircularProgress,
+} from "@mui/material";
 import usePostData from "../hooks/general";
 
 export default function CreateTable() {
@@ -13,13 +26,13 @@ export default function CreateTable() {
 	}
 
 	const { mutate: postFormData, isSuccess, error } = usePostData();
-	const formatOptions = ["xlsx", "csv", "tsv"];
 	const [inputTable, setInputTable] = useState(null);
 	const [selectedFile, setSelectedFile] = useState(null);
-	const [format, setFormat] = useState(null);
 	const [skiprows, setSkiprows] = useState(null);
+	const [loading, setLoading] = useState(false);
 
 	const onFileUpload = () => {
+		setLoading(true);
 		postFormData({
 			path: "uploadmodel",
 			formData: {
@@ -30,6 +43,7 @@ export default function CreateTable() {
 				skiprows: skiprows,
 				upload_timestamp: new Date(),
 				status: "ready",
+				mode: "Kézi",
 			},
 		});
 	};
@@ -47,17 +61,6 @@ export default function CreateTable() {
 					/>
 				</div>
 			</div>
-			<br />
-			<Autocomplete
-				className='bg-white'
-				disablePortal
-				id='format'
-				options={formatOptions}
-				sx={{ width: 300 }}
-				renderInput={(params) => <TextField {...params} label='Fájlformátum' />}
-				onChange={(event, values) => setFormat(values)}
-			/>
-			<br />
 			<FormControl>
 				<InputLabel htmlFor='table'>Tábla neve</InputLabel>
 				<Input
@@ -80,17 +83,28 @@ export default function CreateTable() {
 				onChange={({ target }) => setSkiprows(target.value)}
 			/>
 			<br />
-			<Button
-				onClick={onFileUpload}
-				variant='contained'
-				sx={{
-					"backgroundColor": "#057D55",
-					"&:hover": { color: "white" },
-				}}
-				endIcon={<AddIcon />}
-				type='submit'>
-				Létrehozás
-			</Button>
+			<Box sx={{ m: 1, position: "relative" }}>
+				<Button
+					variant='contained'
+					endIcon={<AddIcon />}
+					disabled={!inputTable || !selectedFile || loading}
+					onClick={onFileUpload}>
+					Létrehozás
+				</Button>
+				{loading && (
+					<CircularProgress
+						size={24}
+						sx={{
+							color: green[500],
+							position: "absolute",
+							top: "50%",
+							left: "50%",
+							marginTop: "-12px",
+							marginLeft: "-12px",
+						}}
+					/>
+				)}
+			</Box>
 			{isSuccess && <Navigate to='/upload' replace={true} />}
 		</div>
 	);

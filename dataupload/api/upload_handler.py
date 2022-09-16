@@ -4,8 +4,7 @@ import psycopg2
 import datetime
 from sqlalchemy import create_engine
 import os
-import glob
-from .models import DatauploadUploadmodel, DatauploadTabletemplates
+from .models import DatauploadUploadmodel, DatauploadTabletemplates, DatauploadTableOverview
 from .utils.upload import col_by_dtype
 from json import dumps
 from datetime import date, datetime
@@ -16,7 +15,7 @@ service = gmail_authenticate()
 
 def handle_uploaded_file(file, table, special_queries, table_template, user_id, is_new_table, skiprows, column_bindings, is_feed, is_email=None, sender_email=None):
     errors = []
-    if not is_feed and not is_email:
+    if not is_feed:
         upload_model = DatauploadUploadmodel.objects.get(
             file=file, table=table, user_id=user_id, status="ready")
         upload_model.status_description = "Feldolgozás alatt"
@@ -101,6 +100,9 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
             os.remove('/home/atti/googleds/dataupload/media/' + str(file))
             DatauploadUploadmodel.objects.get(
                 table=table, file=file, user_id=user_id).delete()
+            table_overview = DatauploadTableOverview(
+                db_table=table, verbose_name=table.title().replace("_", " "), available_at="upload")
+            table_overview.save()
             return
         else:
             return print("Table already exists")
@@ -136,7 +138,7 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
                 if date_cols_source and i in date_cols_source:
                     df[i] = df[i].astype(dtype='datetime64[ns]')
             except (ValueError, psycopg2.errors.DatatypeMismatch) as e:
-                if not is_feed and not is_email:
+                if not is_feed:
                     upload_model = DatauploadUploadmodel.objects.get(
                         file=file, table=table, user_id=user_id)
                     upload_model.status_description = f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}"
@@ -169,7 +171,6 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
 
                                 A fenti okok miatt a feltöltés törlésre került.
                                 """)
-            os.remove(str(file))
 
     base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary" if column_binding_values_str else "INSERT INTO "+table+" SELECT * FROM temporary"
@@ -195,20 +196,17 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
     cur.close()
     conn.close()
 
-    if not is_feed and not is_email:
+    if not is_feed:
         upload_model = DatauploadUploadmodel.objects.get(
             file=file, table=table, user_id=user_id, status="under upload")
         upload_model.status_description = "Sikeres feltöltés!"
         upload_model.status = "success"
-        upload_model.upload_timestamp = datetime.now()
-        upload_model.file = f"/home/atti/googleds/files/{table}/{str(file).split('/')[-1]}"
-        upload_model.save()
-        os.rename("/home/atti/googleds/dataupload/media/" + str(file),
-                  f"/home/atti/googleds/files/{table}/{str(file).split('/')[-1]}")
-    else:
-        upload_mode = "Email" if is_email else "Feed"
-        upload_model = DatauploadUploadmodel(
-            file="file", table=table, user_id=user_id, status_description="Sikeres feltöltés!", status="success", upload_timestamp=datetime.now(), mode=upload_mode)
+        if not is_email:
+            files_already_existing = [f for f in os.listdir(
+                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+            upload_model.file = f"/home/atti/googleds/files/{table}/{str(filename).split('/')[-1]}{f' ({len(files_already_existing)-1})' if files_already_existing else ''}{extension_format}"
+            os.rename("/home/atti/googleds/dataupload/media/" + str(file),
+                      str(upload_model.file))
         upload_model.save()
         if is_email:
             if errors:
@@ -216,6 +214,13 @@ def handle_uploaded_file(file, table, special_queries, table_template, user_id, 
 
                             A fenti okok miatt a feltöltés törlésre került.
                             """)
-            os.remove(str(file))
             send_message(service, sender_email, "Sikeres feltöltés",
                          f"Feltöltésed ({filename.split('/')[-1]}) sikeresen felkerült az adatbázisba")
+    else:
+        upload_model = DatauploadUploadmodel(
+            file="file", table=table, user_id=user_id, status_description="Sikeres feltöltés!", status="success", upload_timestamp=datetime.now(), mode="Feed")
+        if is_feed:
+            files_already_existing = [f for f in os.listdir(
+                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+            upload_model.file = f"/home/atti/googleds/files/{table}/{date.today()} ({len(files_already_existing)-1}).xlsx"
+        upload_model.save()

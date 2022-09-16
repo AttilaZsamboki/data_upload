@@ -12,11 +12,12 @@ class DatabaseConnectionsSerializer(serializers.ModelSerializer):
 
 
 class UploadModelSerializer(serializers.ModelSerializer):
-    file = serializers.CharField()
+    file = serializers.FileField(use_url=False)
 
     class Meta:
         model = models.DatauploadUploadmodel
-        fields = ['table',
+        fields = ['id',
+                  'table',
                   'file',
                   'user_id',
                   'is_new_table',
@@ -25,13 +26,6 @@ class UploadModelSerializer(serializers.ModelSerializer):
                   'status',
                   'upload_timestamp',
                   'mode']
-
-
-class ImportTemplatesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = models.DatauploadImporttemplates
-        fields = '__all__'
-
 
 class TemplatesSerializer(serializers.ModelSerializer):
     class Meta:

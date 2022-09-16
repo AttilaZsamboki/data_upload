@@ -12,6 +12,8 @@ import { useEffect, useMemo } from "react";
 import { Box } from "@mui/system";
 import axios from "axios";
 import { useColumnDtypes } from "../hooks/Templates";
+import CircularProgress from "@mui/material";
+import { green } from "@mui/material/colors";
 
 const csrftoken = getCookie("csrftoken");
 
@@ -19,23 +21,24 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const gridRef = React.useRef();
 	const [inputTable, setInputTable] = useState<string>();
 	const [columnDefs, setColumnDefs] = useState(null);
+	const [deleteLoading, setDeleteLoading] = useState(false);
 	const tableOverview = useTableOptions().data;
 	const tableOptions =
 		tableOverview &&
 		tableOverview.filter((table) => table.available_at.includes("grid")).map((table) => table.verbose_name);
-	const formattedInputTable =
-		tableOverview &&
-		tableOverview
-			.filter((table) => table.verbose_name === inputTable)
-			.map((table) => table.db_table)
-			.toString();
+	const formattedInputTable = !importConfig
+		? tableOverview &&
+		  tableOverview
+				.filter((table) => table.verbose_name === inputTable)
+				.map((table) => table.db_table)
+				.toString()
+		: "Templates";
 	const table: any = useTable(formattedInputTable);
 	const importConfigTypes = ["Templates", "Special queries"];
 	const columnNames = useColumnDtypes(formattedInputTable);
 
 	useEffect(() => {
 		if (table.data && inputTable) {
-			console.log(columnNames.data);
 			setColumnDefs(
 				Object.keys(table.data[0]).map((col) =>
 					columnNames.data.filter((element) => element[1] === "date").find((element) => element[0] === col)
@@ -69,6 +72,8 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 									},
 								},
 						  }
+						: Object.keys(table.data[0]).indexOf(col) === 0 && importConfig
+						? { field: col, floatingFilter: true, headerCheckboxSelection: true, checkboxSelection: true }
 						: { field: col, floatingFilter: true }
 				)
 			);
@@ -97,10 +102,22 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			},
 		});
 	};
-
+	const onRemoveSelected = async () => {
+		const selectedRowData = gridRef.current.api.getSelectedRows();
+		gridRef.current.api.applyTransaction({ remove: selectedRowData });
+		setDeleteLoading(true);
+		await selectedRowData.forEach((element: uploadmodel) => {
+			axios.delete(`/api/templates/${element.id}`, {
+				headers: {
+					"X-CSRFToken": csrftoken,
+				},
+			});
+		});
+		setDeleteLoading(false);
+	};
 	return (
 		<div>
-			<h1 className='flex flex-col items-center justify-center mb-3'>
+			<h1 className='flex flex-col items-center justify-center mb-5'>
 				{!importConfig ? "Adatok" : "Import Konfigurációk"}
 			</h1>
 			<Autocomplete
@@ -111,16 +128,26 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 				renderInput={(params) => <TextField {...params} label={importConfig ? "Konfig neve" : "Tábla neve"} />}
 				onChange={(e, v) => setInputTable(v)}
 			/>
-			{importConfig && typeof inputTable === "string" && (
+			{importConfig && (
 				<Box textAlign='center' marginTop={5}>
 					<Button
 						sx={{
 							"&:hover": { color: "white" },
 							"backgroundColor": "#057D55",
+							"marginBottom": 4,
 						}}
 						variant='contained'
-						href={`/add-${inputTable.toLowerCase().replace(" ", "-")}`}
-						disabled={!inputTable}>{`${inputTable ? inputTable.slice(0, -1) : ""} hozzáadása`}</Button>
+						href={`/add-${inputTable?.toLowerCase().replace(" ", "-")}`}
+						disabled={!inputTable}>
+						Template hozzáadása
+					</Button>
+					<br />
+					<Button
+						variant='outlined'
+						onClick={onRemoveSelected}
+						disabled={!gridRef.current?.api?.getSelectedRows().length}>
+						Template törlése
+					</Button>
 				</Box>
 			)}
 			<div className='mx-auto flex flex-col items-center justify-center '>
@@ -134,8 +161,6 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 						columnDefs={columnDefs}
 						stopEditingWhenCellsLoseFocus={true}
 						onCellValueChanged={onBtWhich}
-						groupIncludeFooter={true}
-						groupIncludeTotalFooter={true}
 						pagination={true}
 						paginationAutoPageSize={true}
 					/>

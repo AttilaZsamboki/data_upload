@@ -16,7 +16,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['www.dataupload.xyz', '164.92.166.60', '127.0.0.1']
 
-
 # Application definition
 
 INSTALLED_APPS = [

@@ -183,8 +183,11 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
         self.upload = await self.get_upload()
         self.upload_group_name = 'upload_%s' % self.upload_id
         await self.delete_upload()
-        os.remove(
-            f'/home/atti/googleds/dataupload/media/{self.upload.file}')
+        if self.upload.status != "success":
+            os.remove(
+                f'/home/atti/googleds/dataupload/media/{self.upload.file}')
+        else:
+            os.remove(str(self.upload.file))
 
     async def disconnect(self, code):
         await self.channel_layer.group_discard(

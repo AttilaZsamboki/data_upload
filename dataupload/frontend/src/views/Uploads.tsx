@@ -102,7 +102,7 @@ function FileRenderer(props: any) {
 		}
 		setDownloading(true);
 		const response = await axios(`/api/download-log?path=${props.data.table}/${path}`, { responseType: "blob" });
-		fileDownload(response.data, `${props.data.file.split("/").at(-1)}.${props.data.file.split(".").at(-1)}`);
+		fileDownload(response.data, `${props.data.file.split("/").at(-1)}`);
 		setDownloading(false);
 	};
 	return (
@@ -251,7 +251,10 @@ export default function Uploads() {
 	return (
 		<div className='mx-auto flex flex-col items-center justify-center'>
 			<h1 className='mb-5'>Feltöltések</h1>
-			<Button variant='outlined' onClick={onRemoveSelected}>
+			<Button
+				variant='outlined'
+				onClick={onRemoveSelected}
+				disabled={!gridRef.current?.api?.getSelectedRows().length}>
 				Feltöltés törlése
 			</Button>
 			<p className='text-xs mt-3'>Nem lehetséges miután a fájl feldolgozásra került</p>

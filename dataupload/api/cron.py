@@ -2,7 +2,7 @@ from base64 import urlsafe_b64decode
 from django.db import connection
 import os
 import json
-from .models import DatauploadUploadmodel, DatauploadImporttemplates, DatauploadTabletemplates
+from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from .upload_handler import handle_uploaded_file
 import requests
 from datetime import date, datetime
@@ -17,8 +17,6 @@ def upload_file():
             upload.table, upload.file, upload.is_new_table, upload.skiprows, upload.status)
         if status == "ready" or status == "under upload":
             if not is_new_table:
-                special_queries = DatauploadImporttemplates.objects.filter(
-                    table=table, created_by_id=upload.user_id)
                 table_template = DatauploadTabletemplates.objects.get(
                     table=table)
                 skiprows = table_template.skiprows
@@ -46,21 +44,18 @@ def upload_feed():
         {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGeEt1ZnUtdHljSU0yanozZnp0bHlHeC04R2NoZ0F3eG1IakxBYldVZnZhOG43OXhORDc5OGVNN2lJMkkxLUtVTTBHSG90czhfZEs4UHVONHE3bEZLdnZLd183SHRWWU5icUNmSmY4Zl9IdnpLdlU9", "table": "pro_product_suppliers"},
         {"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGaHZXWFlFYzQ2bkctRUdtXzdzaTRPV213WW50RTA3UV9zOVYtOE5Va3dTYkotWFM2OW9rWkQ2cDk1LXlVSkN5Q3VOcmdzalhodTIxdkszUHhCR0xpdS1CZW9xb3hkYmFULXpKVDB3YnN6MGZ2UDQ9", "table": "pro_stock_report", "owner": 3}]
     for upload in UPLOADS:
+        table = upload["table"]
         try:
             file = requests.get(upload["url"]).content
         except:
             print("Not valid url for file")
             continue
-        if upload["table"] == "pro_stock_report":
-            open(
-                f"/home/atti/googleds/files/profishop/stock_report/{date.today()}.xlsx", "wb").write(file)
-        elif upload["table"] == "fol_stock_report":
-            open(
-                f"/home/atti/googleds/files/foliasjuci/stock_report/{date.today()}.xlsx", "wb").write(file)
-        special_queries = DatauploadImporttemplates.objects.filter(
-            table=upload["table"])
+        files_already_existing = [f for f in os.listdir(
+            f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+        filename = f"/home/atti/googleds/files/{table}/{date.today()} {f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+        open(filename, "wb").write(file)
         table_template = DatauploadTabletemplates.objects.get(
-            table=upload["table"])
+            table=table)
         skiprows = table_template.skiprows
         try:
             column_bindings = json.loads(
@@ -68,7 +63,7 @@ def upload_feed():
         except:
             print("Json convert error")
         try:
-            handle_uploaded_file(file, upload["table"], special_queries,
+            handle_uploaded_file(file, table, special_queries,
                                  table_template, upload["owner"], False, skiprows, column_bindings, True)
         except:
             print("Could not upload file")
@@ -79,26 +74,25 @@ def delete_log():
     for upload in DatauploadUploadmodel.objects.all():
         if diff_month(upload.upload_timestamp, datetime.now()) < -1:
             upload.delete()
+            os.remove(upload.file)
 
 
 def order_feed():
     UPLOADS = [{"url": "https://app.clouderp.hu/api/1/automatism/file-share/?s=Z0FBQUFBQmpGWjVGWlN4Yk5TY25WUl9iRU1XMjNWY2dUUTJQdzU0WUZObWhDb0RhcmRJVnZBZm1VU1JXQ1NTeDRCZ3ZuMmx4NmxwYzZqczhOTFBySTZWbTBONUNTQXBvaFhjRXZQQzRqN0dkaWVjSGFJMTIxNE09", "table": "fol_orders"}]
     for upload in UPLOADS:
+        table = upload["table"]
         try:
             file = requests.get(upload["url"]).content
         except:
             print("Not valid url for file")
             continue
-        if upload["table"] == "pro_stock_report":
-            open(
-                f"/home/atti/googleds/files/profishop/stock_report/{date.today()}.xlsx", "wb").write(file)
-        elif upload["table"] == "fol_stock_report":
-            open(
-                f"/home/atti/googleds/files/foliasjuci/stock_report/{date.today()}.xlsx", "wb").write(file)
-        special_queries = DatauploadImporttemplates.objects.filter(
-            table=upload["table"])
+        files_already_existing = [f for f in os.listdir(
+            f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+        filename = f"/home/atti/googleds/files/{table}/{date.today()} ({len(files_already_existing)}).xlsx"
+        open(
+            filename, "wb").write(file)
         table_template = DatauploadTabletemplates.objects.get(
-            table=upload["table"])
+            table=table)
         skiprows = table_template.skiprows
         try:
             column_bindings = json.loads(
@@ -106,7 +100,7 @@ def order_feed():
         except:
             print("Json convert error")
         try:
-            handle_uploaded_file(file, upload["table"], special_queries,
+            handle_uploaded_file(file, table, special_queries,
                                  table_template, 1, False, skiprows, column_bindings, True)
         except:
             print("Could not upload file")
@@ -184,7 +178,6 @@ def email_uploads():
                                 attachment = service.users().messages() \
                                     .attachments().get(id=attachment_id, userId='me', messageId=message['id']).execute()
                                 data = attachment.get("data")
-                                filepath = os.path.join(folder_name, filename)
                                 if data:
                                     headers = {
                                         'Accept': '*/*',
@@ -197,19 +190,23 @@ def email_uploads():
                                     sender_email = sender_email.replace(
                                         "<", "").replace(">", "")
                                     user = [i for i in json.loads(response.content)[
-                                        "results"] if i["email"] == sender_email]
-                                    user_id = user[0]["userId"]
+                                        "results"] if i["email"] == sender_email][0]
+                                    user_id = user["userId"]
                                     tables = [i for i in connection.introspection.table_names(
-                                    ) if i[0:3] == user[0]["name"][0:3]]
+                                    ) if i[0:3] == user["name"][0:3].lower()]
                                     table = ""
                                     for i in tables:
-                                        if i.lower()[4:] in filename.lower().replace("-", "-"):
+                                        if i.lower()[4:] in filename.lower().replace("-", "_"):
                                             table = i
                                     if table == "":
                                         send_message(service, sender_email, "Feltöltés hiba",
                                                      f"'{filename}' nem megfelelő fájlnév, tartalmaznia kell egy tábla nevét az aláábiak közül: {', '.join([i[4:] for i in tables])}", [])
-                                    special_queries = DatauploadImporttemplates.objects.filter(
-                                        table=table)
+                                    filename, extension_format = os.path.splitext(
+                                        str(filename))
+                                    file_number = len([f for f in os.listdir(
+                                        f'{folder_name}{table}') if filename in f])
+                                    filename = f"{filename}{f' ({file_number})' if file_number else ''}{extension_format}"
+                                    filepath = f"{folder_name}{table}/{filename}"
                                     table_template = DatauploadTabletemplates.objects.get(
                                         table=table)
                                     skiprows = table_template.skiprows
@@ -217,6 +214,9 @@ def email_uploads():
                                         table_template.source_column_names)
                                     with open(filepath, "wb") as f:
                                         f.write(urlsafe_b64decode(data))
+                                    uploadmodel = DatauploadUploadmodel(table=table, file=filepath, user_id=user_id, is_new_table=False,
+                                                                        skiprows=skiprows, upload_timestamp=datetime.now(), mode="Email", status="ready")
+                                    uploadmodel.save()
                                     handle_uploaded_file(file=filepath, table=table, special_queries=special_queries,
                                                          table_template=table_template, user_id=user_id, is_new_table=False, skiprows=skiprows, column_bindings=column_bindings, is_feed=False, is_email=True, sender_email=sender_email)
 
@@ -271,16 +271,20 @@ def email_uploads():
                     # we print the date when the message was sent
                     print("Date:", value)
         parse_parts(service, parts,
-                    "/home/atti/googleds/dataupload/media/upload_files", message, sender_email)
+                    "/home/atti/googleds/files/", message, sender_email)
         print("="*50)
 
     def delete_messages(service, query):
         messages_to_delete = search_messages(service, query)
-        for msg in messages_to_delete:
-            # it's possible to delete a single message with the delete API, like this:
-            service.users().messages().delete(
-                userId='me', id=msg["id"]).execute()
+        # it's possible to delete a single message with the delete API, like this:
+        # service.users().messages().delete(userId='me', id=msg['id'])
         # but it's also possible to delete all the selected messages with one query, batchDelete
+        return service.users().messages().batchDelete(
+            userId='me',
+            body={
+                'ids': [msg['id'] for msg in messages_to_delete]
+            }
+        ).execute()
 
     service = gmail_authenticate()
 

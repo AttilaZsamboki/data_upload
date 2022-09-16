@@ -66,18 +66,6 @@ class TemplateDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [AuthorAllUser]
 
 
-class SpecialQueriesList(generics.ListCreateAPIView):
-    queryset = models.DatauploadImporttemplates.objects.all()
-    serializer_class = serializers.ImportTemplatesSerializer
-    permission_classes = [AuthorAllUser]
-
-
-class SpecialQueryDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = models.DatauploadImporttemplates.objects.all()
-    serializer_class = serializers.ImportTemplatesSerializer
-    permission_classes = [AuthorAllUser]
-
-
 class UploadmodelList(generics.ListCreateAPIView):
     queryset = models.DatauploadUploadmodel.objects.all()
     serializer_class = serializers.UploadModelSerializer
