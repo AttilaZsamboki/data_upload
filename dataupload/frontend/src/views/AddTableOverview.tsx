@@ -6,7 +6,6 @@ import Button from "@mui/material/Button";
 import Userfront from "@userfront/react";
 import { Autocomplete, TextField } from "@mui/material";
 import usePostData from "../hooks/general";
-import { useTableOptionsNoPrefix } from "../hooks/Tables";
 import { useQuery } from "react-query";
 import axios from "axios";
 

@@ -6,14 +6,15 @@ from sqlalchemy import create_engine
 engine = create_engine(
     "postgresql://doadmin:AVNS_FovmirLSFDui0KIAOnu@db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com:25060/defaultdb?sslmode=require")
 
-stock_report = pd.read_sql_table(
+stock_transaction_report = pd.read_sql_table(
     table_name="fol_stock_transaction_report", con=engine)
-stock_report.sort_values(by="Finished", ascending=False, inplace=True)
-stock_report.dropna(subset=['Finished'], inplace=True)
+stock_transaction_report.sort_values(
+    by="Finished", ascending=False, inplace=True)
+stock_transaction_report.dropna(subset=['Finished'], inplace=True)
 
 skus = {}
 
-for row in stock_report.iloc:
+for row in stock_transaction_report.iloc:
     sku = row["Product"]
     quantity = row["Quantity"]
     finished = row["Finished"]
@@ -24,12 +25,15 @@ for row in stock_report.iloc:
     else:
         skus[sku].append([quantity, finished, shippment_supplier_name])
 
-stock_transaction_report = pd.read_sql_table(
+stock_report = pd.read_sql_table(
     table_name="fol_stock_report", con=engine)
 
+print(stock_report['timestamp'].max())
+stock_report = stock_report.query(
+    f"timestamp == '{stock_report['timestamp'].max()}'")
 stock_report_obj = {}
 
-for row in stock_transaction_report.iloc:
+for row in stock_report.iloc:
     sku = row["sku"]
 
     if sku in skus and sku not in stock_report_obj:

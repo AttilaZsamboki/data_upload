@@ -15,7 +15,6 @@ class UploadModelSerializer(serializers.ModelSerializer):
                   'file',
                   'user_id',
                   'is_new_table',
-                  'skiprows',
                   'status_description',
                   'status',
                   'upload_timestamp',
@@ -268,4 +267,10 @@ class TableOverviewSerializer(serializers.ModelSerializer):
 class FeedSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Feed
+        fields = '__all__'
+
+
+class GroupsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.DatauploadGroups
         fields = '__all__'

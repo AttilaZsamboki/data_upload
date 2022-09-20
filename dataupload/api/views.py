@@ -577,3 +577,15 @@ class FeedList(generics.ListCreateAPIView):
     queryset = models.Feed.objects.all()
     serializer_class = serializers.FeedSerializer
     permission_classes = [AuthorAllUser]
+
+
+class UsersList(generics.ListCreateAPIView):
+    queryset = models.DatauploadGroups.objects.all()
+    serializer_class = serializers.GroupsSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class UsersDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.DatauploadGroups.objects.all()
+    serializer_class = serializers.GroupsSerializer
+    permission_classes = [AuthorAllUser]

@@ -8,7 +8,7 @@ import { Autocomplete, TextField } from "@mui/material";
 import usePostData from "../hooks/general";
 import { useQuery } from "react-query";
 import axios from "axios";
-import { useUserData } from "../hooks/users";
+import { useUsersData } from "../hooks/users";
 
 export default function AddFeed() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
@@ -17,7 +17,7 @@ export default function AddFeed() {
 		return await axios.get("/api/table-names");
 	});
 	const { mutate: postFormData, isSuccess } = usePostData();
-	const userData = useUserData();
+	const userData = useUsersData();
 	const handleAddTemplate = () => {
 		if (!state) return;
 		postFormData({

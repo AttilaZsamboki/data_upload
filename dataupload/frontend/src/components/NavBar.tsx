@@ -95,54 +95,55 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== "open" 
 }));
 
 export default function MiniDrawer() {
-	const sideBar = ["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)
-		? {
-				upper: {
-					"Upload": { href: "/upload-start/", icon: <UploadFileIcon /> },
-					"Feltöltések": { href: "/uploads", icon: <DownloadingIcon /> },
-					"Adatok": { href: "/adatok/", icon: <StorageIcon /> },
-					"Import Konfig": { href: "/import-config/", icon: <ImportExportIcon /> },
-					"Tábla Létrehozása": { href: "/create-table/", icon: <TableViewIcon /> },
-					"Felhasználó Hozzáadása": { href: "/signup/", icon: <AssignmentIndIcon /> },
-				},
-				lower: {
-					Fiók: { href: "/upload-start", icon: <AccountCircleSharpIcon /> },
-					Kijelentkezés: {
-						href: "/login",
-						icon: (
-							<LogoutIcon
-								onClick={(event) => {
-									event.preventDefault();
-									Userfront.logout();
-								}}
-							/>
-						),
+	const sideBar =
+		Userfront.user.data && Userfront.user.data.access === "admin"
+			? {
+					upper: {
+						"Upload": { href: "/upload-start/", icon: <UploadFileIcon /> },
+						"Feltöltések": { href: "/uploads", icon: <DownloadingIcon /> },
+						"Adatok": { href: "/adatok/", icon: <StorageIcon /> },
+						"Import Konfig": { href: "/import-config/", icon: <ImportExportIcon /> },
+						"Tábla Létrehozása": { href: "/create-table/", icon: <TableViewIcon /> },
+						"Felhasználó Hozzáadása": { href: "/signup/", icon: <AssignmentIndIcon /> },
 					},
-				},
-		  }
-		: Userfront.accessToken()
-		? {
-				upper: {
-					Upload: { href: "/upload-start/", icon: <UploadFileIcon /> },
-					Feltöltések: { href: "/uploads", icon: <DownloadingIcon /> },
-					Adatok: { href: "/adatok/", icon: <StorageIcon /> },
-				},
-				lower: {
-					Fiók: { href: "/upload", icon: <AccountCircleSharpIcon /> },
-					Kijelentkezés: {
-						href: "/login",
-						icon: (
-							<LogoutIcon
-								onClick={(event) => {
-									event.preventDefault();
-									Userfront.logout();
-								}}
-							/>
-						),
+					lower: {
+						Fiók: { href: "/upload-start", icon: <AccountCircleSharpIcon /> },
+						Kijelentkezés: {
+							href: "/login",
+							icon: (
+								<LogoutIcon
+									onClick={(event) => {
+										event.preventDefault();
+										Userfront.logout();
+									}}
+								/>
+							),
+						},
 					},
-				},
-		  }
-		: { upper: { Bejelentkezés: { href: "/login/", icon: <LoginIcon /> } }, lower: {} };
+			  }
+			: Userfront.accessToken()
+			? {
+					upper: {
+						Upload: { href: "/upload-start/", icon: <UploadFileIcon /> },
+						Feltöltések: { href: "/uploads", icon: <DownloadingIcon /> },
+						Adatok: { href: "/adatok/", icon: <StorageIcon /> },
+					},
+					lower: {
+						Fiók: { href: "/upload", icon: <AccountCircleSharpIcon /> },
+						Kijelentkezés: {
+							href: "/login",
+							icon: (
+								<LogoutIcon
+									onClick={(event) => {
+										event.preventDefault();
+										Userfront.logout();
+									}}
+								/>
+							),
+						},
+					},
+			  }
+			: { upper: { Bejelentkezés: { href: "/login/", icon: <LoginIcon /> } }, lower: {} };
 	const theme = useTheme();
 	const [open, setOpen] = React.useState(false);
 

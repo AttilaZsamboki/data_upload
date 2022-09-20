@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 
 
 class AuthGroup(models.Model):
@@ -142,7 +143,6 @@ class DatauploadUploadmodel(models.Model):
     file = models.FileField(upload_to='upload_files/', max_length=200)
     user_id = models.IntegerField()
     is_new_table = models.BooleanField(blank=True, null=True)
-    skiprows = models.IntegerField(blank=True, null=True)
     status_description = models.CharField(
         max_length=100, default="Feldolgozásra vár", blank=True, null=True)
     status = models.CharField(max_length=100, blank=True, null=True)
@@ -2007,3 +2007,16 @@ class Feed(models.Model):
     class Meta:
         managed = False
         db_table = "feed"
+
+
+class DatauploadGroups(models.Model):
+    group = models.CharField(blank=True, null=True,
+                             max_length=255, primary_key=True)
+    user_ids = ArrayField(ArrayField(
+        models.CharField(max_length=100, blank=True)))
+    tables = ArrayField(ArrayField(
+        models.CharField(max_length=100, blank=True)))
+
+    class Meta:
+        managed = False
+        db_table = 'dataupload_groups'

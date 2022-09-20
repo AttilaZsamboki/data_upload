@@ -5,8 +5,8 @@ import { Button, CircularProgress } from "@mui/material";
 import Userfront from "@userfront/react";
 import { Navigate } from "react-router-dom";
 import formatDate from "../utils/date";
-import { useUserData } from "../hooks/users";
-import { useTableOptionsNoPrefix } from "../hooks/Tables";
+import { useUsersData } from "../hooks/users";
+import { useTableOptionsAll } from "../hooks/Tables";
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
@@ -21,7 +21,6 @@ interface uploadmodel {
 	user_id: number;
 	status_description: string;
 	status: string;
-	skiprows: number | undefined;
 	upload_timestamp: Date;
 }
 
@@ -119,7 +118,7 @@ function FileRenderer(props: any) {
 }
 
 export default function Uploads() {
-	const tableOverview = useTableOptionsNoPrefix();
+	const tableOverview = useTableOptionsAll();
 	const tableGetter = (params) => {
 		if (params.data.table && tableOverview.isFetched) {
 			return tableOverview.data?.find((element) => element.db_table === params.data.table)?.verbose_name;
@@ -127,7 +126,7 @@ export default function Uploads() {
 	};
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const gridRef = React.useRef();
-	const userData = useUserData();
+	const userData = useUsersData();
 	const [uploads, setUploads] = React.useState(null);
 	React.useEffect(() => {
 		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
@@ -251,10 +250,7 @@ export default function Uploads() {
 	return (
 		<div className='mx-auto flex flex-col items-center justify-center'>
 			<h1 className='mb-5'>Feltöltések</h1>
-			<Button
-				variant='outlined'
-				onClick={onRemoveSelected}
-				disabled={!gridRef.current?.api?.getSelectedRows().length}>
+			<Button variant='outlined' onClick={onRemoveSelected}>
 				Feltöltés törlése
 			</Button>
 			<p className='text-xs mt-3'>Nem lehetséges miután a fájl feldolgozásra került</p>

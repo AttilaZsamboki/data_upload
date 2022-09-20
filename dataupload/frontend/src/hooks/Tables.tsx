@@ -21,11 +21,11 @@ async function fetchTableNames(
 	);
 }
 export function useTableOptions() {
-	return useQuery(["tables-prefix"], () => fetchTableNames(false));
+	return useQuery(["tables"], () => fetchTableNames(false));
 }
 
-export function useTableOptionsNoPrefix() {
-	return useQuery(["tables"], () => fetchTableNames(true));
+export function useTableOptionsAll() {
+	return useQuery(["tables-all"], () => fetchTableNames(true));
 }
 
 export function useTable(table: string) {
