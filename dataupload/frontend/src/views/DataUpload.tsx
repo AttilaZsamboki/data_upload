@@ -10,6 +10,7 @@ import Box from "@mui/material/Box";
 import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
 import { green } from "@mui/material/colors";
+import { useGroupTables } from "../hooks/users";
 
 const idAtom = atom(null);
 
@@ -33,6 +34,12 @@ export function DataUploadStart() {
 	);
 }
 
+interface tableOverview {
+	db_table: string;
+	available_at: string;
+	verbose_name: string;
+}
+
 export function DataUploadInput() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const { data, mutate: postFormData, isSuccess } = usePostData();
@@ -40,24 +47,22 @@ export function DataUploadInput() {
 	const [isButton, setIsButton] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
 	const tableOverview = useTableOptions().data;
+	const groupTables = useGroupTables();
 	const tableOptions =
 		tableOverview &&
-		tableOverview.filter((table) => table.available_at.includes("upload")).map((table) => table.verbose_name);
-	const tables =
-		tableOverview &&
-		tableOverview
-			.filter((table) => table.available_at.includes("upload"))
-			.map((table) => table.db_table.slice(4).toLowerCase());
+		groupTables.isFetched &&
+		tableOverview.filter(
+			(table: tableOverview) => table.available_at.includes("upload") && groupTables.data.includes(table.db_table)
+		);
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	React.useEffect(() => {
-		const tablePrefix = Userfront.user.name.slice(0, 3).toLowerCase() + "_";
 		if (selectedFile && tableOptions) {
 			setSelectedTable("");
 			let foundTable = false;
-			tables.forEach((table) => {
-				if (selectedFile.name.includes(table.replaceAll("_", "-")) || selectedFile.name.includes(table)) {
-					setSelectedTable(tablePrefix + table);
+			tableOptions.forEach((table: tableOverview) => {
+				if (groupTables.data.includes(table.db_table) && selectedFile.name.includes(table.verbose_name)) {
+					setSelectedTable(table.db_table);
 					foundTable = true;
 				}
 			});
@@ -97,14 +102,14 @@ export function DataUploadInput() {
 				{isButton && (
 					<Autocomplete
 						sx={{ backgroundColor: "white" }}
-						options={tableOptions}
+						options={tableOptions.map((table: tableOverview) => table.verbose_name)}
 						renderInput={(params) => <TextField {...params} label='Tábla neve' />}
 						onChange={(e, v) => {
-							tableOverview &&
+							tableOptions &&
 								setSelectedTable(
-									tableOverview
-										.filter((table) => table.verbose_name === v)
-										.map((table) => table.db_table)
+									tableOptions
+										.filter((table: tableOverview) => table.verbose_name === v)
+										.map((table: tableOverview) => table.db_table)
 										.toString()
 								);
 						}}

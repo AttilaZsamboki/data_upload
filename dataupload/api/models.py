@@ -2010,12 +2010,10 @@ class Feed(models.Model):
 
 
 class DatauploadGroups(models.Model):
-    group = models.CharField(blank=True, null=True,
-                             max_length=255, primary_key=True)
-    user_ids = ArrayField(ArrayField(
-        models.CharField(max_length=100, blank=True)))
-    tables = ArrayField(ArrayField(
-        models.CharField(max_length=100, blank=True)))
+    group = models.CharField(
+        max_length=255, primary_key=True)
+    tables = ArrayField(
+        models.CharField(max_length=100, blank=True))
 
     class Meta:
         managed = False

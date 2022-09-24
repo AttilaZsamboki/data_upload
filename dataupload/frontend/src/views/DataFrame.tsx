@@ -12,24 +12,39 @@ import { useEffect, useMemo } from "react";
 import { Box } from "@mui/system";
 import axios from "axios";
 import { useColumnDtypes } from "../hooks/Templates";
-import CircularProgress from "@mui/material";
-import { green } from "@mui/material/colors";
+import { useGroupTables } from "../hooks/users";
 
 const csrftoken = getCookie("csrftoken");
+
+interface tableOverview {
+	db_table: string;
+	available_at: string;
+	verbose_name: string;
+}
+
 
 function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const gridRef = React.useRef();
 	const [inputTable, setInputTable] = useState<string>();
 	const [columnDefs, setColumnDefs] = useState(null);
 	const tableOverview = useTableOptions().data;
+	const groupTables = useGroupTables();
 	const tableOptions =
 		tableOverview &&
-		tableOverview?.filter((table) => table.available_at.includes("grid")).map((table) => table.verbose_name);
+		tableOverview
+			.filter(
+				(table: tableOverview) =>
+					table.available_at.includes("grid") && groupTables.data?.includes(table.db_table)
+			)
+			.map((table: tableOverview) => table.verbose_name);
 	const formattedInputTable = !importConfig
 		? tableOverview &&
 		  tableOverview
-				?.filter((table) => table.verbose_name === inputTable)
-				.map((table) => table.db_table)
+				.filter(
+					(table: tableOverview) =>
+						table.verbose_name === inputTable && groupTables.data?.includes(table.db_table)
+				)
+				.map((table: tableOverview) => table.db_table)
 				.toString()
 		: inputTable?.replace(" ", "-").toLowerCase();
 	const table: any = useTable(formattedInputTable);
@@ -101,7 +116,6 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			},
 		});
 	};
-	console.log(formattedInputTable);
 	const onRemoveSelected = async () => {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });

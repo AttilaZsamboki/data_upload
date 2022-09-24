@@ -579,13 +579,13 @@ class FeedList(generics.ListCreateAPIView):
     permission_classes = [AuthorAllUser]
 
 
-class UsersList(generics.ListCreateAPIView):
+class GroupsList(generics.ListCreateAPIView):
     queryset = models.DatauploadGroups.objects.all()
     serializer_class = serializers.GroupsSerializer
     permission_classes = [AuthorAllUser]
 
 
-class UsersDetail(generics.RetrieveUpdateDestroyAPIView):
+class GroupsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.DatauploadGroups.objects.all()
     serializer_class = serializers.GroupsSerializer
     permission_classes = [AuthorAllUser]

@@ -132,8 +132,7 @@ export default function Uploads() {
 		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
 		const fetchData = async () => {
 			const response = await axios.get("/api/uploadmodel");
-			if (["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username))
-				return setUploads(response.data);
+			if (Userfront.user.data && Userfront.user.data.access === "admin") return setUploads(response.data);
 			return setUploads(response.data.filter((upload) => upload.table.slice(0, 4) === tablePrefix.toLowerCase()));
 		};
 		fetchData();
@@ -190,7 +189,8 @@ export default function Uploads() {
 	]);
 	React.useEffect(() => {
 		if (
-			["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username) &&
+			Userfront.user.data &&
+			Userfront.user.data.access === "admin" &&
 			userData.isFetched &&
 			gridRef.current.api
 		) {

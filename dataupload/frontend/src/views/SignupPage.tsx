@@ -16,9 +16,7 @@ export default class Signup extends React.Component {
 	render() {
 		if (!Userfront.accessToken()) {
 			return <Navigate to='/' />;
-		} else if (
-			!["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)
-		) {
+		} else if (Userfront.user.data && !Userfront.user.data.access === "admin") {
 			return <Navigate to='/upload' />;
 		}
 		return <SignupForm />;

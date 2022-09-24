@@ -3,7 +3,7 @@ import axios from "axios";
 import Userfront from "@userfront/react";
 
 async function fetchUsersData() {
-	if (["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)) {
+	if (Userfront.user.data && Userfront.user.data.access === "admin") {
 		const response = await axios("https://api.userfront.com/v0/users/find", {
 			method: "POST",
 			headers: {
@@ -16,15 +16,16 @@ async function fetchUsersData() {
 	}
 }
 
-async function fetchUserData() {
-	const response = await axios.get("https://www.dataupload.xyz/api/users/");
-	return response.data.filter((user) => user.user_id === Userfront.user.userId);
+async function fetchUserTables() {
+	const response = await axios.get("/api/groups");
+	return response.data.find((group: { group: string; table: string[] }) => group.group === Userfront.user.data.group)
+		.tables;
 }
 
 export function useUsersData() {
 	return useQuery(["usersData"], () => fetchUsersData());
 }
 
-export function useUserData() {
-	return useQuery(["userData"], () => fetchUserData());
+export function useGroupTables() {
+	return useQuery(["group"], () => fetchUserTables());
 }

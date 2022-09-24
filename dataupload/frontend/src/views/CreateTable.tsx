@@ -21,7 +21,7 @@ import usePostData from "../hooks/general";
 export default function CreateTable() {
 	if (!Userfront.accessToken()) {
 		return <Navigate to='/login' />;
-	} else if (!["dark-frost-2k269", "winter-salad-brlnr", "ancient-river-26kn4"].includes(Userfront.user.username)) {
+	} else if (Userfront.user.data && !Userfront.user.data.access === "admin") {
 		return <Navigate to='/upload' />;
 	}
 
