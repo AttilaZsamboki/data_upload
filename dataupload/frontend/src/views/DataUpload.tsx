@@ -47,21 +47,26 @@ export function DataUploadInput() {
 	const [isButton, setIsButton] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
 	const tableOverview = useTableOptions().data;
-	const groupTables = useGroupTables();
+	const [inputGroup, setInputGroup] = React.useState<string | undefined>();
+	const groupTables = useGroupTables(inputGroup);
 	const tableOptions =
 		tableOverview &&
 		groupTables.isFetched &&
 		tableOverview.filter(
-			(table: tableOverview) => table.available_at.includes("upload") && groupTables.data.includes(table.db_table)
+			(table: tableOverview) =>
+				table.available_at.includes("upload") && groupTables.data?.tables.includes(table.db_table)
 		);
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	React.useEffect(() => {
-		if (selectedFile && tableOptions) {
+		if (selectedFile && tableOptions && Userfront.user.data.group.length === 1) {
 			setSelectedTable("");
 			let foundTable = false;
 			tableOptions.forEach((table: tableOverview) => {
-				if (groupTables.data.includes(table.db_table) && selectedFile.name.includes(table.verbose_name)) {
+				if (
+					groupTables.data?.tables.includes(table.db_table) &&
+					selectedFile.name.includes(table.verbose_name)
+				) {
 					setSelectedTable(table.db_table);
 					foundTable = true;
 				}
@@ -99,10 +104,22 @@ export function DataUploadInput() {
 					onChange={(e) => setSelectedFile(e.target.files[0])}
 				/>
 				<br />
-				{isButton && (
+				{Userfront.user.data.group.length > 1 && (
+					<Autocomplete
+						className='mb-3'
+						sx={{ background: "white" }}
+						options={Userfront.user.data.group}
+						renderInput={(params) => <TextField {...params} label='Csoport neve' />}
+						onChange={(e, v: string) => setInputGroup(v)}
+					/>
+				)}
+				{(isButton || (inputGroup && tableOptions)) && (
 					<Autocomplete
 						sx={{ backgroundColor: "white" }}
-						options={tableOptions.map((table: tableOverview) => table.verbose_name)}
+						//
+						options={
+							groupTables.isFetched ? tableOptions.map((table: tableOverview) => table.verbose_name) : []
+						}
 						renderInput={(params) => <TextField {...params} label='Tábla neve' />}
 						onChange={(e, v) => {
 							tableOptions &&
@@ -119,7 +136,7 @@ export function DataUploadInput() {
 			<Box sx={{ m: 1, position: "relative" }}>
 				<Button
 					variant='contained'
-					disabled={!selectedTable || !selectedFile || loading}
+					disabled={!selectedTable || !selectedFile || loading || !inputGroup}
 					onClick={startChecker}>
 					Tovább
 				</Button>

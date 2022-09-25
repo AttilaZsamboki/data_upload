@@ -16,16 +16,20 @@ async function fetchUsersData() {
 	}
 }
 
-async function fetchUserTables() {
+async function fetchUserTables(groupName: string | undefined) {
 	const response = await axios.get("/api/groups");
-	return response.data.find((group: { group: string; table: string[] }) => group.group === Userfront.user.data.group)
-		.tables;
+	if (typeof groupName === "undefined") {
+		return response.data.find(
+			(group: { group: string; table: string[] }) => group.group === Userfront.user.data.group[0]
+		);
+	}
+	return response.data.find((group: { group: string; table: string[] }) => group.group === groupName);
 }
 
 export function useUsersData() {
 	return useQuery(["usersData"], () => fetchUsersData());
 }
 
-export function useGroupTables() {
-	return useQuery(["group"], () => fetchUserTables());
+export function useGroupTables(groupName: string | undefined) {
+	return useQuery(["group", groupName], () => fetchUserTables(groupName));
 }
