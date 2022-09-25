@@ -22,19 +22,19 @@ interface tableOverview {
 	verbose_name: string;
 }
 
-
 function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const gridRef = React.useRef();
 	const [inputTable, setInputTable] = useState<string>();
 	const [columnDefs, setColumnDefs] = useState(null);
 	const tableOverview = useTableOptions().data;
-	const groupTables = useGroupTables();
+	const [inputGroup, setInputGroup] = useState<string | undefined>();
+	const groupTables = useGroupTables(inputGroup);
 	const tableOptions =
 		tableOverview &&
 		tableOverview
 			.filter(
 				(table: tableOverview) =>
-					table.available_at.includes("grid") && groupTables.data?.includes(table.db_table)
+					table.available_at.includes("grid") && groupTables.data?.tables.includes(table.db_table)
 			)
 			.map((table: tableOverview) => table.verbose_name);
 	const formattedInputTable = !importConfig
@@ -42,7 +42,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		  tableOverview
 				.filter(
 					(table: tableOverview) =>
-						table.verbose_name === inputTable && groupTables.data?.includes(table.db_table)
+						table.verbose_name === inputTable && groupTables.data?.tables.includes(table.db_table)
 				)
 				.map((table: tableOverview) => table.db_table)
 				.toString()
@@ -132,14 +132,28 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			<h1 className='flex flex-col items-center justify-center mb-5'>
 				{!importConfig ? "Adatok" : "Import Konfigurációk"}
 			</h1>
-			<Autocomplete
-				className='m-auto flex flex-col items-center justify-center'
-				id='table'
-				options={importConfig ? importConfigTypes : tableOptions}
-				sx={{ width: 300 }}
-				renderInput={(params) => <TextField {...params} label={importConfig ? "Konfig neve" : "Tábla neve"} />}
-				onChange={(e, v) => setInputTable(v)}
-			/>
+			{!importConfig && Userfront.user.data.group.length > 1 && (
+				<Autocomplete
+					className='m-auto flex flex-col items-center justify-center mb-3'
+					id='group'
+					options={Userfront.user.data.group}
+					sx={{ width: 300 }}
+					renderInput={(params) => <TextField {...params} label='Csoport neve' />}
+					onChange={(e, v: string) => setInputGroup(v)}
+				/>
+			)}
+			{(Userfront.user.data.group.length === 1 || inputGroup || importConfig) && (
+				<Autocomplete
+					className='m-auto flex flex-col items-center justify-center'
+					id='table'
+					options={importConfig ? importConfigTypes : tableOptions}
+					sx={{ width: 300 }}
+					renderInput={(params) => (
+						<TextField {...params} label={importConfig ? "Konfig neve" : "Tábla neve"} />
+					)}
+					onChange={(e, v: string) => setInputTable(v)}
+				/>
+			)}
 			{importConfig && (
 				<Box textAlign='center' marginTop={5}>
 					<Button
