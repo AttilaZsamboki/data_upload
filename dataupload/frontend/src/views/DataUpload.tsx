@@ -136,7 +136,12 @@ export function DataUploadInput() {
 			<Box sx={{ m: 1, position: "relative" }}>
 				<Button
 					variant='contained'
-					disabled={!selectedTable || !selectedFile || loading || !inputGroup}
+					disabled={
+						!selectedTable ||
+						!selectedFile ||
+						loading ||
+						(Userfront.user.data.group.length > 1 && !inputGroup)
+					}
 					onClick={startChecker}>
 					Tovább
 				</Button>
