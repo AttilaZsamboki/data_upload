@@ -28,6 +28,7 @@ import LogoutButton from "./Auth";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { Link } from "react-router-dom";
 import LoginIcon from "@mui/icons-material/Login";
+import ProfileIcon from "../components/ProfileIcon";
 
 const drawerWidth = 280;
 
@@ -107,7 +108,7 @@ export default function MiniDrawer() {
 						"Felhasználó Hozzáadása": { href: "/signup/", icon: <AssignmentIndIcon /> },
 					},
 					lower: {
-						Fiók: { href: "/upload-start", icon: <AccountCircleSharpIcon /> },
+						Fiók: { href: "/profile", icon: <ProfileIcon /> },
 						Kijelentkezés: {
 							href: "/login",
 							icon: (
@@ -129,7 +130,7 @@ export default function MiniDrawer() {
 						Adatok: { href: "/adatok/", icon: <StorageIcon /> },
 					},
 					lower: {
-						Fiók: { href: "/upload", icon: <AccountCircleSharpIcon /> },
+						Fiók: { href: "/profile", icon: <ProfileIcon /> },
 						Kijelentkezés: {
 							href: "/login",
 							icon: (
@@ -218,33 +219,29 @@ export default function MiniDrawer() {
 				<Divider />
 				<List>
 					{Object.keys(sideBar.lower).map((text) => (
-						<ListItem key={text} disablePadding sx={{ display: "block" }}>
-							<ListItemButton
-								sx={{
-									minHeight: 48,
-									justifyContent: open ? "initial" : "center",
-									px: 2.5,
-								}}>
-								<ListItemIcon
+						<Link to={sideBar.lower[text].href}>
+							<ListItem key={text} disablePadding sx={{ display: "block" }}>
+								<ListItemButton
 									sx={{
-										minWidth: 0,
-										mr: open ? 3 : "auto",
-										justifyContent: "center",
+										minHeight: 48,
+										justifyContent: open ? "initial" : "center",
+										px: 2.5,
 									}}>
-									{sideBar.lower[text].icon}
-								</ListItemIcon>
-								<ListItemText
-									primary={
-										text === "Kijelentkezés" ? (
-											<LogoutButton />
-										) : (
-											<Link to={sideBar.lower[text].href}>{text}</Link>
-										)
-									}
-									sx={{ color: "gray", opacity: open ? 1 : 0 }}
-								/>
-							</ListItemButton>
-						</ListItem>
+									<ListItemIcon
+										sx={{
+											minWidth: 0,
+											mr: open ? 3 : "auto",
+											justifyContent: "center",
+										}}>
+										{sideBar.lower[text].icon}
+									</ListItemIcon>
+									<ListItemText
+										primary={text === "Kijelentkezés" ? <LogoutButton /> : text}
+										sx={{ color: "gray", opacity: open ? 1 : 0 }}
+									/>
+								</ListItemButton>
+							</ListItem>
+						</Link>
 					))}
 				</List>
 			</Drawer>

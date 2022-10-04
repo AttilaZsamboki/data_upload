@@ -59,7 +59,7 @@ export function DataUploadInput() {
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	React.useEffect(() => {
-		if (selectedFile && tableOptions && Userfront.user.data.group.length === 1) {
+		if (selectedFile && tableOptions && Userfront.user.data.group?.length === 1) {
 			setSelectedTable("");
 			let foundTable = false;
 			tableOptions.forEach((table: tableOverview) => {
@@ -104,7 +104,7 @@ export function DataUploadInput() {
 					onChange={(e) => setSelectedFile(e.target.files[0])}
 				/>
 				<br />
-				{Userfront.user.data.group.length > 1 && (
+				{Userfront.user.data.group?.length > 1 && (
 					<Autocomplete
 						className='mb-3'
 						sx={{ background: "white" }}
@@ -140,7 +140,7 @@ export function DataUploadInput() {
 						!selectedTable ||
 						!selectedFile ||
 						loading ||
-						(Userfront.user.data.group.length > 1 && !inputGroup)
+						(Userfront.user.data.group?.length > 1 && !inputGroup)
 					}
 					onClick={startChecker}>
 					Tovább
@@ -301,7 +301,7 @@ export function DataUploadChecker() {
 						<Box sx={{ display: "flex" }}>
 							<CircularProgress />
 						</Box>
-					) : columnConentStatus?.error.length ? (
+					) : columnConentStatus?.error?.length ? (
 						<>
 							<ClearIcon sx={{ color: "red " }} fontSize='large' />
 							<div>

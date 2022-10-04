@@ -52,7 +52,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 	const columnNames = useColumnDtypes(formattedInputTable);
 
 	useEffect(() => {
-		if (table.data && table.data.length && inputTable) {
+		if (table.data && table.data?.length && inputTable) {
 			setColumnDefs(
 				Object.keys(table.data[0]).map((col) =>
 					columnNames.data?.filter((element) => element[1] === "date").find((element) => element[0] === col)
@@ -132,7 +132,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			<h1 className='flex flex-col items-center justify-center mb-5'>
 				{!importConfig ? "Adatok" : "Import Konfigurációk"}
 			</h1>
-			{!importConfig && Userfront.user.data.group.length > 1 && (
+			{!importConfig && Userfront.user.data.group?.length > 1 && (
 				<Autocomplete
 					className='m-auto flex flex-col items-center justify-center mb-3'
 					id='group'
@@ -142,7 +142,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 					onChange={(e, v: string) => setInputGroup(v)}
 				/>
 			)}
-			{(Userfront.user.data.group.length === 1 || inputGroup || importConfig) && (
+			{(Userfront.user.data.group?.length === 1 || inputGroup || importConfig) && (
 				<Autocomplete
 					className='m-auto flex flex-col items-center justify-center'
 					id='table'
@@ -171,7 +171,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 					<Button
 						variant='outlined'
 						onClick={onRemoveSelected}
-						disabled={!gridRef.current?.api?.getSelectedRows().length}>
+						disabled={!gridRef.current?.api?.getSelectedRows()?.length}>
 						Template törlése
 					</Button>
 				</Box>

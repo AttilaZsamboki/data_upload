@@ -5,6 +5,7 @@ from . import views
 
 urlpatterns = [
     path("download-log/", views.DownloadFile),
+    path("upload-profile-image/", views.UploadProfileImg),
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
     path("groups/", views.GroupsList.as_view()),
     path("groups/<int:pk>/", views.GroupsDetail.as_view()),
@@ -149,6 +150,7 @@ urlpatterns = [
 
     path("fol_learn_dash/", views.FolLearnDashList.as_view()),
     path("fol_learn_dash/<int:pk>/", views.FolLearnDashDetail.as_view()),
+
 
 ]
 
