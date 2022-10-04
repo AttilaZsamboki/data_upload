@@ -24,6 +24,7 @@ export default function AddTemplate() {
 				db_table: state.db_table,
 				verbose_name: state.verbose_name,
 				available_at: state.available_at,
+				email_name: state.email_name,
 			},
 		});
 	};
@@ -47,6 +48,17 @@ export default function AddTemplate() {
 					type='text'
 					sx={{ width: 300, height: 30 }}
 					onChange={({ target }) => setState((prev) => ({ ...prev, verbose_name: target.value }))}
+				/>
+			</FormControl>
+			<br />
+			<FormControl>
+				<InputLabel htmlFor='email-name'>Email név</InputLabel>
+				<Input
+					id='email-name'
+					name='email-name'
+					type='text'
+					sx={{ width: 300, height: 30 }}
+					onChange={({ target }) => setState((prev) => ({ ...prev, email_name: target.value }))}
 				/>
 			</FormControl>
 			<br />

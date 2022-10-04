@@ -159,13 +159,12 @@ class DatauploadTableOverview(models.Model):
     verbose_name = models.CharField(max_length=255)
     available_at = models.CharField(max_length=255)
     email_name = models.CharField(max_length=255)
+    group = models.CharField(max_length=100)
     id = models.AutoField(primary_key=True)
 
     class Meta:
         managed = False
         db_table = "dataupload_tableoverview"
-
-
 
 
 class DjangoAdminLog(models.Model):
@@ -2017,6 +2016,7 @@ class DatauploadGroups(models.Model):
         max_length=255, primary_key=True)
     tables = ArrayField(
         models.CharField(max_length=100, blank=True))
+    user_ids = ArrayField(models.IntegerField())
 
     class Meta:
         managed = False

@@ -2,12 +2,12 @@ from base64 import urlsafe_b64decode
 from django.db import connection
 import os
 import json
-from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed
+from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview
 from .upload_handler import handle_uploaded_file
 import requests
 from datetime import date, datetime
 from .utils.utils import diff_month
-from .utils.gmail import send_message, gmail_authenticate
+from .utils.gmail import gmail_authenticate, send_message
 import requests
 
 
@@ -161,9 +161,11 @@ def email_uploads():
                     # has parts inside
                     parse_parts(service, part.get("parts"),
                                 folder_name, message, sender_email)
+
                 if mimeType == "text/plain":
                     # if the email part is text plain
                     if data:
+                        global text
                         text = urlsafe_b64decode(data).decode()
                         print(text)
                 else:
@@ -195,12 +197,19 @@ def email_uploads():
                                     user = [i for i in json.loads(response.content)[
                                         "results"] if i["email"] == sender_email][0]
                                     user_id = user["userId"]
-                                    tables = [i for i in connection.introspection.table_names(
-                                    ) if i[0:3] == user["name"][0:3].lower()]
+                                    groups = DatauploadGroups.objects.filter(
+                                        user_ids__contains=[1])
+                                    if len(groups) > 1:
+                                        group = [
+                                            i for i in groups if i.group == text.replace("\r\n", "")][0]
+                                    else:
+                                        group = groups[0]
+                                    tables = [i.email_name for i in DatauploadTableOverview.objects.filter(available_at__startswith="upload"
+                                                                                                           ) if i.db_table in group.tables]
                                     table = ""
                                     for i in tables:
-                                        if i.lower()[4:] in filename.lower().replace("-", "_"):
-                                            table = i
+                                        table = DatauploadTableOverview.objects.get(
+                                            email_name=i, group=group.group).db_table
                                     if table == "":
                                         send_message(service, sender_email, "Feltöltés hiba",
                                                      f"'{filename}' nem megfelelő fájlnév, tartalmaznia kell egy tábla nevét az aláábiak közül: {', '.join([i[4:] for i in tables])}", [])

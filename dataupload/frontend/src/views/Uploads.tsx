@@ -129,7 +129,7 @@ export default function Uploads() {
 	const userData = useUsersData();
 	const [uploads, setUploads] = React.useState(null);
 	React.useEffect(() => {
-		const tablePrefix = Userfront.user.name.slice(0, 3) + "_";
+		const tablePrefix = Userfront.user?.name.slice(0, 3) + "_";
 		const fetchData = async () => {
 			const response = await axios.get("/api/uploadmodel");
 			if (Userfront.user.data && Userfront.user.data.access === "admin") return setUploads(response.data);
@@ -201,7 +201,7 @@ export default function Uploads() {
 					valueGetter: (params) => {
 						if (params.data.user_id && userData.isFetched) {
 							return userData.data?.results.find((element) => element.userId === params.data.user_id)
-								.name;
+								?.name;
 						}
 					},
 				},
