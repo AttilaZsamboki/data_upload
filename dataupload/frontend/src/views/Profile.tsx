@@ -57,7 +57,7 @@ export default function Profile() {
 							onClick={() => setIsShown(true)}
 							onMouseLeave={() => setIsHover(false)}
 							onMouseEnter={() => setIsHover(true)}
-							style={{ position: "fixed", top: 260, zIndex: 1 }}
+							style={{ position: "fixed", top: 260, zIndex: 1, color: "white" }}
 						/>
 					)}
 					<img
