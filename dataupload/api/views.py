@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from io import open
 import json
 from PIL import Image
-import PIL
+from rest_framework.parsers import JSONParser
 
 
 @api_view(["GET"])
@@ -607,6 +607,7 @@ class GroupsList(generics.ListCreateAPIView):
     queryset = models.DatauploadGroups.objects.all()
     serializer_class = serializers.GroupsSerializer
     permission_classes = [AuthorAllUser]
+    parser_classes = [JSONParser]
 
 
 class GroupsDetail(generics.RetrieveUpdateDestroyAPIView):

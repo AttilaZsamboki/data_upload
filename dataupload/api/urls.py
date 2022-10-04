@@ -8,7 +8,7 @@ urlpatterns = [
     path("upload-profile-image/", views.UploadProfileImg),
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
     path("groups/", views.GroupsList.as_view()),
-    path("groups/<int:pk>/", views.GroupsDetail.as_view()),
+    path("groups/<str:pk>/", views.GroupsDetail.as_view()),
     path('templates/', views.TemplatesList.as_view()),
     path('templates/<int:pk>/', views.TemplateDetail.as_view()),
     path('uploadmodel/', views.UploadmodelList.as_view()),

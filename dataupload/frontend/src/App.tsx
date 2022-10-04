@@ -17,6 +17,7 @@ import Uploads from "./views/Uploads";
 import AddTableOverview from "./views/AddTableOverview";
 import AddFeed from "./views/AddFeed";
 import Profile from "./views/Profile";
+import AddGroup from "./views/AddGroup";
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ function App() {
 							<Route path='/uploads' element={<Uploads />} />
 							<Route path='/add-table-overview' element={<AddTableOverview />} />
 							<Route path='/add-feed' element={<AddFeed />} />
+							<Route path='/add-groups' element={<AddGroup />} />
 							<Route path='/profile' element={<Profile />} />
 						</Routes>
 					</BrowserRouter>

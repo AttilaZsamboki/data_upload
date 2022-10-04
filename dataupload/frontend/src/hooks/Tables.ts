@@ -1,6 +1,14 @@
 import axios from "axios";
 import { useQuery } from "react-query";
 
+interface tableOptions {
+	id: number;
+	db_table: string;
+	verbose_name: string;
+	email_name: string | undefined;
+	group: string;
+}
+
 async function fetchTable(table: string) {
 	if (!table) return;
 	const formattedTable = table.replace(" ", "-").toLowerCase();
@@ -8,9 +16,7 @@ async function fetchTable(table: string) {
 	return response.data;
 }
 
-async function fetchTableNames(
-	filter: boolean
-): Promise<{ db_table: string; available_at: string; verbose_name: string }> {
+async function fetchTableNames(filter: boolean): Promise<tableOptions[]> {
 	const response = await axios.get("/api/table-overview");
 	if (filter) return response.data;
 	return response.data;

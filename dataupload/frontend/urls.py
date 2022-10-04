@@ -21,4 +21,5 @@ urlpatterns = [
     path("add-table-overview/", views.main),
     path("add-feed/", views.main),
     path("profile/", views.main),
+    path("add-groups/", views.main),
 ]
