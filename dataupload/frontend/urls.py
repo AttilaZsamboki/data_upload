@@ -19,5 +19,6 @@ urlpatterns = [
     path('upload-checker/', views.main),
     path('upload-tester/', views.main),
     path("add-table-overview/", views.main),
-    path("add-feed/", views.main)
+    path("add-feed/", views.main),
+    path("profile/", views.main),
 ]

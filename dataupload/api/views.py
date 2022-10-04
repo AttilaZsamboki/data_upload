@@ -12,6 +12,9 @@ import os
 import pandas as pd
 from rest_framework.response import Response
 from io import open
+import json
+from PIL import Image
+import PIL
 
 
 @api_view(["GET"])
@@ -26,6 +29,27 @@ def DownloadFile(request):
                 "/")[-1]
             return response
 #----------------------------------------------------GENERIC-------------------------------------------------------#
+
+
+@api_view(["POST"])
+def UploadProfileImg(request):
+    if request.POST:
+        data = request.data
+
+        def path(type):
+            return "C:/Users/GAMERPCX/dev/dataupload/dataupload/frontend/static/images/" + \
+                str(data[f'{type}Image'])
+        if os.path.exists(path("old")):
+            os.replace(
+                path("old"), path("new"))
+            img = Image.open(data["newImage"])
+            img.save(
+                path("new"))
+        else:
+            img = Image.open(data["newImage"])
+            img.save(
+                path("new"))
+        return HttpResponse("good")
 
 
 def ColumnNames(request):

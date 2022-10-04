@@ -16,6 +16,7 @@ import { QueryClient, QueryClientProvider } from "react-query";
 import Uploads from "./views/Uploads";
 import AddTableOverview from "./views/AddTableOverview";
 import AddFeed from "./views/AddFeed";
+import Profile from "./views/Profile";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ function App() {
 							<Route path='/uploads' element={<Uploads />} />
 							<Route path='/add-table-overview' element={<AddTableOverview />} />
 							<Route path='/add-feed' element={<AddFeed />} />
+							<Route path='/profile' element={<Profile />} />
 						</Routes>
 					</BrowserRouter>
 					<Footer />
