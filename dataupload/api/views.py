@@ -602,6 +602,7 @@ class GroupsList(generics.ListCreateAPIView):
     queryset = models.DatauploadGroups.objects.all()
     serializer_class = serializers.GroupsSerializer
     permission_classes = [AuthorAllUser]
+    parser_classes = [JSONParser]
 
 
 class GroupsDetail(generics.RetrieveUpdateDestroyAPIView):

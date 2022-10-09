@@ -48,7 +48,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 				.toString()
 		: inputTable?.replace(" ", "-").toLowerCase();
 	const table: any = useTable(formattedInputTable);
-	const importConfigTypes = ["Templates", "Table Overview", "Feed"];
+	const importConfigTypes = ["Templates", "Table Overview", "Feed", "Groups"];
 	const columnNames = useColumnDtypes(formattedInputTable);
 
 	useEffect(() => {
@@ -120,7 +120,8 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });
 		await selectedRowData.forEach((element: uploadmodel) => {
-			axios.delete(`/api/${formattedInputTable}/${element.id}`, {
+			console.log(element[Object.keys(element)[0]]);
+			axios.delete(`/api/${formattedInputTable}/${element[Object.keys(element)[0]]}`, {
 				headers: {
 					"X-CSRFToken": csrftoken,
 				},
