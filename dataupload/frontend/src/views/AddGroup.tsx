@@ -2,67 +2,94 @@ import { Autocomplete, Stack, TextField, Button } from "@mui/material";
 import * as React from "react";
 import { useTableOptionsAll } from "../hooks/Tables";
 import { useUsersData } from "../hooks/users";
-import { Navigate } from "react-router-dom";
+import Alert from "@mui/material/Alert";
 import SendIcon from "@mui/icons-material/Send";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import getCookie from "../utils/GetCookie";
 
 export default function AddGroup() {
 	const { data, isLoading } = useTableOptionsAll();
 	const userData = useUsersData();
 	const [state, setState] = React.useState<any>();
+	const [isError, setIsError] = React.useState(false);
+	const [errorMsg, setErrorMsg] = React.useState<string | undefined>("");
+	const [errorMappings] = React.useState<[{ original: string; visual: string }]>([
+		{ original: "dataupload groups with this group already exists.", visual: "Csoport már létezik" },
+	]);
+
 	const addGroup = async () => {
-		if (state === undefined) return;
 		const csrftoken = getCookie("csrftoken");
-		const response = await axios.post(
-			"/api/groups/",
-			{
-				group: state.group,
-				tables: state.tables.map((table) => table.db_table),
-				user_ids: state.userIds.map((user) => user.userId),
-			},
-			{
-				headers: {
-					"X-CSRFToken": csrftoken,
-					"Content-Type": "application/json",
+		try {
+			const response = await axios.post(
+				"/api/groups/",
+				{
+					group: state.group,
+					tables: state.tables.map((table) => table.db_table),
+					user_ids: state.userIds.map((user) => user.userId),
 				},
-			}
-		);
-		console.log(response, "asdasd");
-		window.location.replace("http://127.0.0.1:8000/import-config/");
+				{
+					headers: {
+						"X-CSRFToken": csrftoken,
+						"Content-Type": "application/json",
+					},
+				}
+			);
+		} catch (e: AxiosResponse) {
+			setIsError(true);
+			setErrorMsg(errorMappings.find((error) => error.original === e.response.data.group.toString())?.visual);
+			console.log(e);
+		}
 	};
-	if (isLoading) return;
+	// 	} finally {
+	// 		window.location.replace("/import-config");
+	// 	}
+	// };
 	return (
-		<div className='center-form'>
-			<h1>Csoport Hozzáadása</h1>
-			<TextField
-				variant='outlined'
-				label='Csoport Neve'
-				onChange={(e) => setState((prev) => ({ ...prev, group: e.target.value }))}
-			/>
-			<Autocomplete
-				multiple
-				options={data}
-				getOptionLabel={(option) => option.db_table}
-				renderInput={(params) => <TextField {...params} variant='outlined' label='Táblák' />}
-				onChange={(e, v) => setState((prev) => ({ ...prev, tables: v }))}
-			/>
-			<Autocomplete
-				multiple
-				options={userData?.data?.results}
-				getOptionLabel={(option) => option.userId}
-				renderInput={(params) => <TextField {...params} variant='outlined' label='Felhasználók' />}
-				onChange={(e, v) => setState((prev) => ({ ...prev, userIds: v }))}
-			/>
-			<Stack direction='row' spacing={2}>
-				<Button
-					variant='contained'
-					endIcon={<SendIcon />}
-					disabled={!state?.group || !state?.tables || !state?.userIds}
-					onClick={addGroup}>
-					Hozzáadás
-				</Button>
-			</Stack>
-		</div>
+		<>
+			{isError && (
+				<div className='flex flex-col justify-center items-center'>
+					<Alert sx={{ marginTop: -16, marginBottom: -15 }} severity='error'>
+						{errorMsg}
+					</Alert>
+				</div>
+			)}
+			<div className='center-form'>
+				<h1 className='mb-4'>Csoport Hozzáadása</h1>
+				<Stack spacing={3} sx={{ width: 500 }}>
+					<TextField
+						style={{ backgroundColor: "white", margin: 10 }}
+						variant='outlined'
+						label='Csoport Neve'
+						onChange={(e) => setState((prev) => ({ ...prev, group: e.target.value }))}
+					/>
+					<Autocomplete
+						style={{ backgroundColor: "white", margin: 10 }}
+						multiple
+						options={!isLoading && data}
+						getOptionLabel={(option) => option.db_table}
+						renderInput={(params) => <TextField {...params} variant='outlined' label='Táblák' />}
+						onChange={(e, v) => setState((prev) => ({ ...prev, tables: v }))}
+					/>
+					<Autocomplete
+						style={{ backgroundColor: "white", margin: 10 }}
+						multiple
+						options={!userData.isLoading && userData?.data?.results}
+						getOptionLabel={(option) => option.userId}
+						renderInput={(params) => <TextField {...params} variant='outlined' label='Felhasználók' />}
+						onChange={(e, v) => setState((prev) => ({ ...prev, userIds: v }))}
+					/>
+				</Stack>
+				<Stack direction='row' spacing={2}>
+					<Button
+						variant='contained'
+						endIcon={<SendIcon />}
+						disabled={!state?.group || !state?.tables || !state?.userIds}
+						onClick={addGroup}
+						sx={{ marginTop: 3 }}>
+						Hozzáadás
+					</Button>
+				</Stack>
+			</div>
+		</>
 	);
 }
