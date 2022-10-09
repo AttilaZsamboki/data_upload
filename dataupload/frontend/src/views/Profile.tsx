@@ -9,11 +9,15 @@ import getCookie from "../utils/GetCookie";
 import EditIcon from "@mui/icons-material/Edit";
 import TextField from "@mui/material/TextField";
 import DoneIcon from "@mui/icons-material/Done";
+import CircularProgress from "@mui/material/CircularProgress";
+import { green } from "@mui/material/colors";
+import Box from "@mui/material/Box";
 
 export default function Profile() {
 	const [isShown, setIsShown] = React.useState(false);
 	const [isHover, setIsHover] = React.useState(false);
 	const [isEditName, setIsEditName] = React.useState(false);
+	const [isLoading, setIsLoading] = React.useState(false);
 	const [image, setImage] = React.useState<File | undefined>();
 	const [newName, setNewName] = React.useState<string | undefined>();
 	const csrftoken = getCookie("csrftoken");
@@ -21,6 +25,7 @@ export default function Profile() {
 
 	const uploadProfile = async () => {
 		if (typeof image == "undefined") return;
+		setIsLoading(true);
 		const response = await axios.post(
 			"/api/upload-profile-image/",
 			{ newImage: image, oldImage: Userfront.user.image || Userfront.user.data.profileImage },
@@ -32,9 +37,14 @@ export default function Profile() {
 			}
 		);
 		await Userfront.user.update({
-			data: { profileImage: `../../static/images/${image.name}` },
+			data: {
+				profileImage: `../../static/images/${image.name}`,
+				access: Userfront.user.data.access,
+				group: Userfront.user.data.group,
+			},
 			image: "",
 		});
+		setIsLoading(false);
 		location.reload();
 	};
 
@@ -45,7 +55,6 @@ export default function Profile() {
 			name: newName,
 		});
 	};
-
 	return (
 		<div>
 			<div>
@@ -102,6 +111,12 @@ export default function Profile() {
 							{Userfront.user.email}
 						</p>
 					</div>
+					<div>
+						<p className='text-lg'>
+							<b style={{ marginRight: 8 }}>Jogosultság:</b>
+							{Userfront.user.data.access}
+						</p>
+					</div>
 				</div>
 			</div>
 			{isShown && (
@@ -132,16 +147,37 @@ export default function Profile() {
 							onChange={(e) => setImage(e.target.files[0])}
 						/>
 						<Stack direction='row' spacing={2}>
-							<Button
-								variant='contained'
-								endIcon={<SendIcon />}
-								disabled={!image}
-								onClick={uploadProfile}>
-								Csere
-							</Button>
-							<Button variant='outlined' onClick={() => setIsShown(false)} startIcon={<CloseIcon />}>
-								Mégsem
-							</Button>
+							<Box sx={{ m: 1, position: "relative" }}>
+								<Button
+									variant='contained'
+									endIcon={<SendIcon />}
+									disabled={!image || isLoading}
+									onClick={uploadProfile}>
+									Csere
+								</Button>
+								{isLoading && (
+									<CircularProgress
+										size={24}
+										sx={{
+											color: green[500],
+											position: "absolute",
+											top: "50%",
+											left: "50%",
+											marginTop: "-12px",
+											marginLeft: "-12px",
+										}}
+									/>
+								)}
+							</Box>
+							<Box sx={{ m: 1, position: "relative" }}>
+								<Button
+									variant='outlined'
+									style={{ margin: 8 }}
+									onClick={() => setIsShown(false)}
+									startIcon={<CloseIcon />}>
+									Mégsem
+								</Button>
+							</Box>
 						</Stack>
 					</div>
 				</div>
