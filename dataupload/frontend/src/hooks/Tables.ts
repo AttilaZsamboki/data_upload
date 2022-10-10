@@ -21,6 +21,7 @@ async function fetchTableNames(filter: boolean): Promise<tableOptions[]> {
 	if (filter) return response.data;
 	return response.data;
 }
+
 export function useTableOptions() {
 	return useQuery(["tables"], () => fetchTableNames(false));
 }

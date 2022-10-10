@@ -8,10 +8,17 @@ import { Autocomplete, TextField } from "@mui/material";
 import usePostData from "../hooks/general";
 import { useQuery } from "react-query";
 import axios from "axios";
+import { useUserGroups } from "../hooks/users";
 
 export default function AddTemplate() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
-	const [state, setState] = useState<{ db_table: string; verbose_name: string; available_at: string }>();
+	const [state, setState] = useState<{
+		db_table: string;
+		verbose_name: string;
+		available_at: string;
+		group: string;
+	}>();
+	const userGroups = useUserGroups();
 	const tableOverview = useQuery(["tablenames"], async () => {
 		return await axios.get("/api/table-names");
 	});
@@ -23,8 +30,9 @@ export default function AddTemplate() {
 			formData: {
 				db_table: state.db_table,
 				verbose_name: state.verbose_name,
-				available_at: state.available_at,
+				available_at: state.available_at.toString(),
 				email_name: state.email_name,
+				group: state.group,
 			},
 		});
 	};
@@ -38,6 +46,15 @@ export default function AddTemplate() {
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Tábla' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, db_table: v }))}
+			/>
+			<br />
+			<Autocomplete
+				disablePortal
+				id='group'
+				options={userGroups.data?.map((group) => group.group)}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Csoport' />}
+				onChange={(e, v) => setState((prev) => ({ ...prev, group: v }))}
 			/>
 			<br />
 			<FormControl>
@@ -63,9 +80,10 @@ export default function AddTemplate() {
 			</FormControl>
 			<br />
 			<Autocomplete
+				multiple
 				disablePortal
 				id='available-at'
-				options={["grid", "upload", "upload, grid"]}
+				options={["grid", "upload"]}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Elérhetőség' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, available_at: v }))}
