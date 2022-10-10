@@ -1,21 +1,15 @@
-from http.client import HTTPResponse
 from django.http import HttpResponse
 from django.core.files import File
 from rest_framework import generics
 from django.http import JsonResponse
 import psycopg2
-from rest_framework import viewsets
 from . import models, serializers
 from .permissions import AuthorAllUser
 from rest_framework.decorators import api_view
 import os
-import pandas as pd
-from rest_framework.response import Response
 from io import open
-import json
 from PIL import Image
-from rest_framework.parsers import JSONParser
-
+from django.core.management import call_command
 
 @api_view(["GET"])
 def DownloadFile(request):
@@ -37,7 +31,7 @@ def UploadProfileImg(request):
         data = request.data
 
         def path(type):
-            return "C:/Users/GAMERPCX/dev/dataupload/dataupload/frontend/static/images/" + \
+            return "/home/atti/googleds/dataupload/frontend/static/images/" + \
                 str(data[f'{type}Image'])
         if os.path.exists(path("old")):
             os.replace(
@@ -49,6 +43,7 @@ def UploadProfileImg(request):
             img = Image.open(data["newImage"])
             img.save(
                 path("new"))
+        call_command("collectstatic", interactive=False)
         return HttpResponse("good")
 
 
