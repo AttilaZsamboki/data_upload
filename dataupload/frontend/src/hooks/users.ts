@@ -2,6 +2,12 @@ import { useQuery } from "react-query";
 import axios from "axios";
 import Userfront from "@userfront/react";
 
+interface UserGroups {
+	group: string;
+	tables: string[];
+	user_ids: number[];
+}
+
 async function fetchUsersData() {
 	if (Userfront.user.data && Userfront.user.data.access === "admin") {
 		const response = await axios("https://api.userfront.com/v0/users/find", {
@@ -17,13 +23,21 @@ async function fetchUsersData() {
 }
 
 async function fetchUserTables(groupName: string | undefined) {
-	const response = await axios.get("/api/groups");
+	let response = await axios.get("/api/groups");
+	response = response.data;
 	if (typeof groupName === "undefined") {
-		return response.data.find(
-			(group: { group: string; table: string[] }) => group.group === Userfront.user.data.group[0]
-		);
+		return response.find((group: UserGroups) => group.group === Userfront.user.data.group[0]);
 	}
-	return response.data.find((group: { group: string; table: string[] }) => group.group === groupName);
+	return response.find((group: UserGroups) => group.group === groupName);
+}
+
+async function fetchUserGroups(): Promise<UserGroups[]> {
+	const response = await axios.get("/api/groups");
+	return response.data;
+}
+
+export function useUserGroups() {
+	return useQuery(["userGroups"], () => fetchUserGroups());
 }
 
 export function useUsersData() {

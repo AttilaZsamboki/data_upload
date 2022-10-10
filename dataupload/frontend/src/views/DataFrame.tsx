@@ -109,18 +109,22 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 	);
 
 	const onBtWhich = (event: any) => {
-		axios.put(`/api/${inputTable.toLowerCase().replace(" ", "-")}/${event.data.id}/`, event.data, {
-			headers: {
-				"X-CSRFToken": csrftoken,
-				"Content-Type": "multipart/form-data",
-			},
-		});
+		console.log(event.data[Object.keys(event.data)[0]]);
+		axios.put(
+			`/api/${inputTable.toLowerCase().replace(" ", "-")}/${event.data[Object.keys(event.data)[0]]}/`,
+			event.data,
+			{
+				headers: {
+					"X-CSRFToken": csrftoken,
+					"Content-Type": "application/json",
+				},
+			}
+		);
 	};
 	const onRemoveSelected = async () => {
 		const selectedRowData = gridRef.current.api.getSelectedRows();
 		gridRef.current.api.applyTransaction({ remove: selectedRowData });
 		await selectedRowData.forEach((element: uploadmodel) => {
-			console.log(element[Object.keys(element)[0]]);
 			axios.delete(`/api/${formattedInputTable}/${element[Object.keys(element)[0]]}`, {
 				headers: {
 					"X-CSRFToken": csrftoken,

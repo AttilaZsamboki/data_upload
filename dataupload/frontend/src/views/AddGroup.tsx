@@ -28,7 +28,6 @@ export default function AddGroup() {
 				},
 			}
 		);
-		console.log(response, "asdasd");
 		window.location.replace("http://127.0.0.1:8000/import-config/");
 	};
 	if (isLoading) return;
