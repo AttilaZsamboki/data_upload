@@ -6,9 +6,11 @@ import Alert from "@mui/material/Alert";
 import SendIcon from "@mui/icons-material/Send";
 import axios, { AxiosResponse } from "axios";
 import getCookie from "../utils/GetCookie";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 export default function AddGroup() {
 	const { data, isLoading } = useTableOptionsAll();
+	const [animationParent] = useAutoAnimate();
 	const userData = useUsersData();
 	const [state, setState] = React.useState<any>();
 	const [isError, setIsError] = React.useState(false);
@@ -40,15 +42,19 @@ export default function AddGroup() {
 			console.log(e);
 		}
 	};
-	// 	} finally {
-	// 		window.location.replace("/import-config");
-	// 	}
-	// };
+	React.useEffect(() => {
+		if (isError === true) {
+			setInterval(() => isError && setIsError(false), 10000);
+		}
+	}, [isError]);
 	return (
-		<>
+		<div ref={animationParent}>
 			{isError && (
 				<div className='flex flex-col justify-center items-center'>
-					<Alert sx={{ marginTop: -16, marginBottom: -15 }} severity='error'>
+					<Alert
+						onClose={() => setIsError(false)}
+						sx={{ marginTop: -16, marginBottom: -20 }}
+						severity='error'>
 						{errorMsg}
 					</Alert>
 				</div>
@@ -90,6 +96,6 @@ export default function AddGroup() {
 					</Button>
 				</Stack>
 			</div>
-		</>
+		</div>
 	);
 }
