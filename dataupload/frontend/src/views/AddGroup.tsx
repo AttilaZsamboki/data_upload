@@ -39,7 +39,10 @@ export default function AddGroup() {
 		} catch (e: AxiosResponse) {
 			setIsError(true);
 			setErrorMsg(errorMappings.find((error) => error.original === e.response.data.group.toString())?.visual);
-			console.log(e);
+		} finally {
+			if (!isError) {
+				window.location.replace("/import-config");
+			}
 		}
 	};
 	React.useEffect(() => {

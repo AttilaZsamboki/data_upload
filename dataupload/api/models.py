@@ -2014,9 +2014,8 @@ class Feed(models.Model):
 class DatauploadGroups(models.Model):
     group = models.CharField(
         max_length=255, primary_key=True)
-    tables = ArrayField(
-        models.CharField(max_length=100, blank=True))
-    user_ids = ArrayField(models.IntegerField())
+    tables = models.TextField(blank=True)
+    user_ids = models.TextField()
 
     class Meta:
         managed = False
