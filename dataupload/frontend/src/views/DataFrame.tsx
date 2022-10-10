@@ -103,6 +103,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 			flex: 1,
 			filterParams: {
 				debounceMs: 0,
+				buttons: ["reset"],
 			},
 		}),
 		[]
