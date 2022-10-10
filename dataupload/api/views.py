@@ -11,6 +11,7 @@ from io import open
 from PIL import Image
 from django.core.management import call_command
 
+
 @api_view(["GET"])
 def DownloadFile(request):
     if request.method == "GET":
@@ -602,7 +603,6 @@ class GroupsList(generics.ListCreateAPIView):
     queryset = models.DatauploadGroups.objects.all()
     serializer_class = serializers.GroupsSerializer
     permission_classes = [AuthorAllUser]
-    parser_classes = [JSONParser]
 
 
 class GroupsDetail(generics.RetrieveUpdateDestroyAPIView):
