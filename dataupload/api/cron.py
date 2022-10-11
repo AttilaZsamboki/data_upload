@@ -1,5 +1,4 @@
 from base64 import urlsafe_b64decode
-from django.db import connection
 import os
 import json
 from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview
@@ -9,6 +8,7 @@ from datetime import date, datetime
 from .utils.utils import diff_month
 from .utils.gmail import gmail_authenticate, send_message
 import requests
+from .utils.unas_feed import get_unas_feed_url
 
 
 def upload_file():
@@ -35,6 +35,8 @@ def upload_feed_daily():
     for upload in Feed.objects.all():
         table, url, user_id, frequency = (
             upload.table, upload.url, upload.user_id, upload.frequency)
+        if table == "fol_unas":
+            url = get_unas_feed_url()
         if frequency == "1 nap":
             try:
                 file = requests.get(url).content

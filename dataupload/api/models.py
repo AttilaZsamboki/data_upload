@@ -2000,7 +2000,7 @@ class FolLearnDash(models.Model):
 
 
 class Feed(models.Model):
-    url = models.TextField()
+    url = models.TextField(blank=True, null=True)
     table = models.TextField()
     user_id = models.IntegerField()
     frequency = models.TextField()
