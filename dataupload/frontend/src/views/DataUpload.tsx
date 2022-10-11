@@ -54,7 +54,7 @@ export function DataUploadInput() {
 		groupTables.isFetched &&
 		tableOverview.filter(
 			(table: tableOverview) =>
-				table.available_at.includes("upload") && groupTables.data?.tables.includes(table.db_table)
+				table.available_at.includes("upload") && groupTables.data?.tables.split(",").includes(table.db_table)
 		);
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);

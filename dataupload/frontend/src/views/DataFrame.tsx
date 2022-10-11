@@ -34,7 +34,7 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		tableOverview
 			.filter(
 				(table: tableOverview) =>
-					table.available_at.includes("grid") && groupTables.data?.tables.includes(table.db_table)
+					table.available_at.includes("grid") && groupTables.data?.tables.split(",").includes(table.db_table)
 			)
 			.map((table: tableOverview) => table.verbose_name);
 	const formattedInputTable = !importConfig
@@ -42,7 +42,8 @@ function DataFrame({ importConfig }: { importConfig: boolean }) {
 		  tableOverview
 				.filter(
 					(table: tableOverview) =>
-						table.verbose_name === inputTable && groupTables.data?.tables.includes(table.db_table)
+						table.verbose_name === inputTable &&
+						groupTables.data?.tables.split(",").includes(table.db_table)
 				)
 				.map((table: tableOverview) => table.db_table)
 				.toString()
