@@ -36,6 +36,12 @@ class TableoverviewSerializer(serializers.ModelSerializer):
 # FOl
 
 
+class FolArresFigyeloSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolArresFigyelo
+        fields = '__all__'
+
+
 class FolReturnOrderShippingFeeSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FolReturnOrderShippingFee

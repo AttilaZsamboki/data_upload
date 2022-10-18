@@ -11,6 +11,8 @@ import DoneIcon from "@mui/icons-material/Done";
 import ClearIcon from "@mui/icons-material/Clear";
 import { green } from "@mui/material/colors";
 import { useGroupTables } from "../hooks/users";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import ProgressSteps from "../components/ProgressSteps";
 
 const idAtom = atom(null);
 
@@ -44,6 +46,7 @@ export function DataUploadInput() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const { data, mutate: postFormData, isSuccess } = usePostData();
 	const [selectedFile, setSelectedFile] = React.useState<any>(null);
+	const [animationParent] = useAutoAnimate();
 	const [isButton, setIsButton] = React.useState(false);
 	const [loading, setLoading] = React.useState(false);
 	const tableOverview = useTableOptions().data;
@@ -114,23 +117,27 @@ export function DataUploadInput() {
 					/>
 				)}
 				{(isButton || (inputGroup && tableOptions)) && (
-					<Autocomplete
-						sx={{ backgroundColor: "white" }}
-						//
-						options={
-							groupTables.isFetched ? tableOptions.map((table: tableOverview) => table.verbose_name) : []
-						}
-						renderInput={(params) => <TextField {...params} label='Tábla neve' />}
-						onChange={(e, v) => {
-							tableOptions &&
-								setSelectedTable(
-									tableOptions
-										.filter((table: tableOverview) => table.verbose_name === v)
-										.map((table: tableOverview) => table.db_table)
-										.toString()
-								);
-						}}
-					/>
+					<div>
+						<Autocomplete
+							sx={{ backgroundColor: "white" }}
+							//
+							options={
+								groupTables.isFetched
+									? tableOptions.map((table: tableOverview) => table.verbose_name)
+									: []
+							}
+							renderInput={(params) => <TextField {...params} label='Tábla neve' />}
+							onChange={(e, v) => {
+								tableOptions &&
+									setSelectedTable(
+										tableOptions
+											.filter((table: tableOverview) => table.verbose_name === v)
+											.map((table: tableOverview) => table.db_table)
+											.toString()
+									);
+							}}
+						/>
+					</div>
 				)}
 			</div>
 			<Box sx={{ m: 1, position: "relative" }}>
@@ -190,6 +197,7 @@ interface ConentStatus {
 
 export function DataUploadChecker() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
+	const [animationParent] = useAutoAnimate();
 	const [uploadId, setUploadId] = useAtom(idAtom);
 	const [IsDeleted, setIsDeleted] = React.useState(false);
 	const [isSuccess, setIsSuccess] = React.useState(false);
@@ -235,7 +243,7 @@ export function DataUploadChecker() {
 		setUploadId("");
 	};
 	return (
-		<div>
+		<div ref={animationParent}>
 			<div className='upload-checker-container'>
 				<h2 className='font-medium text-lg'>Fájlformátum:</h2>
 				{extensionFormatStatus === "Loading" ? (

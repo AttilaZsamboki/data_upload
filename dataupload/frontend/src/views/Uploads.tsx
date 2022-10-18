@@ -10,6 +10,7 @@ import { useTableOptionsAll } from "../hooks/Tables";
 
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-material.css";
+import { useQuery } from "react-query";
 
 const fileDownload = require("js-file-download");
 
@@ -119,24 +120,48 @@ function FileRenderer(props: any) {
 
 export default function Uploads() {
 	const tableOverview = useTableOptionsAll();
+	const [timeLeft, setTimeLeft] = React.useState<string | undefined>();
 	const tableGetter = (params) => {
 		if (params.data.table && tableOverview.isFetched) {
 			return tableOverview.data?.find((element) => element.db_table === params.data.table)?.verbose_name;
 		}
 	};
+	const lastUpload = useQuery(["last-upload"], async () => await axios.get("/api/upload-timer"));
+	const fetchUploads = async () => {
+		const tablePrefix = Userfront.user?.name.slice(0, 3) + "_";
+		const response = await axios.get("/api/uploadmodel");
+		if (Userfront.user.data && Userfront.user.data.access === "admin") return response.data;
+		return response.data.filter((upload) => upload.table.slice(0, 4) === tablePrefix.toLowerCase());
+	};
+	const uploadData = useQuery(["uploads"], () => fetchUploads());
+	const uploads = !uploadData.isLoading && uploadData.data;
+	React.useEffect(() => {
+		if (lastUpload.isLoading) return;
+		var x = setInterval(function () {
+			// Get today's date and time
+			var now = new Date().getTime();
+			if (lastUpload.isLoading) return;
+			const lastUploadDate = new Date(lastUpload.data.data).getTime() + 2 * 60 * 60 * 1000;
+			const nextUpload = new Date(lastUploadDate + 10 * 60 * 1000).getTime();
+
+			// Find the distance between now and the count down date
+			var distance = 600000 - ((now - lastUploadDate) % 600000);
+
+			// Time calculations for days, hours, minutes and seconds
+			var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+			var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+			// Display the result in the element with id="demo"
+			setTimeLeft(`${minutes}m ${seconds}s`);
+			if (distance === 0) {
+				lastUpload.refetch();
+				uploadData.refetch();
+			}
+		}, 1000);
+	}, [!lastUpload.isLoading && lastUpload?.data.data]);
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
 	const gridRef = React.useRef();
 	const userData = useUsersData();
-	const [uploads, setUploads] = React.useState(null);
-	React.useEffect(() => {
-		const tablePrefix = Userfront.user?.name.slice(0, 3) + "_";
-		const fetchData = async () => {
-			const response = await axios.get("/api/uploadmodel");
-			if (Userfront.user.data && Userfront.user.data.access === "admin") return setUploads(response.data);
-			return setUploads(response.data.filter((upload) => upload.table.slice(0, 4) === tablePrefix.toLowerCase()));
-		};
-		fetchData();
-	}, []);
 	const [columnDefs, setColumnDefs] = React.useState([
 		{
 			field: "id",
@@ -254,6 +279,9 @@ export default function Uploads() {
 				Feltöltés törlése
 			</Button>
 			<p className='text-xs mt-3'>Nem lehetséges miután a fájl feldolgozásra került</p>
+			<p>
+				Következő feltöltés: <b>{!timeLeft ? "Loading..." : timeLeft}</b>
+			</p>
 			<div className='ag-theme-material' style={{ height: 700, width: "80%" }}>
 				<AgGridReact
 					ref={gridRef}

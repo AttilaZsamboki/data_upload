@@ -832,20 +832,6 @@ class FolUnas(models.Model):
     parameter_aremelestext = models.TextField(
         db_column='Parameter_Aremelestext', blank=True, null=True)
     # Field renamed because it wasn't a valid Python identifier.
-    number_1_alkategoria = models.TextField(
-        db_column='1_alkategoria', blank=True, null=True)
-    # Field renamed because it wasn't a valid Python identifier.
-    number_2_alkategoria = models.TextField(
-        db_column='2_alkategoria', blank=True, null=True)
-    # Field renamed because it wasn't a valid Python identifier.
-    number_3_alkategoria = models.TextField(
-        db_column='3_alkategoria', blank=True, null=True)
-    # Field renamed because it wasn't a valid Python identifier.
-    number_4_alkategoria = models.TextField(
-        db_column='4_alkategoria', blank=True, null=True)
-    # Field renamed because it wasn't a valid Python identifier.
-    number_5_alkategoria = models.TextField(
-        db_column='5_alkategoria', blank=True, null=True)
 
     class Meta:
         managed = False
@@ -1997,6 +1983,26 @@ class FolLearnDash(models.Model):
     class Meta:
         managed = False
         db_table = "fol_learn_dash"
+
+
+class FolArresFigyelo(models.Model):
+    Order_Id = models.CharField(max_length=30, primary_key=True)
+    unit_price = models.FloatField()
+    order_fee = models.FloatField()
+    netto_szallitasi_dij = models.FloatField()
+    discount_value = models.FloatField()
+    netto_osszesen = models.FloatField()
+    futar_koltseg = models.FloatField()
+    logisztikai_szolgaltatas = models.FloatField()
+    csomagolo_anyag = models.FloatField()
+    order_ctn_ev = models.FloatField()
+    elabe = models.FloatField()
+    egyeb_koltseg = models.FloatField()
+    Order_Date = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = "fol_arres_figyelo"
 
 
 class Feed(models.Model):

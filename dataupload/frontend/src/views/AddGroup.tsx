@@ -20,14 +20,15 @@ export default function AddGroup() {
 	]);
 
 	const addGroup = async () => {
+		setIsError(false);
 		const csrftoken = getCookie("csrftoken");
 		try {
 			const response = await axios.post(
 				"/api/groups/",
 				{
 					group: state.group,
-					tables: state.tables.map((table) => table.db_table),
-					user_ids: state.userIds.map((user) => user.userId),
+					tables: state.tables.map((table) => table.db_table).toString(),
+					user_ids: state.userIds.map((user) => user.userId).toString(),
 				},
 				{
 					headers: {
@@ -39,11 +40,9 @@ export default function AddGroup() {
 		} catch (e: AxiosResponse) {
 			setIsError(true);
 			setErrorMsg(errorMappings.find((error) => error.original === e.response.data.group.toString())?.visual);
-		} finally {
-			if (!isError) {
-				window.location.replace("/import-config");
-			}
+			return;
 		}
+		window.location.replace("/import-config");
 	};
 	React.useEffect(() => {
 		if (isError === true) {

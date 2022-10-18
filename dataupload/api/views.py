@@ -48,6 +48,11 @@ def UploadProfileImg(request):
         return HttpResponse("good")
 
 
+@api_view(["GET"])
+def UploadTimer(request):
+    return HttpResponse(open("/home/atti/googleds/last_upload.txt", "r"))
+
+
 def ColumnNames(request):
     conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
                             password="AVNS_FovmirLSFDui0KIAOnu", host="db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com", port=25060)
@@ -112,6 +117,17 @@ class TableOverviewList(generics.ListCreateAPIView):
 
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #
     # ------------------------------------------------FOL-------------------------------------------------------------#
+
+class FolArresFigyeloDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolArresFigyelo.objects.all()
+    serializer_class = serializers.FolArresFigyeloSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolArresFigyeloList(generics.ListCreateAPIView):
+    queryset = models.FolArresFigyelo.objects.all()
+    serializer_class = serializers.FolArresFigyeloSerializer
+    permission_classes = [AuthorAllUser]
 
 # Fol Bevételek
 

@@ -200,14 +200,14 @@ def email_uploads():
                                         "results"] if i["email"] == sender_email][0]
                                     user_id = user["userId"]
                                     groups = DatauploadGroups.objects.filter(
-                                        user_ids__contains=[1])
+                                        user_ids__contains=user_id)
                                     if len(groups) > 1:
                                         group = [
                                             i for i in groups if i.group == text.replace("\r\n", "")][0]
                                     else:
                                         group = groups[0]
-                                    tables = [i.email_name for i in DatauploadTableOverview.objects.filter(available_at__startswith="upload"
-                                                                                                           ) if i.db_table in group.tables]
+                                    tables = [i.email_name for i in DatauploadTableOverview.objects.filter(available_at__contains="upload"
+                                                                                                           ) if i.db_table in group.tables and i.email_name in filename]
                                     table = ""
                                     for i in tables:
                                         table = DatauploadTableOverview.objects.get(
