@@ -185,7 +185,7 @@ interface ColStatus {
 	expected: string[];
 }
 
-interface ConentStatus {
+interface ContentStatus {
 	overall_status: boolean | "";
 	error: [
 		{
@@ -203,7 +203,7 @@ export function DataUploadChecker() {
 	const [isSuccess, setIsSuccess] = React.useState(false);
 	const [extensionFormatStatus, setExtensionFormatStatus] = React.useState<ExtStatus | "Loading">("Loading");
 	const [columnNamesStatus, setColumnNamesStatus] = React.useState<ColStatus | "Loading">("Loading");
-	const [columnConentStatus, setColumnContentStatus] = React.useState<ConentStatus | "Loading">("Loading");
+	const [columnContentStatus, setColumnContentStatus] = React.useState<ContentStatus | "Loading">("Loading");
 	const wsRef = React.useRef<any>();
 	React.useEffect(() => {
 		uploadId && window.localStorage.setItem("upload_id", uploadId), [uploadId];
@@ -302,18 +302,18 @@ export function DataUploadChecker() {
 					</div>
 				</div>
 			)}
-			{columnConentStatus !== "Loading" && columnConentStatus.overall_status !== "" && (
+			{columnContentStatus !== "Loading" && columnContentStatus.overall_status !== "" && (
 				<div className='upload-checker-container'>
 					<h2 className='font-medium text-lg'>Oszlop tartalmi állapota:</h2>
-					{columnConentStatus === "Loading" ? (
+					{columnContentStatus === "Loading" ? (
 						<Box sx={{ display: "flex" }}>
 							<CircularProgress />
 						</Box>
-					) : columnConentStatus?.error?.length ? (
+					) : columnContentStatus?.error?.length ? (
 						<>
 							<ClearIcon sx={{ color: "red " }} fontSize='large' />
 							<div>
-								{columnConentStatus.error.map((error) => (
+								{columnContentStatus.error.map((error) => (
 									<div className='border border-gray-300 rounded-lg p-4 mb-4'>
 										{error.error.split(":")[0] === "could not convert string to float" ? (
 											<>
@@ -370,8 +370,8 @@ export function DataUploadChecker() {
 						!extensionFormatStatus.overall_status ||
 						columnNamesStatus === "Loading" ||
 						!columnNamesStatus.overall_status ||
-						columnConentStatus === "Loading" ||
-						!columnConentStatus.overall_status
+						columnContentStatus === "Loading" ||
+						!columnContentStatus.overall_status
 					}
 					onClick={startUpload}>
 					Feltöltés!

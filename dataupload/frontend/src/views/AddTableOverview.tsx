@@ -68,17 +68,6 @@ export default function AddTemplate() {
 				/>
 			</FormControl>
 			<br />
-			<FormControl>
-				<InputLabel htmlFor='email-name'>Email név</InputLabel>
-				<Input
-					id='email-name'
-					name='email-name'
-					type='text'
-					sx={{ width: 300, height: 30 }}
-					onChange={({ target }) => setState((prev) => ({ ...prev, email_name: target.value }))}
-				/>
-			</FormControl>
-			<br />
 			<Autocomplete
 				multiple
 				disablePortal
@@ -88,6 +77,19 @@ export default function AddTemplate() {
 				renderInput={(params) => <TextField {...params} label='Elérhetőség' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, available_at: v }))}
 			/>
+			<br />
+			{state?.available_at.includes("upload") && (
+				<FormControl>
+					<InputLabel htmlFor='email-name'>Email név</InputLabel>
+					<Input
+						id='email-name'
+						name='email-name'
+						type='text'
+						sx={{ width: 300, height: 30 }}
+						onChange={({ target }) => setState((prev) => ({ ...prev, email_name: target.value }))}
+					/>
+				</FormControl>
+			)}
 			<Button
 				onClick={handleAddTemplate}
 				disabled={!state}

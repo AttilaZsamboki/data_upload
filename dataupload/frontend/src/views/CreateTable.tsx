@@ -24,7 +24,6 @@ export default function CreateTable() {
 	} else if (Userfront.user.data && !Userfront.user.data.access === "admin") {
 		return <Navigate to='/upload' />;
 	}
-
 	const { mutate: postFormData, isSuccess, error } = usePostData();
 	const [inputTable, setInputTable] = useState(null);
 	const [selectedFile, setSelectedFile] = useState(null);
@@ -40,7 +39,6 @@ export default function CreateTable() {
 				file: selectedFile,
 				user_id: Userfront.user.userId,
 				is_new_table: true,
-				skiprows: skiprows,
 				upload_timestamp: new Date(),
 				status: "ready",
 				mode: "Kézi",
@@ -73,15 +71,6 @@ export default function CreateTable() {
 					onChange={({ target }) => setInputTable(target.value)}
 				/>
 			</FormControl>
-			<br />
-			<TextField
-				type='number'
-				className='bg-white'
-				name='skiprows'
-				label='Kihagyott sorok száma'
-				value={skiprows}
-				onChange={({ target }) => setSkiprows(target.value)}
-			/>
 			<br />
 			<Box sx={{ m: 1, position: "relative" }}>
 				<Button

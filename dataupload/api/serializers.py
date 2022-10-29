@@ -36,6 +36,30 @@ class TableoverviewSerializer(serializers.ModelSerializer):
 # FOl
 
 
+class FolCFSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolCF
+        fields = '__all__'
+
+
+class FolOrdersÖsszesítőSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolOrdersÖsszesítő
+        fields = '__all__'
+
+
+class FolFedezetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolFedezet
+        fields = '__all__'
+
+
+class FolGlsOsszesitesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.FolGlsOsszesites
+        fields = '__all__'
+
+
 class FolArresFigyeloSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.FolArresFigyelo

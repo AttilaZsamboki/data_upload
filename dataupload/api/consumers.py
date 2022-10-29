@@ -5,6 +5,13 @@ import pandas as pd
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from channels.db import database_sync_to_async
 from .utils.upload import col_by_dtype
+import psycopg2
+
+DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
+DB_NAME = "POOL1"
+DB_USER = "doadmin"
+DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
+DB_PORT = "25061"
 
 
 class UploadConsumer(AsyncWebsocketConsumer):
@@ -203,3 +210,24 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_upload(self):
         return DatauploadUploadmodel.objects.get(id=self.upload_id)
+
+
+class UpdateCashflowPlannerTable(AsyncWebsocketConsumer):
+    async def connect(self):
+        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
+                                password=DB_PASS, host=DB_HOST, port=DB_PORT)
+        cur = conn.cursor()
+        cur.execute("DROP TABLE cashflow_planner_table;")
+        conn.commit()
+        cur.execute(
+            "CREATE TABLE cashflow_planner_table AS SELECT * FROM cashflow_planner;")
+        conn.commit()
+
+        cur.close()
+        conn.close()
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(
+            self.upload_group_name,
+            self.channel_name
+        )

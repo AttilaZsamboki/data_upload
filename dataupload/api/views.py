@@ -118,6 +118,54 @@ class TableOverviewList(generics.ListCreateAPIView):
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #
     # ------------------------------------------------FOL-------------------------------------------------------------#
 
+class FolCFDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolCF.objects.all()
+    serializer_class = serializers.FolCFSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolCFList(generics.ListCreateAPIView):
+    queryset = models.FolCF.objects.all()
+    serializer_class = serializers.FolCFSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolFedezetDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolFedezet.objects.all()
+    serializer_class = serializers.FolOrdersÖsszesítőSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrdersÖsszesítőList(generics.ListCreateAPIView):
+    queryset = models.FolOrdersÖsszesítő.objects.all()
+    serializer_class = serializers.FolOrdersÖsszesítőSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolOrdersÖsszesítőDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolOrdersÖsszesítő.objects.all()
+    serializer_class = serializers.FolOrdersÖsszesítőSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolFedezetList(generics.ListCreateAPIView):
+    queryset = models.FolFedezet.objects.all()
+    serializer_class = serializers.FolFedezetSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolGlsOsszesitesDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = models.FolGlsOsszesites.objects.all()
+    serializer_class = serializers.FolGlsOsszesitesSerializer
+    permission_classes = [AuthorAllUser]
+
+
+class FolGlsOsszesitesList(generics.ListCreateAPIView):
+    queryset = models.FolGlsOsszesites.objects.all()
+    serializer_class = serializers.FolGlsOsszesitesSerializer
+    permission_classes = [AuthorAllUser]
+
+
 class FolArresFigyeloDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.FolArresFigyelo.objects.all()
     serializer_class = serializers.FolArresFigyeloSerializer

@@ -23,6 +23,7 @@ export function useColumnNames(table: string | undefined) {
 		if (typeof table === "string") {
 			return fetchColumnNames(table, false);
 		}
+		return;
 	});
 }
 
@@ -31,6 +32,7 @@ export function useColumnDtypes(table: string | undefined) {
 		if (typeof table === "string") {
 			return fetchColumnNames(table, true);
 		}
+		return;
 	});
 }
 

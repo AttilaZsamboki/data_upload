@@ -314,6 +314,68 @@ class FolGlsElszmols(models.Model):
         db_table = 'fol_gls_elszámolás'
 
 
+class FolGlsOsszesites(models.Model):
+    ugyfel_hivatkozas = models.CharField(max_length=40, primary_key=True)
+    csomagszam = models.IntegerField()
+    suly = models.FloatField()
+    gls = models.FloatField()
+    webshop = models.FloatField()
+    net_gls = models.FloatField()
+    orderid = models.CharField(max_length=30)
+    feladas_datuma = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = 'fol_gls_összesítés'
+
+
+class FolCF(models.Model):
+    honap = models.CharField(max_length=20, primary_key=True)
+    nyito = models.IntegerField()
+    bevetel = models.FloatField()
+    zaro = models.FloatField()
+    cashflow = models.FloatField()
+    kiadas = models.FloatField()
+    afa_bejovo = models.FloatField()
+    afa_kimeno = models.FloatField()
+    befizetes = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = 'fol_cf'
+
+
+class FolOrdersÖsszesítő(models.Model):
+    date = models.CharField(max_length=10, primary_key=True)
+    orders = models.IntegerField()
+    total = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = 'fol_orders_összesítő'
+
+
+class FolFedezet(models.Model):
+    month = models.CharField(max_length=10, primary_key=True)
+    allando_koltsegek = models.FloatField()
+    egyeb_koltsegek = models.FloatField()
+    valtozo_koltsegek = models.FloatField()
+    orders = models.FloatField()
+    total = models.FloatField()
+    ads = models.FloatField()
+    facebook = models.FloatField()
+    logisztika = models.FloatField()
+    elabe = models.FloatField()
+    netto_osszesen = models.FloatField()
+    arres = models.FloatField()
+    arres_szazalek = models.FloatField()
+    marketing_es_pr = models.FloatField()
+
+    class Meta:
+        managed = False
+        db_table = 'fol_fedezet'
+
+
 class FolKltsgek(models.Model):
     azonosito = models.TextField()
     honap = models.TextField(blank=True, null=True)
@@ -1998,7 +2060,7 @@ class FolArresFigyelo(models.Model):
     order_ctn_ev = models.FloatField()
     elabe = models.FloatField()
     egyeb_koltseg = models.FloatField()
-    Order_Date = models.FloatField()
+    Order_Date = models.DateField()
 
     class Meta:
         managed = False
@@ -2020,7 +2082,7 @@ class Feed(models.Model):
 class DatauploadGroups(models.Model):
     group = models.CharField(
         max_length=255, primary_key=True)
-    tables = models.TextField(blank=True)
+    tables = models.TextField(blank=True, null=True)
     user_ids = models.TextField()
 
     class Meta:

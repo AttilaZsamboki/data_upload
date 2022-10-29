@@ -18,7 +18,6 @@ export default function AddGroup() {
 	const [errorMappings] = React.useState<[{ original: string; visual: string }]>([
 		{ original: "dataupload groups with this group already exists.", visual: "Csoport már létezik" },
 	]);
-
 	const addGroup = async () => {
 		setIsError(false);
 		const csrftoken = getCookie("csrftoken");
@@ -27,7 +26,7 @@ export default function AddGroup() {
 				"/api/groups/",
 				{
 					group: state.group,
-					tables: state.tables.map((table) => table.db_table).toString(),
+					tables: state.tables?.map((table) => table.db_table).toString(),
 					user_ids: state.userIds.map((user) => user.userId).toString(),
 				},
 				{
@@ -39,6 +38,7 @@ export default function AddGroup() {
 			);
 		} catch (e: AxiosResponse) {
 			setIsError(true);
+			console.log(e);
 			setErrorMsg(errorMappings.find((error) => error.original === e.response.data.group.toString())?.visual);
 			return;
 		}
@@ -82,7 +82,7 @@ export default function AddGroup() {
 						style={{ backgroundColor: "white", margin: 10 }}
 						multiple
 						options={!userData.isLoading && userData?.data?.results}
-						getOptionLabel={(option) => option.userId}
+						getOptionLabel={(option) => option?.name}
 						renderInput={(params) => <TextField {...params} variant='outlined' label='Felhasználók' />}
 						onChange={(e, v) => setState((prev) => ({ ...prev, userIds: v }))}
 					/>
@@ -91,7 +91,7 @@ export default function AddGroup() {
 					<Button
 						variant='contained'
 						endIcon={<SendIcon />}
-						disabled={!state?.group || !state?.tables || !state?.userIds}
+						disabled={!state?.group || !state?.userIds}
 						onClick={addGroup}
 						sx={{ marginTop: 3 }}>
 						Hozzáadás

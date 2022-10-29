@@ -1,7 +1,6 @@
 import pandas as pd
 import unidecode
 import psycopg2
-import datetime
 from sqlalchemy import create_engine
 import os
 from .models import DatauploadUploadmodel, DatauploadTabletemplates, DatauploadTableOverview
@@ -15,7 +14,10 @@ service = gmail_authenticate()
 
 def handle_uploaded_file(file, table, table_template, user_id, is_new_table, column_bindings, is_feed, is_email=None, sender_email=None):
     errors = []
-    skiprows = table_template.skiprows
+    if not is_new_table:
+        skiprows = table_template.skiprows
+    else:
+        skiprows = 0
     upload_model = DatauploadUploadmodel.objects.get(
         file=file, table=table, user_id=user_id, status="ready")
     upload_model.status_description = "Feldolgozás alatt"
@@ -91,11 +93,11 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
             column_bindings = {}
             for i in range(len(db_column_names)):
                 column_bindings[db_column_names[i]] = source_column_names[i]
-            template = DatauploadTabletemplates(table=table, pkey_col="", skiprows=skiprows, created_by_id=user_id,
-                                                append="Hozzáfűzés duplikációk szűrésével", source_column_names=dumps(column_bindings))
+            template = DatauploadTabletemplates(table=table, pkey_col="", skiprows=skiprows,
+                                                append="Felülírás", source_column_names=dumps(column_bindings))
             template.save()
             df.to_sql(table, engine, index=False)
-            cur.execute("TRUNCATE "+table)
+            cur.execute(f"TRUNCATE {table}")
             conn.commit()
             os.remove('/home/atti/googleds/dataupload/media/' + str(file))
             DatauploadUploadmodel.objects.get(
@@ -201,10 +203,13 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         file=file, table=table, user_id=user_id, status="under upload")
     upload_model.status_description = "Sikeres feltöltés!"
     upload_model.status = "success"
+    file_dir = f"/home/atti/googleds/files/{table}/"
+    if not os.path.isdir(file_dir):
+        os.mkdir(file_dir)
     if not is_email and not is_feed:
         files_already_existing = [f for f in os.listdir(
-            f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
-        upload_model.file = f"/home/atti/googleds/files/{table}/{str(filename).split('/')[-1]}{f' ({len(files_already_existing)-1})' if files_already_existing else ''}{extension_format}"
+            file_dir) if f"{date.today()}" in f]
+        upload_model.file = f"{file_dir}{str(filename).split('/')[-1]}{f' ({len(files_already_existing)-1})' if files_already_existing else ''}{extension_format}"
         os.rename("/home/atti/googleds/dataupload/media/" + str(file),
                   str(upload_model.file))
     elif is_email:
