@@ -1,10 +1,10 @@
 from psycopg2 import connect
 
-DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
-DB_NAME = "POOL1"
+DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
+DB_NAME = "defaultdb"
 DB_USER = "doadmin"
 DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-DB_PORT = "25061"
+DB_PORT = "25060"
 
 
 def col_by_dtype(data_type, curr_table):

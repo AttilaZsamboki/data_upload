@@ -30,9 +30,17 @@ export default function AddFeed() {
 					.map((user) => user.userId)
 					.toString(),
 				frequency: state.frequency,
+				runs_at: state.runs_at,
 			},
 		});
 	};
+	React.useEffect(() => {
+		document.title = "Feed Hozzáadása";
+	}, []);
+	let hours = [];
+	for (let i = 0; i < 24; i++) {
+		hours.push(i);
+	}
 	return (
 		<div className='center-form all-white-bg p-5'>
 			<h1 className='bg-slate-200 pb-6'>Feed Hozzáadása</h1>
@@ -71,6 +79,15 @@ export default function AddFeed() {
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Frekvencia' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, frequency: v }))}
+			/>
+			<Autocomplete
+				disablePortal
+				className='my-4'
+				id='runs-at'
+				options={hours}
+				sx={{ width: 300 }}
+				renderInput={(params) => <TextField {...params} label='Futás ideje' />}
+				onChange={(e, v) => setState((prev) => ({ ...prev, runs_at: v }))}
 			/>
 			<Button
 				onClick={handleAddTemplate}

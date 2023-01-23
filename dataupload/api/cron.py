@@ -4,11 +4,13 @@ import json
 from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview
 from .upload_handler import handle_uploaded_file
 import requests
-from datetime import date, datetime
-from .utils.utils import diff_month
+from datetime import date, datetime, timedelta
 from .utils.gmail import gmail_authenticate, send_message
 import requests
 from .utils.unas_feed import get_unas_feed_url
+import pandas as pd
+from sqlalchemy import create_engine
+from .unas_translator import translate_unas
 
 
 def upload_file():
@@ -32,12 +34,50 @@ def upload_file():
 
 
 def upload_feed_daily():
+    current_hour = (datetime.now() + timedelta(hours=1)).hour
+    for upload in Feed.objects.all():
+        table, url, user_id, frequency, runs_at = (
+            upload.table, upload.url, upload.user_id, upload.frequency, upload.runs_at)
+        if frequency == "1 nap":
+            if runs_at == current_hour:
+                if table == "fol_unas":
+                    url = get_unas_feed_url()
+                try:
+                    file = requests.get(url).content
+                except:
+                    print("Not valid url for file")
+                    continue
+                files_already_existing = [f for f in os.listdir(
+                    f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+                filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+                open(filename, "wb").write(file)
+                uploadmodel = DatauploadUploadmodel(
+                    table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+                uploadmodel.save()
+                table_template = DatauploadTabletemplates.objects.get(
+                    table=table)
+                try:
+                    column_bindings = json.loads(
+                        table_template.source_column_names)
+                except:
+                    print("Json convert error")
+                try:
+                    handle_uploaded_file(filename, table,
+                                         table_template, user_id, False, column_bindings, True)
+                except ValueError:
+                    uploadmodel.table = table
+                    uploadmodel.status = "error"
+                    uploadmodel.status_description = "Hibás fájl tartalom"
+                    uploadmodel.save()
+                    print("Could not upload file")
+                    continue
+
+
+def upload_feed_weekly():
     for upload in Feed.objects.all():
         table, url, user_id, frequency = (
             upload.table, upload.url, upload.user_id, upload.frequency)
-        if table == "fol_unas":
-            url = get_unas_feed_url()
-        if frequency == "1 nap":
+        if frequency == "1 hét":
             try:
                 file = requests.get(url).content
             except:
@@ -67,13 +107,6 @@ def upload_feed_daily():
                 uploadmodel.save()
                 print("Could not upload file")
                 continue
-
-
-def delete_log():
-    for upload in DatauploadUploadmodel.objects.all():
-        if diff_month(upload.upload_timestamp, datetime.now()) < -1:
-            upload.delete()
-            os.remove(upload.file)
 
 
 def upload_feed_hourly():
@@ -202,8 +235,9 @@ def email_uploads():
                                     groups = DatauploadGroups.objects.filter(
                                         user_ids__contains=user_id)
                                     if len(groups) > 1:
-                                        group = [
-                                            i for i in groups if i.group == text.replace("\r\n", "")][0]
+                                        if text:
+                                            group = [
+                                                i for i in groups if i.group == text.replace("\r\n", "")][0]
                                     else:
                                         group = groups[0]
                                     tables = [i.email_name for i in DatauploadTableOverview.objects.filter(available_at__contains="upload"
@@ -307,3 +341,106 @@ def email_uploads():
     for msg in results:
         read_message(service, msg)
     delete_messages(service, "Feltöltés")
+
+
+def upload_pro_stock_month():
+    for upload in Feed.objects.all():
+        table, url, user_id, frequency = (
+            upload.table, upload.url, upload.user_id, upload.frequency)
+        if frequency == "1 nap":
+            if table == "pro_stock_report":
+                try:
+                    DatauploadUploadmodel.objects.get(
+                        upload_timestamp__gte=datetime.now().today(), table="pro_stock_report")
+                except:
+                    try:
+                        file = requests.get(url).content
+                    except:
+                        print("Not valid url for file")
+                        continue
+                    files_already_existing = [f for f in os.listdir(
+                        f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+                    filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+                    open(filename, "wb").write(file)
+                    uploadmodel = DatauploadUploadmodel(
+                        table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+                    uploadmodel.save()
+                    table_template = DatauploadTabletemplates.objects.get(
+                        table=table)
+                    try:
+                        column_bindings = json.loads(
+                            table_template.source_column_names)
+                    except:
+                        print("Json convert error")
+                    try:
+                        handle_uploaded_file(filename, table,
+                                             table_template, user_id, False, column_bindings, True)
+                    except ValueError:
+                        uploadmodel.table = table
+                        uploadmodel.status = "error"
+                        uploadmodel.status_description = "Hibás fájl tartalom"
+                        uploadmodel.save()
+                        print("Could not upload file")
+                        continue
+
+
+def pro_stock_report_summary():
+    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
+    DB_NAME = "defaultdb"
+    DB_USER = "doadmin"
+    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
+    DB_PORT = "25060"
+
+    engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
+                           "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")
+
+    df = pd.read_sql("""
+    select timestamp                    as month,
+        sum("Inventory_Value_Layer") as net_stock_value,
+        sum("Minimum_Stock_Quantity")                    as min_stock,
+        count(distinct "SKU")                            as skus,
+        sum("On_Stock_Layer")                            as quantity
+        from pro_stock_report_extended
+        where timestamp = '2022-12-07'
+    group by 1;
+    """, con=engine)
+    df.to_sql("pro_stock_report_summary", con=engine,
+              index=False, if_exists="append")
+
+
+def unas_upload_and_translate():
+    ## -- Uplaod -- ##
+    url = get_unas_feed_url()
+    table = "fol_unas"
+    try:
+        file = requests.get(url).content
+    except:
+        print("Not valid url for file")
+        return
+    files_already_existing = [f for f in os.listdir(
+        f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+    filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+    open(filename, "wb").write(file)
+    uploadmodel = DatauploadUploadmodel(
+        table=table, file=filename, user_id=1, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+    uploadmodel.save()
+    table_template = DatauploadTabletemplates.objects.get(
+        table=table)
+    try:
+        column_bindings = json.loads(
+            table_template.source_column_names)
+    except:
+        print("Json convert error")
+    ## -- Translation -- ##
+    translate_unas(file=file, column_bindigs=column_bindings)
+    ## -- Upload --##
+    try:
+        handle_uploaded_file(filename, table,
+                             table_template, 1, False, column_bindings, True)
+    except ValueError:
+        uploadmodel.table = table
+        uploadmodel.status = "error"
+        uploadmodel.status_description = "Hibás fájl tartalom"
+        uploadmodel.save()
+        print("Could not upload file")
+        return

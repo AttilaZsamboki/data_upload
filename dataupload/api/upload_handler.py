@@ -36,11 +36,11 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         "keepalives_count": 5
     }
 
-    DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
-    DB_NAME = "POOL1"
+    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
+    DB_NAME = "defaultdb"
     DB_USER = "doadmin"
     DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_PORT = "25061"
+    DB_PORT = "25060"
 
     engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
                            "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")
@@ -100,14 +100,22 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
             cur.execute(f"TRUNCATE {table}")
             conn.commit()
             os.remove('/home/atti/googleds/dataupload/media/' + str(file))
-            DatauploadUploadmodel.objects.get(
-                table=table, file=file, user_id=user_id).delete()
+            upload_log = DatauploadUploadmodel.objects.get(
+                table=table, file=file, user_id=user_id)
+            upload_log.status = "success"
+            upload_log.status_description = "Sikeres létrehozott tábla!"
+            upload_log.save()
             table_overview = DatauploadTableOverview(
                 db_table=table, verbose_name=table.title().replace("_", " "), available_at="upload")
             table_overview.save()
             return
         else:
-            return print("Table already exists")
+            upload_model = DatauploadUploadmodel.objects.get(
+                file=file, table=table, user_id=user_id)
+            upload_model.status_description = f"Tábla már létezik{table}"
+            upload_model.status = "error"
+            upload_model.save()
+            return print(f"Tábla már létezik '{table}'")
 
     if table not in tables_in_sql:
         if table.capitalize() in tables_in_sql:
@@ -149,7 +157,7 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
                     send_message(service, sender_email, "Rossz tábla tartalom",
                                  f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}")
                     os.remove(str(file))
-                    return
+                return
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -169,11 +177,11 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
                                 A fenti okok miatt a feltöltés törlésre került.
                                 """)
 
-    base_query = "INSERT INTO "+table+" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
+    base_query = "INSERT INTO \""+table+"\" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary" if column_binding_values_str else "INSERT INTO "+table+" SELECT * FROM temporary"
 
     if table_template.append == "Felülírás":
-        cur.execute("TRUNCATE "+table+";")
+        cur.execute("TRUNCATE \""+table+"\";")
         conn.commit()
     elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
         primary_key_source = table_template.pkey_col
@@ -184,9 +192,9 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         conn.commit()
     try:
         cur.execute(base_query)
-    except psycopg2.errors.UndefinedColumn:
+    except psycopg2.errors.UndefinedColumn as e:
         upload_model.status = "error"
-        upload_model.status_description = "Hibás oszlop nevek"
+        upload_model.status_description = f"Hibás oszlop nevek ({e})"
         upload_model.save()
         return
     conn.commit()

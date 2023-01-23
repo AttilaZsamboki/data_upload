@@ -55,6 +55,9 @@ export default function Profile() {
 			name: newName,
 		});
 	};
+	React.useEffect(() => {
+		document.title = "Profil";
+	}, []);
 	return (
 		<div>
 			<div>

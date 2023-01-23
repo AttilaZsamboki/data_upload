@@ -272,6 +272,9 @@ export default function Uploads() {
 			}
 		});
 	};
+	React.useEffect(() => {
+		document.title = "Feltöltések"
+	}, [])
 	return (
 		<div className='mx-auto flex flex-col items-center justify-center'>
 			<h1 className='mb-5'>Feltöltések</h1>

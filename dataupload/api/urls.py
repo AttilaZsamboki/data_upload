@@ -9,6 +9,7 @@ urlpatterns = [
     path("upload-timer/", views.UploadTimer),
     path("column-names/", views.ColumnNames),
     path("table-names/", views.TableNames),
+    path("create-cashflow-planner/", views.CreateCashflowPlanner),
     #---------------------------------DATAUPLOAD CONFIG---------------------------------------#
     path("groups/", views.GroupsList.as_view()),
     path("groups/<str:pk>/", views.GroupsDetail.as_view()),

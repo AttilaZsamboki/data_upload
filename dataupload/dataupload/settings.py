@@ -73,24 +73,23 @@ WSGI_APPLICATION = 'dataupload.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'POOL1',
-        'PORT': '25061',
+        'NAME': 'defaultdb',
         'USER': 'doadmin',
-        'HOST': 'db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com',
         'PASSWORD': 'AVNS_FovmirLSFDui0KIAOnu',
-        'OPTIONS': {
-            'sslmode': 'verify-full',
-            'sslrootcert': os.path.join(BASE_DIR, 'ca-certificate.crt')
-        },
+        'HOST': 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com',
+        'PORT': '25060',
     }
 }
 
 CRONJOBS = [
     ('*/10 * * * *', 'api.cron.upload_file'),
-    ('0 1 * * *', 'api.cron.upload_feed_daily'),
-    ('0 * * * *', 'api.cron.upload_feed_hourly'),
-    ('0 0 * * *', 'api.cron.delete_log'),
-    ('0 1 * * *', 'api.cron.email_uploads'),
+    ('0 * * * *', 'api.cron.upload_feed_daily'),
+    ('30 * * * *', 'api.cron.upload_feed_hourly'),
+    ('0 1 * * 5', 'api.cron.upload_feed_weekly'),
+    ('*/10 * * * *', 'api.cron.email_uploads'),
+    ('0 9 1 * *', 'api.cron.upload_pro_stock_month'),
+    ('0 4 1 * *', 'api.cron.pro_stock_report_summary'),
+    ('0 0 * * *', 'api.cron.unas_upload_and_translate'),
 ]
 
 # Password validation

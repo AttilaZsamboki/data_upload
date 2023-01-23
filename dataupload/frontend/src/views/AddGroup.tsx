@@ -49,6 +49,9 @@ export default function AddGroup() {
 			setInterval(() => isError && setIsError(false), 10000);
 		}
 	}, [isError]);
+	React.useEffect(() => {
+		document.title = "Csoport Hozzáadása";
+	}, []);
 	return (
 		<div ref={animationParent}>
 			{isError && (

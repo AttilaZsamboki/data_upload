@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from psycopg2 import connect
 from datetime import date
 
-DB_HOST = "db-postgresql-fra1-91708-jun-25-backup-do-user-4907952-0.b.db.ondigitalocean.com"
+DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
 DB_NAME = "defaultdb"
 DB_USER = "doadmin"
 DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"

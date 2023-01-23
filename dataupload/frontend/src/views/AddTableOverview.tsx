@@ -36,6 +36,9 @@ export default function AddTemplate() {
 			},
 		});
 	};
+	React.useEffect(() => {
+		document.title = "Tableoverview Hozzáadása";
+	}, []);
 	return (
 		<div className='center-form all-white-bg p-5'>
 			<h1 className='bg-slate-200 pb-6'>Tábla Áttekintés Hozzáadása</h1>
@@ -78,7 +81,7 @@ export default function AddTemplate() {
 				onChange={(e, v) => setState((prev) => ({ ...prev, available_at: v }))}
 			/>
 			<br />
-			{state?.available_at.includes("upload") && (
+			{typeof state !== "undefined" && state.available_at?.includes("upload") && (
 				<FormControl>
 					<InputLabel htmlFor='email-name'>Email név</InputLabel>
 					<Input

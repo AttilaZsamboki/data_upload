@@ -13,7 +13,7 @@ export default function AddTemplate() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
 	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
 	const tableOptions = useTableOptionsAll();
-	const [state, setState] = useState({});
+	const [state, setState] = useState<{ table: string; pkey_col: string; skiprows: number; append: string }>({});
 	const [sourceColumns, setSourceColumns] = useState({});
 	const columnNames = useColumnNames(state.table);
 	const { mutate: postFormData, isSuccess } = usePostData();
@@ -34,6 +34,9 @@ export default function AddTemplate() {
 			},
 		});
 	};
+	React.useEffect(() => {
+		document.title = "Template Hozzáadása";
+	}, []);
 
 	return (
 		<div className='center-form all-white-bg p-5'>
@@ -62,7 +65,7 @@ export default function AddTemplate() {
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Elsődleges kulcs' />}
 				onChange={(e, v) => setState((prev) => ({ ...prev, pkey_col: v }))}
-				disabled={!columnNames.data}
+				disabled={!columnNames.data || state.append !== "Hozzáfűzés duplikációk szűrésével"}
 			/>
 			<br />
 			<Autocomplete

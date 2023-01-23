@@ -12,12 +12,14 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { green } from "@mui/material/colors";
 import { useGroupTables } from "../hooks/users";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import ProgressSteps from "../components/ProgressSteps";
 
 const idAtom = atom(null);
 
 export function DataUploadStart() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' />;
+	React.useEffect(() => {
+		document.title = "Feltöltés || Kezdés";
+	}, []);
 	return (
 		<>
 			{window.localStorage.getItem("upload_id") !== "" ? (
@@ -57,7 +59,7 @@ export function DataUploadInput() {
 		groupTables.isFetched &&
 		tableOverview.filter(
 			(table: tableOverview) =>
-				table.available_at.includes("upload") && groupTables.data?.tables.split(",").includes(table.db_table)
+				table.available_at?.includes("upload") && groupTables.data?.tables.split(",")?.includes(table.db_table)
 		);
 	const [selectedTable, setSelectedTable] = React.useState<string | null>(null);
 	const [uploadId, setUploadId] = useAtom(idAtom);
@@ -67,8 +69,8 @@ export function DataUploadInput() {
 			let foundTable = false;
 			tableOptions.forEach((table: tableOverview) => {
 				if (
-					groupTables.data?.tables.includes(table.db_table) &&
-					selectedFile.name.includes(table.verbose_name)
+					groupTables.data?.tables?.includes(table.db_table) &&
+					selectedFile.name?.includes(table.verbose_name)
 				) {
 					setSelectedTable(table.db_table);
 					foundTable = true;
@@ -96,6 +98,9 @@ export function DataUploadInput() {
 		}
 	};
 	setUploadId(data?.data.id);
+	React.useEffect(() => {
+		document.title = "Feltöltés || Adatbevitel";
+	}, []);
 	return (
 		<div className='center-form'>
 			<div className='mb-3 w-96 object-left-top break-after-column'>
@@ -242,6 +247,9 @@ export function DataUploadChecker() {
 		!window.localStorage.getItem("upload_id") && setIsSuccess(true);
 		setUploadId("");
 	};
+	React.useEffect(() => {
+		document.title = "Feltöltés || Adatellenőrzés";
+	}, []);
 	return (
 		<div ref={animationParent}>
 			<div className='upload-checker-container'>

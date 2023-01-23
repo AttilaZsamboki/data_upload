@@ -139,7 +139,7 @@ class DatauploadTabletemplates(models.Model):
 
 
 class DatauploadUploadmodel(models.Model):
-    table = models.CharField(max_length=50)
+    table = models.TextField()
     file = models.FileField(upload_to='upload_files/', max_length=200)
     user_id = models.IntegerField()
     is_new_table = models.BooleanField(blank=True, null=True)
@@ -2073,6 +2073,7 @@ class Feed(models.Model):
     user_id = models.IntegerField()
     frequency = models.TextField()
     id = models.AutoField(primary_key=True)
+    runs_at = models.IntegerField()
 
     class Meta:
         managed = False

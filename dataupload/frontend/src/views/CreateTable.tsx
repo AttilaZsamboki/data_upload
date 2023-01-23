@@ -45,6 +45,9 @@ export default function CreateTable() {
 			},
 		});
 	};
+	React.useEffect(() => {
+		document.title = "Tábla hozzáadása";
+	}, []);
 
 	return (
 		<div className='center-form mx-80 py-20 my-32'>
