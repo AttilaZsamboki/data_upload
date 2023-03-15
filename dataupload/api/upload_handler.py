@@ -14,6 +14,7 @@ service = gmail_authenticate()
 
 def handle_uploaded_file(file, table, table_template, user_id, is_new_table, column_bindings, is_feed, is_email=None, sender_email=None):
     errors = []
+    print(table_template)
     if not is_new_table:
         skiprows = table_template.skiprows
     else:
@@ -188,7 +189,7 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         primary_key_db = "".join(
             [i for i, j in column_bindings.items() if j == primary_key_source])
         cur.execute(
-            f"DELETE FROM {table} WHERE \"{primary_key_db}\" IN (SELECT \"{primary_key_source}\" FROM temporary);")
+            f"DELETE FROM \"{table}\" WHERE \"{primary_key_db}\" IN (SELECT \"{primary_key_source}\" FROM temporary);")
         conn.commit()
     try:
         cur.execute(base_query)

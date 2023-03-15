@@ -213,26 +213,23 @@ export default function Uploads() {
 		},
 	]);
 	React.useEffect(() => {
-		if (
-			Userfront.user.data &&
-			Userfront.user.data.access === "admin" &&
-			userData.isFetched &&
-			gridRef.current.api
-		) {
-			gridRef.current.api.setColumnDefs([
+		if (Userfront.user.data && Userfront.user.data.access === "admin" && userData.data && gridRef.current) {
+			gridRef.current!.api.setColumnDefs([
 				...columnDefs,
 				{
 					headerName: "Tulajdonos",
-					valueGetter: (params) => {
-						if (params.data.user_id && userData.isFetched) {
-							return userData.data?.results.find((element) => element.userId === params.data.user_id)
-								?.name;
+					valueGetter: (params: any) => {
+						if (params.data.user_id) {
+							if (userData.data.results.find((element) => element.userId === params.data.user_id)) {
+								return userData.data.results.find((element) => element.userId === params.data.user_id)
+									.name;
+							}
 						}
 					},
 				},
 			]);
 		}
-	}, [userData.isFetched]);
+	}, [userData]);
 	React.useEffect(() => {
 		if (!tableOverview.isLoading) {
 			const [x, y, ...z] = columnDefs;
@@ -273,8 +270,8 @@ export default function Uploads() {
 		});
 	};
 	React.useEffect(() => {
-		document.title = "Feltöltések"
-	}, [])
+		document.title = "Feltöltések";
+	}, []);
 	return (
 		<div className='mx-auto flex flex-col items-center justify-center'>
 			<h1 className='mb-5'>Feltöltések</h1>

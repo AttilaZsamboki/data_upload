@@ -2,10 +2,11 @@ import pandas as pd
 from sqlalchemy import create_engine
 import requests
 import json
-from datetime import timedelta
+from datetime import timedelta, datetime
 import os
-import subprocess
 
+with open("/home/atti/googleds/logs/tmd_output.log", "w") as log:
+    log.write(str(datetime.now() + timedelta(hours=1)))
 package_types = {"F": "Fólia", "CS": "Csempematrica",
                  "FP": "Falpadló", "P": "Padló"}
 DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
@@ -24,7 +25,7 @@ engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
                        "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")
 
 df = pd.read_sql(
-    """select * from fol_orders where "Sku" like '%%TMD%%' and "Order_Id" not in (select order_id from tmd_processed_orders) and "Order_Status" = 'Completed'""", con=engine)
+    """select * from fol_orders where "Order_Id" like 'ORD-%%' and "Sku" like '%%TMD%%' and "Order_Id" not in (select order_id from tmd_processed_orders) and "Order_Status" = 'Completed'""", con=engine)
 
 for row in df.iloc():
     contact_id = 0
@@ -42,7 +43,7 @@ for row in df.iloc():
             try:
                 contact_id = response["Id"]
             except:
-                print("ERROR! LINE 45")
+                print("ERROR! LINE 45", contact_id)
     response = os.popen(
         f'curl -s --user "{SYSTEM_ID}":"{API_KEY}" -XPUT "https://r3.minicrm.hu/Api/R3/Project/" -d \'{{"Name":"{row.Shipping_Last_Name} {row.Shipping_First_Name} ({type_of_package})","UserId":75012,"CategoryId":49,"ContactId":{contact_id},"StatusId":3210}}\'').read()
     adatlap_id = json.loads(response)["Id"]

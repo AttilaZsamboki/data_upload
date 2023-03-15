@@ -13,6 +13,6 @@ con = engine.connect()
 con.execute("""update pro_activison_per_agent
                 set end_date = (current_date || ' 16:00:00')::timestamp
                 where end_date is null""")
-con.execute("""update pro_activision
+con.execute("""update pro_activison
                 set end_date = (current_date || ' 16:00:00')::timestamp
                 where end_date is null""")

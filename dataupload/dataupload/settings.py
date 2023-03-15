@@ -87,9 +87,12 @@ CRONJOBS = [
     ('30 * * * *', 'api.cron.upload_feed_hourly'),
     ('0 1 * * 5', 'api.cron.upload_feed_weekly'),
     ('*/10 * * * *', 'api.cron.email_uploads'),
-    ('0 9 1 * *', 'api.cron.upload_pro_stock_month'),
+    ('0 10 1 * *', 'api.cron.upload_pro_stock_month'),
     ('0 4 1 * *', 'api.cron.pro_stock_report_summary'),
     ('0 0 * * *', 'api.cron.unas_upload_and_translate'),
+    ('0 0 * * *', 'api.cron.unas_translator_correcter'),
+    ('0 1 * * 5', 'api.cron.unas_image_upload'),
+    ('0 0 * * *', 'api.cron.pen_adatlap_upload')
 ]
 
 # Password validation
