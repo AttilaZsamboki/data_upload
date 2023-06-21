@@ -229,7 +229,7 @@ export default function Uploads() {
 				},
 			]);
 		}
-	}, [userData]);
+	}, [userData.data]);
 	React.useEffect(() => {
 		if (!tableOverview.isLoading) {
 			const [x, y, ...z] = columnDefs;

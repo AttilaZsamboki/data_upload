@@ -1,8 +1,8 @@
-import json
-import requests
-import pandas as pd
-from sqlalchemy import create_engine
 import urllib.parse
+from sqlalchemy import create_engine
+import pandas as pd
+import requests
+import json
 
 DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
 DB_NAME = 'defaultdb'
@@ -20,7 +20,7 @@ df = pd.read_sql("""select "Billing_Email" as email,
        "Order_Total"   as total_price,
        "Order_Id"
 from fol_order_base
-where "Billing_Email" = 'csohkrisztian@gmail.com'
+where "Billing_Email" = 'agnes.gondor@gmail.com'
     """, con=engine)
 
 print(df)
@@ -54,10 +54,10 @@ where "Order_Id" = '{i.Order_Id}'
 
     extres = requests.get(exturl, headers=extheaders)
 
-    externalid = json.loads(extres.text)["ecomCustomers"][0]["id"]
+    externalid = json.loads(extres.text)["ecomCustomers"][1]["id"]
     payload = {"ecomOrder": {
         "orderProducts": order_products,  # CORRECT
-        "externalid": "somesidoftheorder",  # CORRECT
+        "externalid": i["externalid"],  # CORRECT
         "source": 1,  # CORRECT
         "email": i.email,  # CORRECT
         "connectionid": 1,  # CORRECT
@@ -66,14 +66,14 @@ where "Order_Id" = '{i.Order_Id}'
         "currency": i.currency,  # CORRECT
         "externalCreatedDate": str(i.date)  # CORRECT
     }}
+
+    headers = {
+        "accept": "application/json",
+        "content-type": "application/json",
+        "Api-Token": "8964abf3f791ed0367e9ef97ef82d36144f810ad1fb957294037dc3fc506abf298593c1e"
+    }
+
     print(payload)
-    # headers = {
-    #     "accept": "application/json",
-    #     "content-type": "application/json",
-    #     "Api-Token": "8964abf3f791ed0367e9ef97ef82d36144f810ad1fb957294037dc3fc506abf298593c1e"
-    # }
+    response = requests.post(url, json=payload, headers=headers)
 
-    # print(payload)
-    # response = requests.post(url, json=payload, headers=headers)
-
-    # print(response.text)
+    print(response.text)

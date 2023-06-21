@@ -20,19 +20,16 @@ d2 = dt.datetime.strptime(end_date, "%Y.%m.%d")
 monday1 = (d1 - timedelta(days=d1.weekday()))
 monday2 = (d2 - timedelta(days=d2.weekday()))
 remaining_weeks = math.floor((monday2 - monday1).days / 7)
-categories_distinct = [
-    'Albérlet kiadás',
-    'Bónusz jóváírás',
-    'Csomagautomata bérbeadás',
-    'Csomagplusz jutalék',
-    'Értékesítés',
-    'GINOP',
-    'Kaució',
-    'Packeta jutalék',
-    'Beszállító jóváírás',
-    'Szoftver értékesítés',
-    'Oktatás értékesítés',
-]
+url = input("Mi az url? ")
+sh = gc.open_by_url(
+    url)
+# select the first sheet
+main_table = input("What is the name of the source table? ")
+output_table = input("Output table name: ")
+wks = sh.worksheet_by_title(output_table)
+wks_read = sh.worksheet_by_title(main_table)
+categories_distinct = [lst[0] for lst in wks_read.get_values(
+    start="E19", end="E221") if lst != ['']]
 
 
 # Create a column
@@ -44,7 +41,6 @@ row = 2
 interval = input("Interval (M/D): ")
 alphabet = list(string.ascii_uppercase)
 current_letter = input("What is the starting letter? ")
-main_table = input("What is the name of the source table? ")
 plan_table_check_col = input("Which column should it compare to? ")
 for i in range(remaining_weeks):
     for j in range(len(categories_distinct)):
@@ -72,16 +68,11 @@ for i in range(remaining_weeks):
             new_letters[1] = "A"
         current_letter = "".join(new_letters)
 
+# open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
 df["Hét"] = weeks
 df["Kategória"] = categories
 df["Terv"] = terv
 print(df)
-# open the google spreadsheet (where 'PY to Gsheet Test' is the name of my sheet)
-url = input("Mi az url? ")
-sh = gc.open_by_url(
-    url)
-# select the first sheet
-wks = sh[0]
 
 # update the first sheet with df, starting at cell B2.
 wks.set_dataframe(df, (1, 1))

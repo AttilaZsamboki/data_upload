@@ -40,7 +40,8 @@ def upload_file():
 
 
 def upload_feed_daily():
-    current_hour = (datetime.now() + timedelta(hours=1)).hour
+    current_hour = (datetime.now() + timedelta(hours=2)).hour
+    print(current_hour)
     for upload in Feed.objects.filter(runs_at=current_hour):
         table, url, user_id, frequency = (
             upload.table, upload.url, upload.user_id, upload.frequency)
@@ -410,14 +411,31 @@ def pro_stock_report_summary():
                            "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"")
 
     df = pd.read_sql("""
-    select timestamp                    as month,
-        sum("Inventory_Value_Layer") as net_stock_value,
-        sum("Minimum_Stock_Quantity")                    as min_stock,
-        count(distinct "SKU")                            as skus,
-        sum("On_Stock_Layer")                            as quantity
-        from pro_stock_report_extended
-        where timestamp = current_date and "SKU" not like 'TE_%%' 
-    group by 1;
+        with funnel_1 as (with funnel as (select "SKU"
+                                  from pro_stock_report
+                                  where timestamp = current_date
+                                    and "Layers_Warehouse" is not null
+                                    and "SKU" not like 'TE_%%')
+                  select count(distinct pro_products."SKU") as min_sku,
+                         sum("Minimum_Stock_Quantity")      as min_stock
+                  from pro_products
+                           left join funnel on funnel."SKU" = pro_products."SKU"
+                  where "Minimum_Stock_Quantity" > 0
+                    and "Minimum_Stock_Quantity" is not null),
+        funnel_2 as (select timestamp                    as month,
+                            sum("Inventory_Value_Layer") as net_stock_value,
+                            count(distinct "SKU")        as skus,
+                            sum("On_Stock_Layer")        as quantity,
+                            sum("Minimum_Stock_Value")   as min_stock_value
+                    from pro_stock_report_extended
+                    where timestamp = current_date::interval
+                        and "SKU" not like 'TE_%%'
+                        and "Layers_Warehouse" is not null
+                    group by 1)
+        select month, net_stock_value, skus, quantity, min_stock_value, min_stock, min_sku
+        from funnel_2
+                left join funnel_1
+                        on true;
     """, con=engine)
     df.to_sql("pro_stock_report_summary", con=engine,
               index=False, if_exists="append")
@@ -425,7 +443,7 @@ def pro_stock_report_summary():
 
 def unas_upload_and_translate():
     ## -- Uplaod -- ##
-    url = get_unas_img_feed_url()
+    url = get_unas_feed_url()
     table = "fol_unas"
     try:
         file = requests.get(url).content
@@ -517,3 +535,20 @@ def pen_adatlap_upload():
     uploadmodel.save()
     handle_uploaded_file(file=file, table="pen_adatlapok",
                          table_template=table_template, user_id=1, is_new_table=False, column_bindings=column_bindings, is_feed=True)
+
+
+def fol_orders_delete_last_90():
+    DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
+    DB_NAME = 'defaultdb'
+    DB_USER = 'doadmin'
+    DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
+    DB_PORT = '25060'
+
+    engine = create_engine('postgresql://'+DB_USER+':' +
+                           DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
+
+    engine.execute(
+        f"DELETE FROM fol_orders WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")
+
+    engine.execute(
+        f"DELETE FROM pro_orders WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")

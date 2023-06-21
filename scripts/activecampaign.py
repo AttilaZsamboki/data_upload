@@ -13,7 +13,7 @@ engine = create_engine('postgresql://'+DB_USER+':' +
 
 df = pd.read_sql("""select distinct "Billing_Email", "Customer_Identifier"
 from fol_orders
-where "Sku" in (select cikkszam from fol_unas_extended where "1_alkategoria" = '3D Csempematrica') and "Billing_Email" = 'csohkrisztian@gmail.com'""", con=engine)
+where "Sku" in (select cikkszam from fol_unas_extended where "1_alkategoria" = '3D Csempematrica') and "Billing_Email" = 'agnes.gondor@gmail.com'""", con=engine)
 
 print(df)
 url = "https://foliasjucihu.api-us1.com/api/3/ecomCustomers"
@@ -21,7 +21,7 @@ url = "https://foliasjucihu.api-us1.com/api/3/ecomCustomers"
 for i in df.iloc:
     payload = {"ecomCustomer": {
         "connectionid": "1",
-        "externalid": "id123124",
+        "externalid": "6666666",
         "email": i.Billing_Email,
         "acceptsMarketing": "1"
     }}
