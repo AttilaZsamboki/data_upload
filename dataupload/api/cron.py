@@ -504,6 +504,8 @@ def unas_image_upload():
 
 
 def pen_adatlap_upload():
+    with open("/home/atti/googleds/logs/pen/adatlap_feltöltés.log", "w") as log:
+        log.write(str(datetime.now()))
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
     SERVICE_ACCOUNT_FILE = '/home/atti/googleds/pen_jutalék/google/dogwood-day-333815-db1f1cf5a4e8.json'
     SPREADSHEET_ID = '1kFMaObjL4Y3pQyrU6fi3D59-HOkr000XaOHnFS_6l90'
