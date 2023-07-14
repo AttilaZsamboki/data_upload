@@ -148,6 +148,13 @@ urlpatterns = [
          views.ProOrderBaseDetail.as_view()),
     path('pro_products/', views.ProProductsList.as_view()),
     path('pro_products/<int:pk>/', views.ProProductsDetail.as_view()),
+    path('sm_product_data/', views.SMProductView.as_view({'get': 'list'})),
+    path('sm_vendor_data/', views.SMVendorDataSet.as_view()),
+    path('sm_vendor_orders/', views.SMVendorOrders.as_view()),
+    path('excel/<vendor>/<date>/', views.ExcelFileView.as_view(), name="excel_file"),
+    path('sm_order_queue/', views.SMOrderQueue.as_view()),
+    path('sm_order_queue/<id>/', views.SMUpdateOrderQueue.as_view()),
+    path('pen_minicrm_webhook/', views.PenMiniCRMWebhook.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

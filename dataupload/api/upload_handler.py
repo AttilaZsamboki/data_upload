@@ -8,6 +8,8 @@ from .utils.upload import col_by_dtype
 from json import dumps
 from datetime import date, datetime
 from .utils.gmail import send_message, gmail_authenticate
+import dotenv
+dotenv.load_dotenv()
 
 service = gmail_authenticate()
 
@@ -37,11 +39,11 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         "keepalives_count": 5
     }
 
-    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-    DB_NAME = "defaultdb"
-    DB_USER = "doadmin"
-    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_PORT = "25060"
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
 
     engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
                            "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")

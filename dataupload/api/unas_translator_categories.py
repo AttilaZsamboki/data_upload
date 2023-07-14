@@ -1,15 +1,18 @@
+import os
 import requests as rq
 from xml.etree import ElementTree
 import pandas as pd
 from sqlalchemy import create_engine
+import dotenv
+dotenv.load_dotenv()
 
 
 def translate_categories():
-    DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
-    DB_NAME = 'defaultdb'
-    DB_USER = 'doadmin'
-    DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
-    DB_PORT = '25060'
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
 
     engine = create_engine('postgresql://'+DB_USER+':' +
                            DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)

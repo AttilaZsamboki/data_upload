@@ -1,6 +1,9 @@
 from django.http import HttpResponse
 from django.core.files import File
-from rest_framework import generics
+from rest_framework import generics, viewsets
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK, HTTP_400_BAD_REQUEST
 from django.http import JsonResponse
 import psycopg2
 from . import models, serializers
@@ -11,6 +14,11 @@ from io import open
 from PIL import Image
 from django.core.management import call_command
 from datetime import date, timedelta
+import json
+from .sm.inventory_planner import inventory_planner
+import pandas as pd
+from .sm.send_vendor_order import send_vendor_order
+from openpyxl import load_workbook
 
 
 @api_view(["GET"])
@@ -29,13 +37,13 @@ def DownloadFile(request):
 
 
 @api_view(["POST"])
-def CreateCashflowPlanner(request):
+def CreateCashflowPlanner():
     try:
-        DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-        DB_NAME = "defaultdb"
-        DB_USER = "doadmin"
-        DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-        DB_PORT = "25060"
+        DB_HOST = os.environ.get("DB_HOST")
+        DB_NAME = os.environ.get("DB_NAME")
+        DB_USER = os.environ.get("DB_USER")
+        DB_PASS = os.environ.get("DB_PASS")
+        DB_PORT = os.environ.get("DB_PORT")
         conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                                 password=DB_PASS, host=DB_HOST, port=DB_PORT)
         cur = conn.cursor()
@@ -726,3 +734,124 @@ class GroupsDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.DatauploadGroups.objects.all()
     serializer_class = serializers.GroupsSerializer
     permission_classes = [AuthorAllUser]
+
+
+class SMVendorDataSet(APIView):
+    def get(self, request, format=None):
+        filter_param = request.GET.get('filter', None)
+        if filter_param:
+            queryset = models.SMVendorData.objects.filter(is_visible=True)
+        else:
+            queryset = models.SMVendorData.objects.all()
+        serializer_class = serializers.SMVendorDataSerializer(
+            queryset, many=True)
+        return Response(serializer_class.data)
+
+    def post(self, request):
+        data = json.loads(request.body)
+        for item in data:
+            name = item.get('name')
+            models.SMVendorsTable.objects.update_or_create(
+                name=name,
+                defaults=item
+            )
+        return Response({'status': 'success'}, status=HTTP_201_CREATED)
+
+
+class SMProductView(viewsets.ReadOnlyModelViewSet):
+    queryset = models.SMProductView.objects.all()
+    serializer_class = serializers.SMProductViewSerializer
+
+
+class SMVendorOrders(APIView):
+    def get(self, request, format=None):
+        queryset = models.SMVendorOrders.objects.all()
+        serializer_class = serializers.SMVendorOrdersSerializer(
+            queryset, many=True)
+        return Response(serializer_class.data)
+
+    def post(self, request):
+        vendor = json.loads(request.body)
+        vendorObj = models.SMVendorsTable.objects.filter(
+            name=vendor)
+        if vendorObj:
+            need_permission = vendorObj[0].need_permission
+        else:
+            need_permission = True
+        status = ""
+        if need_permission == True:
+            status = "DRAFT"
+        else:
+            status = "OPEN"
+        create_order = inventory_planner(vendor, status=status, is_new=True)
+        if create_order["status"] == "ERROR":
+            return Response({'status': 'failed', 'reason': create_order["message"]}, status=HTTP_400_BAD_REQUEST)
+        return Response({'status': 'success'}, status=HTTP_201_CREATED)
+
+    def put(self, request):
+        data = json.loads(request.body)
+        id, status = data["id"], data["status"]
+        orderObj = models.SMVendorOrders.objects.filter(id=id)
+        if orderObj:
+            create_order = inventory_planner(orderObj[0].vendor,
+                                             status=status, is_new=False, id=id)
+            if create_order["status"] == "ERROR":
+                return Response({'status': 'failed', 'reason': create_order["message"]}, status=HTTP_400_BAD_REQUEST)
+            return Response({'status': 'success', 'message': create_order["message"]}, status=HTTP_200_OK)
+        return Response({'status': 'failed', 'reason': f'null order object. id: {id}'}, status=HTTP_400_BAD_REQUEST)
+
+
+class ExcelFileView(APIView):
+
+    def get(self, request, vendor, date, format=None):
+        workbook = load_workbook(
+            filename=f"/home/atti/googleds/files/sm_pos/{vendor}/{date}.xlsx")
+        worksheet = workbook.active
+        data = []
+        headers = [cell.value for cell in worksheet[1]]
+        for row in worksheet.iter_rows(min_row=2, values_only=True):
+            data.append(dict(zip(headers, row)))
+        return Response(data)
+
+
+class SMOrderQueue(APIView):
+
+    def get(self, request, format=None):
+        queryset = models.SMOrderQueue.objects.all()
+        serializer_class = serializers.SMOrderQueueSerializer(
+            queryset, many=True)
+        return Response(serializer_class.data)
+
+    def post(self, request):
+        data = json.loads(request.body)
+        try:
+            models.SMOrderQueue.objects.create(
+                **data
+            )
+        except Exception as e:
+            return Response({'status': 'failed', 'reason': e}, status=HTTP_400_BAD_REQUEST)
+        order_id = models.SMOrderQueue.objects.latest('id').id
+        return Response({'status': 'success', 'id': order_id}, status=HTTP_201_CREATED)
+
+
+class SMUpdateOrderQueue(APIView):
+    def put(self, request, id):
+        data = json.loads(request.body)
+        try:
+            models.SMOrderQueue.objects.filter(id=id).update(
+                **data
+            )
+        except Exception as e:
+            return Response({'status': 'failed'}, status=HTTP_400_BAD_REQUEST)
+        return Response({'status': 'success'}, status=HTTP_200_OK)
+
+    def delete(self, request, id):
+        try:
+            models.SMOrderQueue.objects.filter(id=id).delete()
+        except Exception as e:
+            return Response({'status': 'failed', 'reason': e}, status=HTTP_400_BAD_REQUEST)
+        return Response({'status': 'success'}, status=HTTP_200_OK)
+
+class PenMiniCRMWebhook(APIView):
+    def post(self, request):
+        return Response({'status': 'success'}, status=HTTP_200_OK)

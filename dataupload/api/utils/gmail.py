@@ -1,3 +1,6 @@
+from email import encoders
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from base64 import urlsafe_b64encode
 from google.auth.transport.requests import Request
@@ -7,7 +10,7 @@ import pickle
 import os
 
 SCOPES = ["https://mail.google.com/"]
-our_email = "gds.dataupload@gmail.com"
+our_email = "gds.datauplod@gmail.com"
 
 
 def gmail_authenticate():
@@ -35,17 +38,33 @@ def gmail_authenticate():
 service = gmail_authenticate()
 
 
-def build_message(destination, obj, body, attachments=[]):
-    if not attachments:  # no attachments given
-        message = MIMEText(body)
-        message['to'] = destination
-        message['from'] = our_email
-        message['subject'] = obj
+def build_message(destination, obj, body, attachment_path):
+    message = MIMEMultipart()
+    message['to'] = destination
+    message['from'] = our_email
+    message['subject'] = obj
+    message['body'] = body
+    message.attach(MIMEText(body, "plain"))
+
+    # Add body to email
+    if attachment_path != "":
+
+        # Add attachment
+        with open(attachment_path, "rb") as attachment:
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload(attachment.read())
+            encoders.encode_base64(part)
+            part.add_header(
+                "Content-Disposition",
+                f"attachment; filename=attachment.xlsx",
+            )
+            message.attach(part)
+
     return {'raw': urlsafe_b64encode(message.as_bytes()).decode()}
 
 
-def send_message(service, destination, obj, body, attachments=[]):
+def send_message(service, destination, obj, body, attachment=""):
     return service.users().messages().send(
         userId="me",
-        body=build_message(destination, obj, body, attachments)
+        body=build_message(destination, obj, body, attachment_path=attachment)
     ).execute()

@@ -1,14 +1,19 @@
+import datetime
 from google.oauth2 import service_account
+import requests
+import json
+import pandas as pd
+from datetime import date
 from googleapiclient.discovery import build
 import logging
 from base64 import urlsafe_b64decode
 import os
 import json
-from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview
+from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview, SMVendorOrders
 from .upload_handler import handle_uploaded_file
 import requests
 from datetime import date, datetime, timedelta
-from .utils.gmail import gmail_authenticate, send_message
+from .utils.gmail import gmail_authenticate, send_message, service
 import requests
 import pandas as pd
 from sqlalchemy import create_engine
@@ -17,6 +22,9 @@ from .unas_translator_correcter_ro import unas_correcter_ro
 from .unas_translator_correcter_sk import unas_correcter_sk
 from .utils.unas_feed import get_unas_feed_url
 from .utils.unas_img import get_unas_img_feed_url
+from .sm.inventory_planner import inventory_planner
+from .sm.fetch_data import sm_fetch_data
+from .utils.logs import log
 
 
 def upload_file():
@@ -52,6 +60,8 @@ def upload_feed_daily():
                 file = requests.get(url).content
             except:
                 print("Not valid url for file")
+                log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
+                    "ERROR", "upload_feed_daily")
                 continue
             files_already_existing = [f for f in os.listdir(
                 f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
@@ -75,7 +85,16 @@ def upload_feed_daily():
                 uploadmodel.status = "error"
                 uploadmodel.status_description = "Hibás fájl tartalom"
                 uploadmodel.save()
+                log("Hibás fájl tartalom", "ERROR", "upload_feed_daily")
                 print("Could not upload file")
+                continue
+            except:
+                uploadmodel.table = table
+                uploadmodel.status = "error"
+                uploadmodel.status_description = "Hiba történt a fájl feltöltése közben."
+                uploadmodel.save()
+                log(f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}",
+                    "ERROR", "upload_feed_daily")
                 continue
 
 
@@ -350,11 +369,11 @@ def email_uploads():
 
 
 def upload_pro_stock_month():
-    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-    DB_NAME = "defaultdb"
-    DB_USER = "doadmin"
-    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_PORT = "25060"
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
     engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
                            "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"")
     for upload in Feed.objects.all():
@@ -401,41 +420,47 @@ def pro_stock_report_summary():
     logging.basicConfig()
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
-    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-    DB_NAME = "defaultdb"
-    DB_USER = "doadmin"
-    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_PORT = "25060"
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
 
     engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
                            "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"")
 
     df = pd.read_sql("""
-        with funnel_1 as (with funnel as (select "SKU"
-                                  from pro_stock_report
-                                  where timestamp = current_date
-                                    and "Layers_Warehouse" is not null
-                                    and "SKU" not like 'TE_%%')
-                  select count(distinct pro_products."SKU") as min_sku,
-                         sum("Minimum_Stock_Quantity")      as min_stock
-                  from pro_products
-                           left join funnel on funnel."SKU" = pro_products."SKU"
-                  where "Minimum_Stock_Quantity" > 0
-                    and "Minimum_Stock_Quantity" is not null),
-        funnel_2 as (select timestamp                    as month,
-                            sum("Inventory_Value_Layer") as net_stock_value,
-                            count(distinct "SKU")        as skus,
-                            sum("On_Stock_Layer")        as quantity,
-                            sum("Minimum_Stock_Value")   as min_stock_value
-                    from pro_stock_report_extended
-                    where timestamp = current_date::interval
-                        and "SKU" not like 'TE_%%'
-                        and "Layers_Warehouse" is not null
-                    group by 1)
-        select month, net_stock_value, skus, quantity, min_stock_value, min_stock, min_sku
-        from funnel_2
-                left join funnel_1
-                        on true;
+        WITH min_funnel AS (SELECT pro_stock_report_extended."timestamp",
+                           count(DISTINCT pro_stock_report_extended."SKU")        AS min_sku,
+                           sum(pro_stock_report_extended."Inventory_Value_Layer") AS min_stock_value
+                    FROM pro_stock_report pro_stock_report_extended
+                             LEFT JOIN pro_products pp ON pro_stock_report_extended."SKU" = pp."SKU"
+                             LEFT JOIN pro_product_suppliers pps ON pro_stock_report_extended."SKU" = pps."SKU"
+                    WHERE pp."Minimum_Stock_Quantity" > 0::double precision
+                      AND pp."Minimum_Stock_Quantity" IS NOT NULL
+                      AND pro_stock_report_extended."Layers_Warehouse" IS NOT NULL
+                      AND pro_stock_report_extended."SKU" !~~ 'TE_%%'::text
+                    GROUP BY pro_stock_report_extended."timestamp"),
+     funnel AS (SELECT pro_stock_report_extended."timestamp",
+                       sum(pro_stock_report_extended."Minimum_Stock_Quantity") AS min_stock,
+                       sum(pro_stock_report_extended."Inventory_Value_Layer")  AS net_stock_value,
+                       sum(pro_stock_report_extended."On_Stock_Layer")         AS quantity,
+                       count(DISTINCT pro_stock_report_extended."SKU")         AS skus
+                FROM pro_stock_report_extended
+                         LEFT JOIN pro_product_suppliers pps ON pro_stock_report_extended."SKU" = pps."SKU"
+                WHERE pro_stock_report_extended."Layers_Warehouse" IS NOT NULL
+                  AND pro_stock_report_extended."SKU" !~~ 'TE_%%'::text
+                GROUP BY pro_stock_report_extended."timestamp")
+    SELECT f."timestamp" as month,
+        f.net_stock_value,
+        f.quantity,
+        f.skus,
+        mf.min_stock_value,
+        f.min_stock,
+        mf.min_sku
+    FROM funnel f
+            LEFT JOIN min_funnel mf ON mf."timestamp" = f."timestamp"
+    WHERE f.timestamp = '2023-07-01'
     """, con=engine)
     df.to_sql("pro_stock_report_summary", con=engine,
               index=False, if_exists="append")
@@ -540,11 +565,11 @@ def pen_adatlap_upload():
 
 
 def fol_orders_delete_last_90():
-    DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
-    DB_NAME = 'defaultdb'
-    DB_USER = 'doadmin'
-    DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
-    DB_PORT = '25060'
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
 
     engine = create_engine('postgresql://'+DB_USER+':' +
                            DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
@@ -554,3 +579,28 @@ def fol_orders_delete_last_90():
 
     engine.execute(
         f"DELETE FROM pro_orders WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")
+
+
+def sm_inventory_planner():
+    sm_fetch_data()
+
+
+def sm_auto_order():
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
+
+    engine = create_engine('postgresql://'+DB_USER+':' +
+                           DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
+
+    df = pd.read_sql(
+        "select vendor, need_permission from sm_vendor_data where budget <= to_order_cost;", con=engine)
+    for i in df.loc:
+        status = ""
+        if i.need_permission == True:
+            status = "DRAFT"
+        else:
+            status = "OPEN"
+        inventory_planner(i.vendor, status=status, is_new=True)

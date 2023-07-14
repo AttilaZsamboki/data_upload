@@ -3,16 +3,19 @@ from xml.etree import ElementTree
 from sqlalchemy import create_engine, text
 import requests
 import deepl
+import os
+import dotenv
+dotenv.load_dotenv()
 
 
 def translate_unas(file, column_bindigs):
-    DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
-    DB_NAME = 'defaultdb'
-    DB_USER = 'doadmin'
-    DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
-    DB_PORT = '25060'
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
     AUTH_KEY = "0a74d848-fee8-1355-66b3-255562cdc6bc:fx"
-    UNAS_API = "de91a41477c923b33b954ac0f6d75803f5670498"
+    UNAS_API = os.environ.get("UNAS_API")
 
     engine = create_engine('postgresql://'+DB_USER+':'+DB_PASS +
                            '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)

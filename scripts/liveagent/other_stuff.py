@@ -3,15 +3,19 @@ import requests
 from sqlalchemy import create_engine
 from datetime import date, datetime, timedelta
 import pandas as pd
+import os
+import dotenv
 
-DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-DB_NAME = "defaultdb"
-DB_USER = "doadmin"
-DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-DB_PORT = "25060"
+dotenv.load_dotenv()
 
-engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
-                       "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"?sslmode=require")
+DB_HOST = os.environ.get("DB_HOST")
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASS = os.environ.get("DB_PASS")
+DB_PORT = os.environ.get("DB_PORT")
+
+engine = create_engine('postgresql://'+DB_USER+':' +
+                       DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
 
 # Getting the data
 headers = {
@@ -40,7 +44,7 @@ for i in range(30):
     for i in data:
         i["start_date"] = start_date
         i["end_date"] = end_date
-    df = df.append(data, ignore_index=True)
+    df = pd.concat([df, pd.DataFrame(data)], ignore_index=True)
 for index, row in df.iterrows():
     engine.execute(
         f"DELETE FROM pro_liveagent WHERE (id, start_date) = ('{row['id']}', '{row['start_date']}');")

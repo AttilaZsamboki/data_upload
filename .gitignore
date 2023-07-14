@@ -22,3 +22,5 @@ dataupload/frontend/static/frontend/index.js
 files/
 dataupload/api/token.pickle
 /home/atti/googleds/logs/
+.env
+/home/atti/googleds/dataupload/api/credentials.json

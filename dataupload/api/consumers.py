@@ -6,11 +6,11 @@ from .models import DatauploadUploadmodel, DatauploadTabletemplates
 from channels.db import database_sync_to_async
 from .utils.upload import col_by_dtype
 
-DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-DB_NAME = "defaultdb"
-DB_USER = "doadmin"
-DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-DB_PORT = "25060"
+DB_HOST = os.environ.get("DB_HOST")
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASS = os.environ.get("DB_PASS")
+DB_PORT = os.environ.get("DB_PORT")
 
 
 class UploadConsumer(AsyncWebsocketConsumer):
@@ -60,6 +60,7 @@ class UploadConsumer(AsyncWebsocketConsumer):
                 data = pd.read_csv(file, skiprows=int(
                     self.template.skiprows), delimiter='\t')
             else:
+                print(extension_format, file)
                 data = pd.read_excel(
                     file, skiprows=int(self.template.skiprows))
             df = pd.DataFrame(data)
@@ -209,4 +210,3 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_upload(self):
         return DatauploadUploadmodel.objects.get(id=self.upload_id)
-

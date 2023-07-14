@@ -5,15 +5,18 @@ from sqlalchemy import create_engine
 from .utils.unas_feed import get_unas_feed_url
 import requests
 import json
+import os
+import dotenv
+dotenv.load_dotenv()
 
 
 def unas_correcter_ro():
-    DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
-    DB_NAME = 'defaultdb'
-    DB_USER = 'doadmin'
-    DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
-    DB_PORT = '25060'
-    UNAS_API = "de91a41477c923b33b954ac0f6d75803f5670498"
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
+    UNAS_API = os.environ.get("UNAS_API")
 
     engine = create_engine('postgresql://'+DB_USER+':' +
                            DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)

@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
+import dotenv
 
+dotenv.load_dotenv()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -94,7 +96,8 @@ CRONJOBS = [
     ('0 1 * * 5', 'api.cron.unas_image_upload'),
     ('0 0 * * *', 'api.cron.pen_adatlap_upload'),
     ('0 0 * * *', 'api.cron.fol_orders_delete_last_90'),
-    ('0 0 * * 0', 'api.cron.pro_orders_refresh_last_90')
+    ('0 0 * * *', 'api.cron.sm_inventory_planner'),
+    ('0 0 * * *', 'api.cron.sm_auto_order'),
 ]
 
 # Password validation

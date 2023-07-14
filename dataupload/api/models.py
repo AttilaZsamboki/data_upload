@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
+from .utils.gmail import send_message, service
 
 
 class AuthGroup(models.Model):
@@ -2089,3 +2089,111 @@ class DatauploadGroups(models.Model):
     class Meta:
         managed = False
         db_table = 'dataupload_groups'
+
+
+class SMVendorData(models.Model):
+    vendor = models.CharField(max_length=255, primary_key=True)
+    lost_revenue = models.FloatField()
+    to_order_cost = models.FloatField()
+    budget = models.IntegerField()
+    replenish_date = models.DateField()
+    is_visible = models.BooleanField()
+    budget_currency = models.TextField()
+    to_order = models.TextField()
+    inventory_value = models.FloatField()
+    email_address = models.TextField()
+    email_body = models.TextField()
+    email_subject = models.TextField()
+    need_permission = models.BooleanField()
+
+    class Meta:
+        managed = False
+        db_table = "sm_vendor_data"
+
+
+class SMProductView(models.Model):
+    sku = models.TextField(primary_key=True)
+    vendor = models.TextField()
+    abc = models.CharField(max_length=1)
+    age = models.IntegerField()
+    to_order_cost = models.FloatField()
+    moq = models.IntegerField()
+    uom = models.IntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "sm_product_view"
+
+
+class SMVendorsTable(models.Model):
+    name = models.TextField(primary_key=True)
+    budget = models.FloatField(null=True)
+    is_visible = models.BooleanField(null=True)
+    budget_currency = models.TextField(null=True)
+    email_address = models.TextField(null=True)
+    email_body = models.TextField(null=True)
+    email_subject = models.TextField(null=True)
+    need_permission = models.BooleanField(null=True)
+
+    class Meta:
+        managed = False
+        db_table = "sm_vendors_table"
+
+
+class Logs(models.Model):
+    id = models.AutoField(primary_key=True)
+    script_name = models.TextField()
+    time = models.DateTimeField()
+    status = models.TextField()
+    value = models.TextField()
+
+    class Meta:
+        managed = False
+        db_table = "logs"
+
+    def save(self, *args, **kwargs):
+        if self.status == "ERROR":
+            send_message(service=service, destination="zsamboki.attila.jr@gmail.com",
+                         obj="Script failed: " + self.script_name, body=self.value)
+        super(Logs, self).save(*args, **kwargs)
+
+
+class SMVendorOrders(models.Model):
+    id=models.TextField(primary_key=True)
+    vendor=models.TextField()
+    order_status=models.TextField()
+    created_date=models.DateField()
+    completed_date=models.DateField(null=True)
+    reference=models.TextField(null=True)
+    cancelled_date=models.DateField(null=True)
+    total=models.FloatField(null=True)
+    total_ordered=models.IntegerField(null=True)
+    currency=models.TextField(null=True)
+
+    class Meta:
+        managed=False
+        db_table="sm_vendor_orders"
+
+
+class SMProductData(models.Model):
+    vendor=models.TextField()
+    sku=models.TextField()
+    to_order_cost=models.FloatField()
+    forecasted_lost_revenue_lead_time=models.IntegerField()
+    to_order=models.IntegerField()
+    replenish_date=models.DateField()
+
+    class Meta:
+        managed=False
+        db_table="sm_product_data"
+
+
+class SMOrderQueue(models.Model):
+    id=models.AutoField(primary_key=True)
+    sku=models.TextField()
+    vendor=models.TextField()
+    quantity=models.IntegerField()
+
+    class Meta:
+        managed=False
+        db_table="sm_order_queue"

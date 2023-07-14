@@ -1,13 +1,16 @@
 import psycopg2
 from datetime import date, timedelta
+import os
+import dotenv
+dotenv.load_dotenv()
 
 
 def create_cashflow_planner():
-    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-    DB_NAME = "defaultdb"
-    DB_USER = "doadmin"
-    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_PORT = "25060"
+    DB_HOST = os.environ.get("DB_HOST")
+    DB_NAME = os.environ.get("DB_NAME")
+    DB_USER = os.environ.get("DB_USER")
+    DB_PASS = os.environ.get("DB_PASS")
+    DB_PORT = os.environ.get("DB_PORT")
     conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
                             password=DB_PASS, host=DB_HOST, port=DB_PORT)
     cur = conn.cursor()

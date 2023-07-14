@@ -1,24 +1,27 @@
+import os
 import googlemaps
 import pandas as pd
 from sqlalchemy import create_engine
 import googlemaps
 from datetime import datetime
 import re
+import dotenv
+dotenv.load_dotenv()
 
 with open("/home/atti/googleds/logs/pen/útszámítás.log", "w") as log:
     log.write(str(datetime.now()))
 
-DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
-DB_NAME = 'defaultdb'
-DB_USER = 'doadmin'
-DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
-DB_PORT = '25060'
+DB_HOST = os.environ.get("DB_HOST")
+DB_NAME = os.environ.get("DB_NAME")
+DB_USER = os.environ.get("DB_USER")
+DB_PASS = os.environ.get("DB_PASS")
+DB_PORT = os.environ.get("DB_PORT")
 
 engine = create_engine('postgresql://'+DB_USER+':' +
                        DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
 
 # set up a client object with your API key
-gmaps = googlemaps.Client(key='AIzaSyDfR747PvOqM5a5YlWW7uEdEJFi6mVPvz0')
+gmaps = googlemaps.Client(key=os.environ.get("GOOGLE_MAPS_API_KEY"))
 
 df = pd.read_sql(
     """

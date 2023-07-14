@@ -304,3 +304,33 @@ class GroupsSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DatauploadGroups
         fields = '__all__'
+
+
+class SMVendorDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SMVendorData
+        fields = '__all__'
+
+
+class SMProductViewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SMProductView
+        fields = '__all__'
+
+
+class SMVendorsTableSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SMVendorsTable
+        fields = '__all__'
+
+
+class SMVendorOrdersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SMVendorOrders
+        fields = '__all__'
+
+
+class SMOrderQueueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.SMOrderQueue
+        fields = '__all__'
