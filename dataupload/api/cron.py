@@ -49,11 +49,12 @@ def upload_file():
 
 def upload_feed_daily():
     current_hour = (datetime.now() + timedelta(hours=2)).hour
-    print(current_hour)
     for upload in Feed.objects.filter(runs_at=current_hour):
         table, url, user_id, frequency = (
             upload.table, upload.url, upload.user_id, upload.frequency)
         if frequency == "1 nap":
+            log(f"Feed '{table}' feltöltése elkezdődött",
+                "INFO", "upload_feed_daily")
             if table == "fol_unas":
                 url = get_unas_feed_url()
             try:
@@ -66,7 +67,11 @@ def upload_feed_daily():
             files_already_existing = [f for f in os.listdir(
                 f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
             filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
-            open(filename, "wb").write(file)
+            try:
+                open(filename, "wb").write(file)
+            except:
+                log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
+                    "ERROR", "upload_feed_daily")
             uploadmodel = DatauploadUploadmodel(
                 table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
             uploadmodel.save()
@@ -85,7 +90,7 @@ def upload_feed_daily():
                 uploadmodel.status = "error"
                 uploadmodel.status_description = "Hibás fájl tartalom"
                 uploadmodel.save()
-                log("Hibás fájl tartalom", "ERROR", "upload_feed_daily")
+                log("Hibás fájl tartalom", "FAILED", "upload_feed_daily")
                 print("Could not upload file")
                 continue
             except:

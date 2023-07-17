@@ -1,5 +1,6 @@
 from django.http import HttpResponse
 from django.core.files import File
+from django.db import IntegrityError
 from rest_framework import generics, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,8 +17,6 @@ from django.core.management import call_command
 from datetime import date, timedelta
 import json
 from .sm.inventory_planner import inventory_planner
-import pandas as pd
-from .sm.send_vendor_order import send_vendor_order
 from openpyxl import load_workbook
 
 
@@ -828,7 +827,7 @@ class SMOrderQueue(APIView):
             models.SMOrderQueue.objects.create(
                 **data
             )
-        except Exception as e:
+        except IntegrityError as e:
             return Response({'status': 'failed', 'reason': e}, status=HTTP_400_BAD_REQUEST)
         order_id = models.SMOrderQueue.objects.latest('id').id
         return Response({'status': 'success', 'id': order_id}, status=HTTP_201_CREATED)
@@ -842,15 +841,16 @@ class SMUpdateOrderQueue(APIView):
                 **data
             )
         except Exception as e:
-            return Response({'status': 'failed'}, status=HTTP_400_BAD_REQUEST)
+            return Response({'status': 'failed', 'message': e}, status=HTTP_400_BAD_REQUEST)
         return Response({'status': 'success'}, status=HTTP_200_OK)
 
     def delete(self, request, id):
         try:
             models.SMOrderQueue.objects.filter(id=id).delete()
         except Exception as e:
-            return Response({'status': 'failed', 'reason': e}, status=HTTP_400_BAD_REQUEST)
+            return Response({'status': 'failed', 'message': e}, status=HTTP_400_BAD_REQUEST)
         return Response({'status': 'success'}, status=HTTP_200_OK)
+
 
 class PenMiniCRMWebhook(APIView):
     def post(self, request):

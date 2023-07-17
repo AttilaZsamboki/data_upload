@@ -1,5 +1,6 @@
 from django.db import models
 from .utils.gmail import send_message, service
+from datetime import datetime
 
 
 class AuthGroup(models.Model):
@@ -152,6 +153,13 @@ class DatauploadUploadmodel(models.Model):
     class Meta:
         managed = False
         db_table = 'dataupload_uploadmodel'
+
+    def save(self, *args, **kwargs):
+        if self.status == "ERROR":
+            log = Logs(script_name="upload",
+                       time=datetime.now(), status="ERROR", value="Hiba történt a feldolgozás során")
+            log.save()
+        super(Logs, self).save(*args, **kwargs)
 
 
 class DatauploadTableOverview(models.Model):
@@ -2105,6 +2113,8 @@ class SMVendorData(models.Model):
     email_body = models.TextField()
     email_subject = models.TextField()
     need_permission = models.BooleanField()
+    latest_order_date = models.DateField()
+    avg_lead_time = models.IntegerField()
 
     class Meta:
         managed = False
@@ -2119,6 +2129,7 @@ class SMProductView(models.Model):
     to_order_cost = models.FloatField()
     moq = models.IntegerField()
     uom = models.IntegerField()
+    unit_price = models.FloatField()
 
     class Meta:
         managed = False
@@ -2159,41 +2170,45 @@ class Logs(models.Model):
 
 
 class SMVendorOrders(models.Model):
-    id=models.TextField(primary_key=True)
-    vendor=models.TextField()
-    order_status=models.TextField()
-    created_date=models.DateField()
-    completed_date=models.DateField(null=True)
-    reference=models.TextField(null=True)
-    cancelled_date=models.DateField(null=True)
-    total=models.FloatField(null=True)
-    total_ordered=models.IntegerField(null=True)
-    currency=models.TextField(null=True)
+    id = models.TextField(primary_key=True)
+    vendor = models.TextField()
+    order_status = models.TextField()
+    created_date = models.DateField()
+    completed_date = models.DateField(null=True)
+    reference = models.TextField(null=True)
+    cancelled_date = models.DateField(null=True)
+    total = models.FloatField(null=True)
+    total_ordered = models.IntegerField(null=True)
+    currency = models.TextField(null=True)
+    open_date = models.DateField()
 
     class Meta:
-        managed=False
-        db_table="sm_vendor_orders"
+        managed = False
+        db_table = "sm_vendor_orders"
 
 
 class SMProductData(models.Model):
-    vendor=models.TextField()
-    sku=models.TextField()
-    to_order_cost=models.FloatField()
-    forecasted_lost_revenue_lead_time=models.IntegerField()
-    to_order=models.IntegerField()
-    replenish_date=models.DateField()
+    vendor = models.TextField()
+    sku = models.TextField()
+    to_order_cost = models.FloatField()
+    forecasted_lost_revenue_lead_time = models.IntegerField()
+    to_order = models.IntegerField()
+    replenish_date = models.DateField()
 
     class Meta:
-        managed=False
-        db_table="sm_product_data"
+        managed = False
+        db_table = "sm_product_data"
 
 
 class SMOrderQueue(models.Model):
-    id=models.AutoField(primary_key=True)
-    sku=models.TextField()
-    vendor=models.TextField()
-    quantity=models.IntegerField()
+    id = models.AutoField(primary_key=True)
+    sku = models.TextField()
+    vendor = models.TextField()
+    quantity = models.IntegerField()
+    status = models.TextField()
+    order_id = models.TextField()
+    created_date = models.DateField()
 
     class Meta:
-        managed=False
-        db_table="sm_order_queue"
+        managed = False
+        db_table = "sm_order_queue"

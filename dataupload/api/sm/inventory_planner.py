@@ -5,6 +5,7 @@ from datetime import datetime
 from .send_vendor_order import send_vendor_order
 from .fetch_data import sm_fetch_data
 from ..utils.logs import log
+import pandas as pd
 import requests
 
 import django
@@ -15,7 +16,7 @@ sys.path.append(os.path.abspath('/home/atti/googleds/dataupload'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                       "dataupload.settings")
 django.setup()
-from api.models import SMVendorOrders, SMVendorsTable  # noqa
+from api.models import SMVendorOrders, SMVendorsTable, SMOrderQueue  # noqa
 
 
 DB_HOST = os.environ.get("DB_HOST")
@@ -30,21 +31,47 @@ engine = create_engine('postgresql://'+DB_USER+':' +
 
 def inventory_planner(vendor, status, is_new, id=0):
     # create
+    currency = SMVendorsTable.objects.filter(name=vendor)[
+        0].budget_currency
     if status == "DRAFT":
         # generate random id
         id = datetime.now().strftime('%Y%m%d%H%M%S')
         # make it more unique
         id = int(id + str(datetime.now().microsecond))
         value = new_order = SMVendorOrders(id=id,
-                                           vendor=vendor, order_status=status, created_date=datetime.now())
+                                           vendor=vendor, order_status=status, created_date=datetime.now(), currency=currency)
         new_order.save()
+        directory = '/home/atti/googleds/files/sm_pos/{}'.format(
+            vendor)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        path = directory + "/{}.xlsx".format(
+            datetime.now().strftime('%Y-%m-%d'))
+
+        pd.read_sql(f"""
+                        
+                        select sku, sum(to_order) as quantity
+                        from (select sku, to_order
+                            from sm_product_data
+                            where vendor = '{vendor}'
+                                and replenish_date::date <= current_date
+                                and sku not like '%%5M%%'
+                            union
+                            select sm_order_queue.sku, quantity
+                            from sm_order_queue
+                            where sm_order_queue.vendor = '{vendor}' and sm_order_queue.status in ('ADDED', 'NEW')) as combined
+                        group by 1;
+
+                    """, con=engine).to_excel(
+            path, index=False)
+
+        SMOrderQueue.objects.filter(
+            vendor=vendor, status="NEW").update(status="ADDED", order_id=id)
         log(status="SUCCESS", log_value=value)
         return {"status": "SUCCESS", "message": value}
     # create | update
     if status == "OPEN":
         sm_fetch_data()
-        currency = SMVendorsTable.objects.filter(name=vendor)[
-            0].budget_currency
         po = send_vendor_order(vendor, status, currency)
         if po["status"] == "ERROR":
             log(status="FAILED", log_value=po["message"])
@@ -55,13 +82,19 @@ def inventory_planner(vendor, status, is_new, id=0):
         if not is_new:
             value = {"id": new_id, "reference": po_reference}
             # update
+            SMOrderQueue.objects.filter(
+                vendor=vendor, status="ADDED").update(order_id=None)
             SMVendorOrders.objects.filter(
-                id=id).update(id=new_id, order_status=status, reference=po_reference, total=po["total"], total_ordered=po["total_ordered"], currency=currency)
+                id=id).update(id=new_id, order_status=status, reference=po_reference, open_date=datetime.now(), total=po["total"], total_ordered=po["total_ordered"], currency=currency)
+            SMOrderQueue.objects.filter(
+                vendor=vendor, status="ADDED").update(status="SENT", order_id=new_id)
         else:
             value = "{} order created for {}, reference number {}".format(
                 status, vendor, po_reference)
             SMVendorOrders(vendor=vendor, order_status=status,
-                           reference=po_reference, created_date=datetime.now(), id=new_id, total=po["total"], total_ordered=po["total_ordered"], currency=currency).save()
+                           reference=po_reference, open_date=datetime.now(), created_date=datetime.now(), id=new_id, total=po["total"], total_ordered=po["total_ordered"], currency=currency).save()
+            SMOrderQueue.objects.filter(
+                vendor=vendor, status="NEW").update(status="SENT", order_id=new_id)
         sm_fetch_data()
         log(status="SUCCESS", log_value=value)
         return {"status": "SUCCESS", "message": value}

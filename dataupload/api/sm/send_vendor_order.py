@@ -1,10 +1,21 @@
+import sys
+import django
 from datetime import datetime, timedelta
+import requests
 import os
 from sqlalchemy import create_engine
 from ..utils.gmail import send_message, service
 import pandas as pd
-import requests
-import os
+import numpy as np
+import dotenv
+dotenv.load_dotenv()
+
+sys.path.append(os.path.abspath('/home/atti/googleds/dataupload'))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE",
+                      "dataupload.dataupload.settings")
+django.setup()
+
+from api.models import SMProductData, FolProductSuppliers  # noqa
 
 DB_HOST = os.environ.get("DB_HOST")
 DB_NAME = os.environ.get("DB_NAME")
@@ -23,17 +34,22 @@ def send_vendor_order(vendor, status, currency="HUF"):
         os.makedirs(directory)
     path = directory + "/{}.xlsx".format(
         datetime.now().strftime('%Y-%m-%d'))
-    pd.read_sql(f"""select sku, sum(to_order) as quantity
+    data = pd.read_sql(f"""
+                       
+                    select sku, sum(to_order) as quantity
                     from (select sku, to_order
                         from sm_product_data
-                        where vendor like '{vendor}'
-                            and to_order > 0
+                        where vendor = '{vendor}'
+                            and replenish_date::date <= current_date
                             and sku not like '%%5M%%'
                         union
-                        select sku, quantity
+                        select sm_order_queue.sku, quantity
                         from sm_order_queue
-                        where vendor like '{vendor}') as combined
-                    group by 1""", con=engine).to_excel(
+                        where sm_order_queue.vendor = '{vendor}' and sm_order_queue.status in ('ADDED', 'NEW')) as combined
+                    group by 1;
+
+                """, con=engine)
+    data.to_excel(
         path, index=False)
     email_address, email_body, email_subject = pd.read_sql(
         f"select email_address, email_body, email_subject from sm_vendors_table where name = '{vendor}';", con=engine).iloc[0]
@@ -42,6 +58,19 @@ def send_vendor_order(vendor, status, currency="HUF"):
                      destination=email_address, obj=email_subject, body=email_body, attachment=path)
     else:
         return {"status": "ERROR", "message": "Rosszul megadott email adatok '{}' beszállítónál".format(vendor)}
+    items = []
+    for i in data.iterrows():
+        id = SMProductData.objects.filter(
+            sku=i[1]["sku"]).values()[0]["id"]
+        item_details = FolProductSuppliers.objects.filter(
+            sku=i[1]["sku"]).values()[0]
+        unit_price = 0
+        if item_details["supplier_1_default"] == 1:
+            unit_price = item_details["supplier_1_net_price"]
+        elif item_details["supplier_2_default"] == 1:
+            unit_price = item_details["supplier_2_net_price"]
+        items.append({"id": id, "replenishment": int(
+            i[1]["quantity"]), "vendor": vendor, "cost_price": unit_price, "title": item_details["product_name"], "sku": i[1]["sku"]})
     payload = {
         "purchase-order": {
             "status": status,
@@ -49,16 +78,16 @@ def send_vendor_order(vendor, status, currency="HUF"):
             "vendor": vendor,
             "warehouse": "c23867_csv.606f0e8dc97c0",
             "currency": currency.upper(),
-            "variants_filter": {
-                "vendor": vendor,
-                "to_order_gt": 0
-            },
+            "items": items,
             "skip_background_jobs": False,
         }
     }
-    response = requests.post(url=f"https://app.inventory-planner.com/api/v1/purchase-orders", json=payload, headers={
-        "Authorization": "219fd6d79ead844c1ecaf1d86dd8c2bb38862e4cd96f7ae95930d605b544126d", "Account": "a3060"})
+    try:
+        response = requests.post(url=f"https://app.inventory-planner.com/api/v1/purchase-orders", json=payload, headers={
+            "Authorization": "219fd6d79ead844c1ecaf1d86dd8c2bb38862e4cd96f7ae95930d605b544126d", "Account": "a3060"})
+    except:
+        return {"status": "ERROR", "message": "Hiba akadt a rendelés elküldése közben"}
     if response.status_code == 500:
         return {"status": "ERROR", "message": response.json()["result"]["message"]}
-    response = response.json()
-    return response["purchase-order"]
+    response = response.json()["purchase-order"]
+    return {"id": response["id"], "reference": response["reference"], "total": np.sum([i["cost_price"] * i["replenishment"] for i in items]), "status": "SUCCESS", "total_ordered": np.sum([i["replenishment"] for i in items])}

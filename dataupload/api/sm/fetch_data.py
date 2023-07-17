@@ -44,12 +44,11 @@ def sm_fetch_data():
                     return vendors
 
     page = 0
-    engine.execute("delete from sm_product_data;")
+    engine.execute("delete from sm_product_data")
     while True:
         params = {'page': page, 'limit': '100',
-                  "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost",
+                  "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost,id",
                   }
-
         response = json.loads(requests.get(url=f"https://app.inventory-planner.com/api/v1/variants", params=params, headers={
             "Authorization": os.environ.get("INVENTORY_PLANNER_API"), "Account": "a3060"}).text)
         print(
@@ -64,10 +63,12 @@ def sm_fetch_data():
             newNewData = data[i]["warehouse"][0]
             newNewData["sku"] = data[i]["sku"]
             newNewData["vendor"] = data[i]["connections"]
+            newNewData["id"] = data[i]["id"]
             newData.append(newNewData)
 
         df = pd.DataFrame(newData)
-        df["vendor"] = df["vendor"].apply(lambda x: getVendor(x))
+        df["vendor"] = df["vendor"].apply(
+            lambda x: getVendor(x))
         df.drop(["warehouse"], axis=1, inplace=True)
         df = df[df["vendor"].notna()]
         df.to_sql("sm_product_data", engine, if_exists='append', index=False)

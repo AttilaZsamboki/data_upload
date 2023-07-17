@@ -54,13 +54,26 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
     column_binding_values_str = "".join(column_bindings.values())
 
     #\\\\\\\\\\\\\\\\\\\\\\\\\ data -->> pandas dataframe ///////////////////////////////////////////#
+    def log_status(status, status_description):
+        DatauploadUploadmodel.objects.filter(
+            file=file, table=table, user_id=user_id, status="under upload").update(status=status, status_description=status_description)
+
     if extension_format == '.csv':
-        data = pd.read_csv(file, skiprows=int(skiprows))
+        try:
+            data = pd.read_csv(file, skiprows=int(skiprows))
+        except:
+            log_status("error", "Nem lehetett a fájlt beolvasni")
     elif extension_format == '.tsv':
-        data = pd.read_csv(file, skiprows=int(
-            table_template.skiprows), delimiter='\t')
+        try:
+            data = pd.read_csv(file, skiprows=int(
+                table_template.skiprows), delimiter='\t')
+        except:
+            log_status("error", "Nem lehetett a fájlt beolvasni")
     else:
-        data = pd.read_excel(file, skiprows=int(skiprows))
+        try:
+            data = pd.read_excel(file, skiprows=int(skiprows))
+        except:
+            log_status("error", "Nem lehetett a fájlt beolvasni")
 
     df = pd.DataFrame(data)
 
