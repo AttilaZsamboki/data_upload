@@ -210,19 +210,3 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_upload(self):
         return DatauploadUploadmodel.objects.get(id=self.upload_id)
-
-
-class OrderConsumer(AsyncWebsocketConsumer):
-    async def connect(self):
-        await self.accept()
-
-    async def disconnect(self, code):
-        pass
-
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        order = text_data_json["order"]
-
-        await self.send(text_data=json.dumps({
-            "order": "ok"
-        }))
