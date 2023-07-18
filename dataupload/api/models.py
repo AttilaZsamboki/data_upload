@@ -159,7 +159,7 @@ class DatauploadUploadmodel(models.Model):
             log = Logs(script_name="upload",
                        time=datetime.now(), status="ERROR", value="Hiba történt a feldolgozás során")
             log.save()
-        super(Logs, self).save(*args, **kwargs)
+        super(DatauploadUploadmodel, self).save(*args, **kwargs)
 
 
 class DatauploadTableOverview(models.Model):

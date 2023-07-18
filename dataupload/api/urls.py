@@ -155,6 +155,7 @@ urlpatterns = [
     path('sm_order_queue/', views.SMOrderQueue.as_view()),
     path('sm_order_queue/<id>/', views.SMUpdateOrderQueue.as_view()),
     path('pen_minicrm_webhook/', views.PenMiniCRMWebhook.as_view()),
+    path('pen_googlesheet_webhook/', views.PenGoogleSheetWebhook.as_view()),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)

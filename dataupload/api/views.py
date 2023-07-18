@@ -855,3 +855,10 @@ class SMUpdateOrderQueue(APIView):
 class PenMiniCRMWebhook(APIView):
     def post(self, request):
         return Response({'status': 'success'}, status=HTTP_200_OK)
+
+
+class PenGoogleSheetWebhook(APIView):
+    def post(self, request):
+        data = json.loads(request.body)["data"]
+        data = [[j for j in i if j != ""] for i in data]
+        return Response("Succesfully received data", status=HTTP_200_OK)
