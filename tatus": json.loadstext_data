@@ -1,0 +1,15 @@
+[0;1;32m●[0m daphne.service - My Daphne Service
+     Loaded: loaded (/etc/systemd/system/daphne.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Tue 2023-07-18 20:14:46 UTC; 8s ago
+   Main PID: 309066 (daphne)
+      Tasks: 3 (limit: 4677)
+     Memory: 82.6M
+     CGroup: /system.slice/daphne.service
+             └─309066 /home/atti/googleds/ds/bin/python /home/atti/googleds/ds/bin/daphne -b 0.0.0.0 -p 8001 dataupload.asgi:application
+
+Jul 18 20:14:46 googleds-server systemd[1]: Started My Daphne Service.
+Jul 18 20:14:47 googleds-server daphne[309066]: 2023-07-18 20:14:47,030 INFO     file_cache is only supported with oauth2client<4.0.0
+Jul 18 20:14:47 googleds-server daphne[309066]: 2023-07-18 20:14:47,488 INFO     Starting server at tcp:port=8001:interface=0.0.0.0
+Jul 18 20:14:47 googleds-server daphne[309066]: 2023-07-18 20:14:47,489 INFO     HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+Jul 18 20:14:47 googleds-server daphne[309066]: 2023-07-18 20:14:47,490 INFO     Configuring endpoint tcp:port=8001:interface=0.0.0.0
+Jul 18 20:14:47 googleds-server daphne[309066]: 2023-07-18 20:14:47,491 INFO     Listening on TCP address 0.0.0.0:8001

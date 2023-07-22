@@ -13,7 +13,7 @@ from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, Datau
 from .upload_handler import handle_uploaded_file
 import requests
 from datetime import date, datetime, timedelta
-from .utils.gmail import gmail_authenticate, send_message, service
+from .utils.gmail import gmail_authenticate, send_email, service
 import requests
 import pandas as pd
 from sqlalchemy import create_engine
@@ -277,8 +277,8 @@ def email_uploads():
                                         table = DatauploadTableOverview.objects.get(
                                             email_name=i, group=group.group).db_table
                                     if table == "":
-                                        send_message(service, sender_email, "Feltöltés hiba",
-                                                     f"'{filename}' nem megfelelő fájlnév, tartalmaznia kell egy tábla nevét az aláábiak közül: {', '.join([i[4:] for i in tables])}", [])
+                                        send_email(service, sender_email, "Feltöltés hiba",
+                                                   f"'{filename}' nem megfelelő fájlnév, tartalmaznia kell egy tábla nevét az aláábiak közül: {', '.join([i[4:] for i in tables])}", [])
                                     filename, extension_format = os.path.splitext(
                                         str(filename))
                                     file_number = len([f for f in os.listdir(

@@ -63,7 +63,7 @@ def build_message(destination, obj, body, attachment_path):
     return {'raw': urlsafe_b64encode(message.as_bytes()).decode()}
 
 
-def send_message(service, destination, obj, body, attachment=""):
+def send_email(service, destination, obj, body, attachment=""):
     return service.users().messages().send(
         userId="me",
         body=build_message(destination, obj, body, attachment_path=attachment)

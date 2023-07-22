@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 import pandas as pd
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
@@ -210,3 +211,35 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_upload(self):
         return DatauploadUploadmodel.objects.get(id=self.upload_id)
+
+
+class SMOrderConsumer(AsyncWebsocketConsumer):
+
+    async def connect(self):
+        await self.accept()
+        await self.channel_layer.group_add(
+            "sm_order",
+            self.channel_name
+        )
+
+    async def receive(self, text_data=None):
+        await self.channel_layer.group_send(
+            "sm_order",
+            {
+                "type": "order_status_change",
+                "message": text_data["message"],
+                "progress_value": text_data["progress_value"]
+            }
+        )
+
+    async def order_status_change(self, event):
+        await self.send(text_data=json.dumps({
+            "message": event["message"],
+            "progress_value": event["progress_value"]
+        }))
+
+    async def disconnect(self, code):
+        await self.channel_layer.group_discard(
+            "sm_order",
+            self.channel_name
+        )

@@ -10,7 +10,7 @@ django.setup()
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "dataupload.settings")
 django_asgi_app = get_asgi_application()
-from api.consumers import UploadConsumer, UploadDeleteConsumer  # noqa
+from api.consumers import UploadConsumer, UploadDeleteConsumer, SMOrderConsumer  # noqa
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
@@ -19,8 +19,9 @@ application = ProtocolTypeRouter({
             URLRouter([
                 path("ws/upload/<int:upload_id>/", UploadConsumer.as_asgi()),
                 path("ws/delete-upload/<int:upload_id>/",
-                     UploadDeleteConsumer.as_asgi())
+                     UploadDeleteConsumer.as_asgi()),
+                path("ws/sm/orders/", SMOrderConsumer.as_asgi())
             ])
-        ), ["http://localhost:3000", "https://www.dataupload.xyz", "https://cashflow.dataupload.xyz"]
+        ), ["http://localhost:3000", "https://www.dataupload.xyz", "https://cashflow.dataupload.xyz", "stock.dataupload.xyz"]
     ),
 })

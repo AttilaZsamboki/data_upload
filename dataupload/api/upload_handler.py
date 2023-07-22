@@ -7,7 +7,7 @@ from .models import DatauploadUploadmodel, DatauploadTabletemplates, DatauploadT
 from .utils.upload import col_by_dtype
 from json import dumps
 from datetime import date, datetime
-from .utils.gmail import send_message, gmail_authenticate
+from .utils.gmail import send_email, gmail_authenticate
 import dotenv
 dotenv.load_dotenv()
 
@@ -170,8 +170,8 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
                 upload_model.status = "error"
                 upload_model.save()
                 if is_email:
-                    send_message(service, sender_email, "Rossz tábla tartalom",
-                                 f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}")
+                    send_email(service, sender_email, "Rossz tábla tartalom",
+                               f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}")
                     os.remove(str(file))
                 return
 
@@ -188,7 +188,7 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
                 f"{i} oszlop nincs benne a fájlban, biztosítsd azt, hogy benne van és próbáld újra")
         if errors:
             if is_email:
-                send_message(service, sender_email, "Feltöltésben akadt hibák", f"""Az alábbi hibák akadtak a feltöltésben: {", ".join(errors)}.
+                send_email(service, sender_email, "Feltöltésben akadt hibák", f"""Az alábbi hibák akadtak a feltöltésben: {", ".join(errors)}.
 
                                 A fenti okok miatt a feltöltés törlésre került.
                                 """)
@@ -237,6 +237,6 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         os.rename("/home/atti/googleds/dataupload/media/" + str(file),
                   str(upload_model.file))
     elif is_email:
-        send_message(service, sender_email, "Sikeres feltöltés",
-                     f"Feltöltésed ({filename.split('/')[-1]}) sikeresen felkerült az adatbázisba")
+        send_email(service, sender_email, "Sikeres feltöltés",
+                   f"Feltöltésed ({filename.split('/')[-1]}) sikeresen felkerült az adatbázisba")
     upload_model.save()

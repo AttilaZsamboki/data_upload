@@ -1,5 +1,5 @@
 from django.db import models
-from .utils.gmail import send_message, service
+from .utils.gmail import send_email, service
 from datetime import datetime
 
 
@@ -2164,8 +2164,8 @@ class Logs(models.Model):
 
     def save(self, *args, **kwargs):
         if self.status == "ERROR":
-            send_message(service=service, destination="zsamboki.attila.jr@gmail.com",
-                         obj="Script failed: " + self.script_name, body=self.value)
+            send_email(service=service, destination="zsamboki.attila.jr@gmail.com",
+                       obj="Script failed: " + self.script_name, body=self.value)
         super(Logs, self).save(*args, **kwargs)
 
 
@@ -2181,6 +2181,7 @@ class SMVendorOrders(models.Model):
     total_ordered = models.IntegerField(null=True)
     currency = models.TextField(null=True)
     open_date = models.DateField()
+    detailed_status = models.TextField(null=True)
 
     class Meta:
         managed = False
