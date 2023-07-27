@@ -2181,7 +2181,6 @@ class SMVendorOrders(models.Model):
     total_ordered = models.IntegerField(null=True)
     currency = models.TextField(null=True)
     open_date = models.DateField()
-    detailed_status = models.TextField(null=True)
 
     class Meta:
         managed = False

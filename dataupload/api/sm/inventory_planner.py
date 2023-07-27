@@ -9,6 +9,7 @@ from .fetch_data import sm_fetch_data
 from ..utils.logs import log
 import pandas as pd
 import requests
+from .download_order import download_order
 
 import django
 import os
@@ -58,32 +59,9 @@ def inventory_planner(vendor, status, is_new, id=0):
         new_order = SMVendorOrders(id=id,
                                    vendor=vendor, order_status=status, created_date=datetime.now(), currency=currency)
         new_order.save()
-        async_to_sync(send_message)("Rendelés összeállítása folyamatban", 10)
+        async_to_sync(send_message)("Rendelés letöltése", 10)
         order_dict = SMVendorOrders.objects.filter(id=id)
-        directory = '/home/atti/googleds/files/sm_pos/{}'.format(
-            vendor)
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        path = directory + "/{}.xlsx".format(
-            datetime.now().strftime('%Y-%m-%d'))
-
-        pd.read_sql(f"""
-
-                        select sku, sum(to_order) as quantity
-                        from (select sku, to_order
-                            from sm_product_data
-                            where vendor = '{vendor}'
-                                and replenish_date::date <= current_date
-                                and sku not like '%%5M%%'
-                            union
-                            select sm_order_queue.sku, quantity
-                            from sm_order_queue
-                            where sm_order_queue.vendor = '{vendor}' and sm_order_queue.status in ('ADDED', 'NEW')) as combined
-                        group by 1;
-
-                    """, con=engine).to_excel(
-            path, index=False)
-
+        download_order(vendor)
         SMOrderQueue.objects.filter(
             vendor=vendor, status="NEW").update(status="ADDED", order_id=id)
         async_to_sync(send_message)("Draft sikeresen összeállítva", 100)
@@ -100,13 +78,13 @@ def inventory_planner(vendor, status, is_new, id=0):
                            vendor=vendor, order_status=status, created_date=datetime.now(), currency=currency).save()
         order_dict.update(order_status=status)
         async_to_sync(send_message)(
-            "Inventory Planner adatok lekérdezése", 1.5)
+            "Inventory Planner adatok lekérdezése", 3)
         # - 30% - 33%
         sm_fetch_data()
-        async_to_sync(send_message)("Termékek lekérdezése folyamatban", 34.5)
+        async_to_sync(send_message)("Rendelés letöltése", 34.5)
         # - 2% - 1%
         po = send_vendor_order(
-            vendor, status, send_message, currency, order_dict)
+            vendor, status, send_message, currency)
         if po["status"] == "ERROR":
             log(status="FAILED", log_value=po["message"])
             return po

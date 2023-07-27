@@ -22,3 +22,4 @@ formatted_duration = f"{math.floor(duration//60)} óra {math.floor(duration%60)}
 
 update = requests.put(
     'https://r3.minicrm.hu/Api/R3/Project/41462', auth=(SYSTEM_ID, API_KEY), json={"UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance})
+print(update.request.headers)

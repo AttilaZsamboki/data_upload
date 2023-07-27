@@ -9,6 +9,7 @@ from ..utils.gmail import send_email, service
 import pandas as pd
 import numpy as np
 import dotenv
+from .download_order import download_order
 dotenv.load_dotenv()
 
 sys.path.append(os.path.abspath('/home/atti/googleds/dataupload'))
@@ -28,41 +29,10 @@ engine = create_engine('postgresql://'+DB_USER+':' +
                        DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
 
 
-def send_vendor_order(vendor, status, send_message, currency="HUF", order_dict=None):
-    directory = '/home/atti/googleds/files/sm_pos/{}'.format(
-        vendor)
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    path = directory + "/{}.xlsx".format(
-        datetime.now().strftime('%Y-%m-%d'))
-    data = pd.read_sql(f"""
-
-                    select sku, sum(to_order) as quantity
-                    from (select sku, to_order
-                        from sm_product_data
-                        where vendor = '{vendor}'
-                            and replenish_date::date <= current_date
-                            and sku not like '%%5M%%'
-                        union
-                        select sm_order_queue.sku, quantity
-                        from sm_order_queue
-                        where sm_order_queue.vendor = '{vendor}' and sm_order_queue.status in ('ADDED', 'NEW')) as combined
-                    group by 1;
-
-                """, con=engine)
-    data.to_excel(
-        path, index=False)
-    async_to_sync(send_message)("Email küldése", 36)
-    # - 5% - 7%
-    email_address, email_body, email_subject = pd.read_sql(
-        f"select email_address, email_body, email_subject from sm_vendors_table where name = '{vendor}';", con=engine).iloc[0]
-    if email_address is not None and email_subject is not None and email_body is not None and email_address != "" and email_subject != "" and email_body != "":
-        send_email(service=service,
-                   destination=email_address, obj=email_subject, body=email_body, attachment=path)
-    else:
-        return {"status": "ERROR", "message": "Rosszul megadott email adatok '{}' beszállítónál".format(vendor)}
+def send_vendor_order(vendor, status, send_message, currency="HUF"):
+    data, path = download_order(vendor).values()
     async_to_sync(send_message)(
-        "Inventory Planner Purchase Order létrehozása", 42)
+        "Inventory Planner Purchase Order létrehozása", 36)
     # - 31% - 26%
     items = []
     for i in data.iterrows():
@@ -96,4 +66,13 @@ def send_vendor_order(vendor, status, send_message, currency="HUF", order_dict=N
     if response.status_code == 500:
         return {"status": "ERROR", "message": response.json()["result"]["message"]}
     response = response.json()["purchase-order"]
+    async_to_sync(send_message)("Email küldése", 64.5)
+    # - 5% - 7%
+    email_address, email_body, email_subject = pd.read_sql(
+        f"select email_address, email_body, email_subject from sm_vendors_table where name = '{vendor}';", con=engine).iloc[0]
+    if email_address is not None and email_subject is not None and email_body is not None and email_address != "" and email_subject != "" and email_body != "":
+        send_email(service=service,
+                   destination=email_address, obj=email_subject + f" 'PO #{response['reference']}' {datetime.now().strftime('%Y-%m-%d')}", body=email_body, attachment=path)
+    else:
+        return {"status": "ERROR", "message": "Rosszul megadott email adatok '{}' beszállítónál".format(vendor)}
     return {"id": response["id"], "reference": response["reference"], "total": np.sum([i["cost_price"] * i["replenishment"] for i in items]), "status": "SUCCESS", "total_ordered": np.sum([i["replenishment"] for i in items])}
