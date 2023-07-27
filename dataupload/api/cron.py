@@ -13,7 +13,7 @@ from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, Datau
 from .upload_handler import handle_uploaded_file
 import requests
 from datetime import date, datetime, timedelta
-from .utils.gmail import gmail_authenticate, send_email, service
+from .utils.gmail import gmail_authenticate, send_email
 import requests
 import pandas as pd
 from sqlalchemy import create_engine
@@ -363,7 +363,7 @@ def email_uploads():
             }
         ).execute()
 
-    service = gmail_authenticate()
+    service = gmail_authenticate("sajat")
 
     results = search_messages(service, "Feltöltés")
     print(f"Found {len(results)} results.")
@@ -516,8 +516,7 @@ def unas_translator_correcter():
 
 
 def unas_image_upload():
-    with open("/home/atti/googleds/logs/fol_unas_img.log", "w") as log:
-        log.write(str(datetime.now()))
+    log("Unas képek feltöltése", "INFO", "unas_image_upload")
     file = get_unas_img_feed_url()
     table_template = DatauploadTabletemplates.objects.get(
         table="fol_unas_img")
@@ -534,10 +533,10 @@ def unas_image_upload():
 
 
 def pen_adatlap_upload():
-    with open("/home/atti/googleds/logs/pen/adatlap_feltöltés.log", "w") as log:
-        log.write(str(datetime.now()))
+    log("Penészmentesítés adatlapok feltöltése",
+        "INFO", script_name="pen_adatlap_upload")
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    SERVICE_ACCOUNT_FILE = '/home/atti/googleds/pen_jutalék/google/dogwood-day-333815-db1f1cf5a4e8.json'
+    SERVICE_ACCOUNT_FILE = '/home/atti/googleds/auth/pen/jutalék/dogwood-day-333815-db1f1cf5a4e8.json'
     SPREADSHEET_ID = '1kFMaObjL4Y3pQyrU6fi3D59-HOkr000XaOHnFS_6l90'
     RANGE_NAME = 'Datas!A:Z'
 

@@ -11,7 +11,7 @@ from .utils.gmail import send_email, gmail_authenticate
 import dotenv
 dotenv.load_dotenv()
 
-service = gmail_authenticate()
+service = gmail_authenticate("sajat")
 
 
 def handle_uploaded_file(file, table, table_template, user_id, is_new_table, column_bindings, is_feed, is_email=None, sender_email=None):

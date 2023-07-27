@@ -5,8 +5,6 @@ import json
 from datetime import timedelta, datetime
 import os
 
-with open("/home/atti/googleds/logs/tmd_output.log", "w") as log:
-    log.write(str(datetime.now() + timedelta(hours=1)))
 package_types = {"F": "Fólia", "CS": "Csempematrica",
                  "FP": "Falpadló", "P": "Padló"}
 DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"

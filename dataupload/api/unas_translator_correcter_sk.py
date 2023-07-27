@@ -45,7 +45,7 @@ def unas_correcter_sk():
                                == row["sku"], row["column"]] = row["correct_slovakian"]
 
         unas_slovakian.to_csv(
-            "/home/atti/googleds/unas_files/slovakia.csv", index=False)
+            "/home/atti/googleds/files/unas_files/slovakia.csv", index=False)
         token_payload = f'<?xml version="1.0" encoding="UTF-8" ?><Params><ApiKey>{UNAS_API}</ApiKey></Params>'
         token_request = requests.get(
             "https://api.unas.eu/shop/login", data=token_payload)

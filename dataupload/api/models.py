@@ -1,5 +1,5 @@
 from django.db import models
-from .utils.gmail import send_email, service
+from .utils.gmail import send_email, gmail_authenticate
 from datetime import datetime
 
 
@@ -2163,6 +2163,7 @@ class Logs(models.Model):
         db_table = "logs"
 
     def save(self, *args, **kwargs):
+        service = gmail_authenticate("sajat")
         if self.status == "ERROR":
             send_email(service=service, destination="zsamboki.attila.jr@gmail.com",
                        obj="Script failed: " + self.script_name, body=self.value)

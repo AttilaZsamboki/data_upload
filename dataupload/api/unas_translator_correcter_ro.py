@@ -44,7 +44,7 @@ def unas_correcter_ro():
             unas.loc[unas["Cikkszám"]
                      == row["sku"], row["column"]] = row["correct_romanian"]
         unas.to_csv(
-            "/home/atti/googleds/unas_files/romania.csv", index=False)
+            "/home/atti/googleds/files/unas_files/romania.csv", index=False)
         token_payload = f'<?xml version="1.0" encoding="UTF-8" ?><Params><ApiKey>{UNAS_API}</ApiKey></Params>'
         token_request = requests.get(
             "https://api.unas.eu/shop/login", data=token_payload)

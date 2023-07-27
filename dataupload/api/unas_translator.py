@@ -118,7 +118,7 @@ def translate_unas(file, column_bindigs):
                     pd.DataFrame(df_unas).to_sql(
                         "fol_unas_translate", if_exists="append", con=engine, index=False)
     df2_romania.to_csv(
-        "/home/atti/googleds/unas_files/romania.csv", index=False)
+        "/home/atti/googleds/files/unas_files/romania.csv", index=False)
     df2_slovakia.to_csv(
         "/home/atti/googleds/unas_files/slovakia.csv", index=False)
     token_payload = f'<?xml version="1.0" encoding="UTF-8" ?><Params><ApiKey>{UNAS_API}</ApiKey></Params>'

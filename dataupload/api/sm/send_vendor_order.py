@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import requests
 import os
 from sqlalchemy import create_engine
-from ..utils.gmail import send_email, service
+from ..utils.gmail import send_email, gmail_authenticate
 import pandas as pd
 import numpy as np
 import dotenv
@@ -71,6 +71,7 @@ def send_vendor_order(vendor, status, send_message, currency="HUF"):
     email_address, email_body, email_subject = pd.read_sql(
         f"select email_address, email_body, email_subject from sm_vendors_table where name = '{vendor}';", con=engine).iloc[0]
     if email_address is not None and email_subject is not None and email_body is not None and email_address != "" and email_subject != "" and email_body != "":
+        service = gmail_authenticate("foliasjuci")
         send_email(service=service,
                    destination=email_address, obj=email_subject + f" 'PO #{response['reference']}' {datetime.now().strftime('%Y-%m-%d')}", body=email_body, attachment=path)
     else:

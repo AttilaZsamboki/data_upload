@@ -8,9 +8,6 @@ import re
 import dotenv
 dotenv.load_dotenv()
 
-with open("/home/atti/googleds/logs/pen/útszámítás.log", "w") as log:
-    log.write(str(datetime.now()))
-
 DB_HOST = os.environ.get("DB_HOST")
 DB_NAME = os.environ.get("DB_NAME")
 DB_USER = os.environ.get("DB_USER")

@@ -5,7 +5,7 @@ import sys
 
 sys.path.append(os.path.abspath('/home/atti/googleds/dataupload'))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
-                      "dataupload.settings")
+                      "dataupload.dataupload.settings")
 django.setup()
 from api.models import Logs  # noqa
 
