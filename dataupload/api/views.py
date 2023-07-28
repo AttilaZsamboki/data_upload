@@ -110,7 +110,7 @@ def UploadProfileImg(request):
 
 @api_view(["GET"])
 def UploadTimer(request):
-    return HttpResponse(open("/home/atti/googleds/last_upload.txt", "r"))
+    return HttpResponse(open("/home/atti/googleds/files/misc/last_upload.txt", "r"))
 
 
 def ColumnNames(request):

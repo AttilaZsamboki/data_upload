@@ -222,12 +222,13 @@ export function DataUploadChecker() {
 			wsRef.current = uploadSocket;
 			uploadSocket.onmessage = function (e) {
 				const data = JSON.parse(e.data);
+				console.log(data);
 				setExtensionFormatStatus(data.extension_format);
 				setColumnNamesStatus(data.column_names);
 				setColumnContentStatus(data.column_content);
 			};
 			uploadSocket.onclose = (e) => {
-				console.error("Upload socket cloesed unexpectedly");
+				console.error("Upload socket cloesed unexpectedly " + e.reason);
 			};
 			return () => {
 				uploadSocket.close();

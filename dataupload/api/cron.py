@@ -93,12 +93,12 @@ def upload_feed_daily():
                 log("Hibás fájl tartalom", "FAILED", "upload_feed_daily")
                 print("Could not upload file")
                 continue
-            except:
+            except Exception as error:
                 uploadmodel.table = table
                 uploadmodel.status = "error"
                 uploadmodel.status_description = "Hiba történt a fájl feltöltése közben."
                 uploadmodel.save()
-                log(f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}",
+                log(f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}. Error: '{error}'",
                     "ERROR", "upload_feed_daily")
                 continue
 

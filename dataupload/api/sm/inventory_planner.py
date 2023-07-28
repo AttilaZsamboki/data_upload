@@ -20,7 +20,6 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                       "dataupload.settings")
 django.setup()
 from api.models import SMVendorOrders, SMVendorsTable, SMOrderQueue  # noqa
-from api.consumers import SMOrderConsumer  # noqa
 
 
 DB_HOST = os.environ.get("DB_HOST")
@@ -65,7 +64,6 @@ def inventory_planner(vendor, status, is_new, id=0):
         SMOrderQueue.objects.filter(
             vendor=vendor, status="NEW").update(status="ADDED", order_id=id)
         async_to_sync(send_message)("Draft sikeresen összeállítva", 100)
-        SMOrderConsumer().disconnect(1000)
         log(status="SUCCESS", log_value=new_order)
         return {"status": "SUCCESS", "message": new_order}
     # create | update

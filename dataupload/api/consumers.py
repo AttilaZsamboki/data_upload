@@ -16,6 +16,7 @@ DB_PORT = os.environ.get("DB_PORT")
 
 class UploadConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        await self.accept()
         self.upload_id = self.scope["url_route"]["kwargs"]["upload_id"]
         self.upload_group_name = 'upload_%s' % self.upload_id
         self.upload = await self.get_upload()
@@ -61,7 +62,6 @@ class UploadConsumer(AsyncWebsocketConsumer):
                 data = pd.read_csv(file, skiprows=int(
                     self.template.skiprows), delimiter='\t')
             else:
-                print(extension_format, file)
                 data = pd.read_excel(
                     file, skiprows=int(self.template.skiprows))
             df = pd.DataFrame(data)
@@ -137,7 +137,6 @@ class UploadConsumer(AsyncWebsocketConsumer):
                     }
                 }
             )
-        await self.accept()
 
     @database_sync_to_async
     def get_template(self):
