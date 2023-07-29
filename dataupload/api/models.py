@@ -2082,6 +2082,7 @@ class Feed(models.Model):
     frequency = models.TextField()
     id = models.AutoField(primary_key=True)
     runs_at = models.IntegerField()
+    retry_number = models.IntegerField()
 
     class Meta:
         managed = False
@@ -2214,3 +2215,13 @@ class SMOrderQueue(models.Model):
     class Meta:
         managed = False
         db_table = "sm_order_queue"
+
+
+class DatauploadRetries(models.Model):
+    id = models.AutoField(primary_key=True)
+    table = models.TextField()
+    when = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "dataupload_retries"

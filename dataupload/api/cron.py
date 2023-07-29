@@ -9,10 +9,10 @@ import logging
 from base64 import urlsafe_b64decode
 import os
 import json
-from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview, SMVendorOrders
+from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview, DatauploadRetries
 from .upload_handler import handle_uploaded_file
 import requests
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from .utils.gmail import gmail_authenticate, send_email
 import requests
 import pandas as pd
@@ -25,6 +25,7 @@ from .utils.unas_img import get_unas_img_feed_url
 from .sm.inventory_planner import inventory_planner
 from .sm.fetch_data import sm_fetch_data
 from .utils.logs import log
+from .utils.utils import schedule_feed_retries
 
 
 def upload_file():
@@ -47,132 +48,83 @@ def upload_file():
                                  table_template, upload.user_id, is_new_table, column_bindings, False)
 
 
+def upload_feed(feed, retry_if_failed=True):
+    table, url, user_id, frequency, retry_number = (
+        feed.table, feed.url, feed.user_id, feed.frequency, feed.retry_number)
+    log(f"Feed '{table}' feltöltése elkezdődött",
+        "INFO", "upload_feed_daily")
+    if table == "fol_unas":
+        url = get_unas_feed_url()
+    try:
+        file = requests.get(url).content
+    except:
+        log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
+            "ERROR", "upload_feed_daily")
+        return
+    files_already_existing = [f for f in os.listdir(
+        f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+    filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+    try:
+        open(filename, "wb").write(file)
+    except:
+        log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
+            "ERROR", "upload_feed_daily")
+    uploadmodel = DatauploadUploadmodel(
+        table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+    uploadmodel.save()
+    table_template = DatauploadTabletemplates.objects.get(
+        table=table)
+    try:
+        column_bindings = json.loads(
+            table_template.source_column_names)
+    except Exception as e:
+        log("Hibás oszlop conifg", "ERROR", "upload_feed_daily", e)
+    try:
+        handle_uploaded_file(filename, table,
+                             table_template, user_id, False, column_bindings, True)
+        log("Feed feltöltése sikeresen befejeződött",
+            "SUCCESS", "upload_feed_daily", details=f"Table: {table}")
+        return "SUCCESS"
+    except ValueError as e:
+        uploadmodel.table = table
+        uploadmodel.status = "error"
+        uploadmodel.status_description = "Hibás fájl tartalom"
+        uploadmodel.save()
+        if retry_if_failed:
+            schedule_feed_retries(table, retry_number,
+                                  frequency, file)
+        log("Hibás fájl tartalom", "ERROR", "upload_feed_daily", e)
+        return "ERROR"
+    except Exception as error:
+        uploadmodel.table = table
+        uploadmodel.status = "error"
+        uploadmodel.status_description = "Hiba történt a fájl feltöltése közben."
+        uploadmodel.save()
+        if retry_if_failed:
+            schedule_feed_retries(table, retry_number,
+                                  frequency, file)
+        log(f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}",
+            "ERROR", "upload_feed_daily", details=error)
+        return "ERROR"
+
+
 def upload_feed_daily():
     current_hour = (datetime.now() + timedelta(hours=2)).hour
-    for upload in Feed.objects.filter(runs_at=current_hour):
-        table, url, user_id, frequency = (
-            upload.table, upload.url, upload.user_id, upload.frequency)
-        if frequency == "1 nap":
-            log(f"Feed '{table}' feltöltése elkezdődött",
-                "INFO", "upload_feed_daily")
-            if table == "fol_unas":
-                url = get_unas_feed_url()
-            try:
-                file = requests.get(url).content
-            except:
-                print("Not valid url for file")
-                log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
-                    "ERROR", "upload_feed_daily")
-                continue
-            files_already_existing = [f for f in os.listdir(
-                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
-            filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
-            try:
-                open(filename, "wb").write(file)
-            except:
-                log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
-                    "ERROR", "upload_feed_daily")
-            uploadmodel = DatauploadUploadmodel(
-                table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
-            uploadmodel.save()
-            table_template = DatauploadTabletemplates.objects.get(
-                table=table)
-            try:
-                column_bindings = json.loads(
-                    table_template.source_column_names)
-            except:
-                print("Json convert error")
-            try:
-                handle_uploaded_file(filename, table,
-                                     table_template, user_id, False, column_bindings, True)
-            except ValueError:
-                uploadmodel.table = table
-                uploadmodel.status = "error"
-                uploadmodel.status_description = "Hibás fájl tartalom"
-                uploadmodel.save()
-                log("Hibás fájl tartalom", "FAILED", "upload_feed_daily")
-                print("Could not upload file")
-                continue
-            except Exception as error:
-                uploadmodel.table = table
-                uploadmodel.status = "error"
-                uploadmodel.status_description = "Hiba történt a fájl feltöltése közben."
-                uploadmodel.save()
-                log(f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}. Error: '{error}'",
-                    "ERROR", "upload_feed_daily")
-                continue
+    for feed in Feed.objects.filter(runs_at=current_hour):
+        if feed.frequency == "1 nap":
+            upload_feed(feed)
 
 
 def upload_feed_weekly():
-    for upload in Feed.objects.all():
-        table, url, user_id, frequency = (
-            upload.table, upload.url, upload.user_id, upload.frequency)
-        if frequency == "1 hét":
-            try:
-                file = requests.get(url).content
-            except:
-                print("Not valid url for file")
-                continue
-            files_already_existing = [f for f in os.listdir(
-                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
-            filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
-            open(filename, "wb").write(file)
-            uploadmodel = DatauploadUploadmodel(
-                table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
-            uploadmodel.save()
-            table_template = DatauploadTabletemplates.objects.get(
-                table=table)
-            try:
-                column_bindings = json.loads(
-                    table_template.source_column_names)
-            except:
-                print("Json convert error")
-            try:
-                handle_uploaded_file(filename, table,
-                                     table_template, user_id, False, column_bindings, True)
-            except ValueError:
-                uploadmodel.table = table
-                uploadmodel.status = "error"
-                uploadmodel.status_description = "Hibás fájl tartalom"
-                uploadmodel.save()
-                print("Could not upload file")
-                continue
+    for feed in Feed.objects.all():
+        if feed.frequency == "1 hét":
+            upload_feed(feed)
 
 
 def upload_feed_hourly():
-    for upload in Feed.objects.all():
-        table, url, user_id, frequency = (
-            upload.table, upload.url, upload.user_id, upload.frequency)
-        if frequency == "1 óra":
-            try:
-                file = requests.get(url).content
-            except:
-                print("Not valid url for file")
-                continue
-            files_already_existing = [f for f in os.listdir(
-                f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
-            filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
-            open(filename, "wb").write(file)
-            uploadmodel = DatauploadUploadmodel(
-                table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
-            uploadmodel.save()
-            table_template = DatauploadTabletemplates.objects.get(
-                table=table)
-            try:
-                column_bindings = json.loads(
-                    table_template.source_column_names)
-            except:
-                print("Json convert error")
-            try:
-                handle_uploaded_file(filename, table,
-                                     table_template, user_id, False, column_bindings, True)
-            except ValueError:
-                uploadmodel.table = table
-                uploadmodel.status = "error"
-                uploadmodel.status_description = "Hibás fájl tartalom"
-                uploadmodel.save()
-                print("Could not upload file")
-                continue
+    for feed in Feed.objects.all():
+        if feed.frequency == "1 óra":
+            upload_feed(feed)
 
 
 def email_uploads():
@@ -608,3 +560,15 @@ def sm_auto_order():
         else:
             status = "OPEN"
         inventory_planner(i.vendor, status=status, is_new=True)
+
+
+def dataupload_retry_feed():
+    log("Újra próbálkozás feed feltöltéssel",
+        "INFO", script_name="dataupload_retry_feed")
+    for retry in DatauploadRetries.objects.filter(when__lte=datetime.now()+timedelta(hours=2)):
+        feed = Feed.objects.get(table=retry.table)
+        status = upload_feed(feed, False)
+        if status == "SUCCESS":
+            DatauploadRetries.objects.filter(table=retry.table).delete()
+        else:
+            retry.delete()

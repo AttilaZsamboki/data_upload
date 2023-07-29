@@ -6,7 +6,7 @@ import os
 from .models import DatauploadUploadmodel, DatauploadTabletemplates, DatauploadTableOverview
 from .utils.upload import col_by_dtype
 from json import dumps
-from datetime import date, datetime
+from datetime import date
 from .utils.gmail import send_email, gmail_authenticate
 import dotenv
 dotenv.load_dotenv()
@@ -16,7 +16,6 @@ service = gmail_authenticate("sajat")
 
 def handle_uploaded_file(file, table, table_template, user_id, is_new_table, column_bindings, is_feed, is_email=None, sender_email=None):
     errors = []
-    print(table_template)
     if not is_new_table:
         skiprows = table_template.skiprows
     else:
@@ -54,28 +53,16 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
     column_binding_values_str = "".join(column_bindings.values())
 
     #\\\\\\\\\\\\\\\\\\\\\\\\\ data -->> pandas dataframe ///////////////////////////////////////////#
-    def log_status(status, status_description):
-        DatauploadUploadmodel.objects.filter(
-            file=file, table=table, user_id=user_id, status="under upload").update(status=status, status_description=status_description)
-
+    df = pd.DataFrame([])
     if extension_format == '.csv':
-        try:
-            data = pd.read_csv(file, skiprows=int(skiprows))
-        except:
-            log_status("error", "Nem lehetett a fájlt beolvasni")
+        df = pd.read_csv(file, skiprows=int(skiprows))
     elif extension_format == '.tsv':
-        try:
-            data = pd.read_csv(file, skiprows=int(
-                table_template.skiprows), delimiter='\t')
-        except:
-            log_status("error", "Nem lehetett a fájlt beolvasni")
+        df = pd.read_csv(file, skiprows=int(
+            table_template.skiprows), delimiter='\t')
     else:
-        try:
-            data = pd.read_excel(file, skiprows=int(skiprows))
-        except:
-            log_status("error", "Nem lehetett a fájlt beolvasni")
-
-    df = pd.DataFrame(data)
+        df = pd.read_excel(file, skiprows=int(skiprows))
+    if df.empty:
+        raise ValueError("Üres fájl!")
 
     source_column_names = df.columns
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
