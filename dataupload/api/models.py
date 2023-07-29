@@ -2157,6 +2157,7 @@ class Logs(models.Model):
     time = models.DateTimeField()
     status = models.TextField()
     value = models.TextField()
+    details = models.TextField()
 
     class Meta:
         managed = False

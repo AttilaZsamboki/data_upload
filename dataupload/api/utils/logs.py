@@ -10,7 +10,7 @@ django.setup()
 from api.models import Logs  # noqa
 
 
-def log(log_value, status="SUCCESS", script_name="sm_vendor_orders"):
+def log(log_value, status="SUCCESS", script_name="sm_vendor_orders", details=""):
     log = Logs(script_name=script_name,
-               time=datetime.now(), status=status, value=log_value)
+               time=datetime.now(), status=status, value=log_value, details=details)
     log.save()

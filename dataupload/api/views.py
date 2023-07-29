@@ -1,4 +1,8 @@
 from django.http import HttpResponse
+import requests
+import math
+import codecs
+from .utils.google_maps import calculate_distance
 from django.core.files import File
 from django.db import IntegrityError
 from rest_framework import generics, viewsets
@@ -18,6 +22,7 @@ from datetime import date, timedelta
 import json
 from .sm.inventory_planner import inventory_planner
 from openpyxl import load_workbook
+from .utils.logs import log
 
 
 @api_view(["GET"])
@@ -852,8 +857,33 @@ class SMUpdateOrderQueue(APIView):
         return Response({'status': 'success'}, status=HTTP_200_OK)
 
 
-class PenMiniCRMWebhook(APIView):
+class PenCalculateDistance(APIView):
     def post(self, request):
+        log("Penészmentesítés MiniCRM webhook meghívva",
+            "INFO", "pen_calculate_distance")
+        data = json.loads(str(request.body)[2:-1])["Data"]
+        API_KEY = os.environ.get("PEN_MINICRM_API_KEY")
+        SYSTEM_ID = os.environ.get("PEN_MINICRM_SYSTEM_ID")
+        telephely = "Budapest, Nagytétényi út 218, 1225"
+
+        address = codecs.unicode_escape_decode(
+            f"{data['Cim2']} {data['Telepules']}, {data['Iranyitoszam']} {data['Orszag']}")[0]
+        gmaps_result = calculate_distance(start=telephely, end=address)
+        duration = gmaps_result["duration"] / 60
+        distance = gmaps_result["distance"] // 1000
+        formatted_duration = f"{math.floor(duration//60)} óra {math.floor(duration%60)} perc"
+        fee_map = {
+            0: 20000,
+            31: 25000,
+            101: 30000,
+            201: 35000,
+        }
+        fee = fee_map[[i for i in fee_map.keys() if i < distance][-1]]
+
+        requests.put(
+            f'https://r3.minicrm.hu/Api/R3/Project/{data["Id"]}', auth=(SYSTEM_ID, API_KEY), json={"UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee})
+        log("Penészmentesítés MiniCRM webhook sikeresen lefutott",
+            "SUCCESS", "pen_calculate_distance")
         return Response({'status': 'success'}, status=HTTP_200_OK)
 
 
