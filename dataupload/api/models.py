@@ -2082,7 +2082,7 @@ class Feed(models.Model):
     frequency = models.TextField()
     id = models.AutoField(primary_key=True)
     runs_at = models.IntegerField()
-    retry_number = models.IntegerField()
+    retry_number = models.IntegerField(default=3)
 
     class Meta:
         managed = False

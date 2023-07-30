@@ -32,13 +32,12 @@ def connect_to_db():
 
 
 def schedule_feed_retries(table, retry_number, frequency, file=None):
-    if retry_number is None:
+    if retry_number is None or frequency == "1 óra":
         return
     engine = connect_to_db()
     try:
-        interval_map = {"1 óra": "1 hour", "1 nap": "1 day"}
         was_upload = list(engine.execute(
-            f"SELECT COUNT(*) FROM {table} WHERE timestamp > now() - interval '{interval_map[frequency]}'").fetchall()[0])[0]
+            f"SELECT COUNT(*) FROM {table} WHERE timestamp = current_date").fetchall()[0])[0]
         try:
             num_rows_in_file = len(pd.read_excel(file))
         except:

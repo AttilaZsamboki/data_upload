@@ -25,7 +25,7 @@ from .utils.unas_img import get_unas_img_feed_url
 from .sm.inventory_planner import inventory_planner
 from .sm.fetch_data import sm_fetch_data
 from .utils.logs import log
-from .utils.utils import schedule_feed_retries
+from .utils.utils import schedule_feed_retries, connect_to_db
 
 
 def upload_file():
@@ -542,24 +542,25 @@ def sm_inventory_planner():
 
 
 def sm_auto_order():
-    DB_HOST = os.environ.get("DB_HOST")
-    DB_NAME = os.environ.get("DB_NAME")
-    DB_USER = os.environ.get("DB_USER")
-    DB_PASS = os.environ.get("DB_PASS")
-    DB_PORT = os.environ.get("DB_PORT")
-
-    engine = create_engine('postgresql://'+DB_USER+':' +
-                           DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
+    engine = connect_to_db()
 
     df = pd.read_sql(
         "select vendor, need_permission from sm_vendor_data where budget <= to_order_cost;", con=engine)
-    for i in df.loc:
+    for i in df.iloc:
         status = ""
         if i.need_permission == True:
             status = "DRAFT"
         else:
             status = "OPEN"
-        inventory_planner(i.vendor, status=status, is_new=True)
+        order = inventory_planner(i.vendor, status=status, is_new=True)
+        service = gmail_authenticate("foliasjuci")
+        order_url = f"https://stock.dataupload.xyz/orders?order_id={order['id']}"
+        if status == "DRAFT":
+            send_email(service, "beszerzes@foliasjuci.hu", "Új rendelési igény",
+                       f"Elértük a rendeléshez szükséges mennyiséget a következő szállítónál: {i.vendor}. Kérem, hogy ellenőrizze a rendelést és adja meg a rendelési engedélyt a rendszerben: {order_url}. Köszönjük!")
+        if status == "OPEN":
+            send_email(service, "beszerzes@foliasjuci.hu", "Új rendelés",
+                       f"Új automata rendelés lett leadva a következő szállítónál: {i.vendor}. Link: {order_url}")
 
 
 def dataupload_retry_feed():

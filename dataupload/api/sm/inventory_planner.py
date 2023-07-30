@@ -65,7 +65,7 @@ def inventory_planner(vendor, status, is_new, id=0):
             vendor=vendor, status="NEW").update(status="ADDED", order_id=id)
         async_to_sync(send_message)("Draft sikeresen összeállítva", 100)
         log(status="SUCCESS", log_value=new_order)
-        return {"status": "SUCCESS", "message": new_order}
+        return {"status": "SUCCESS", "message": new_order, "id": id}
     # create | update
     order_dict = SMVendorOrders.objects.filter(id=id)
     if status == "OPEN":
