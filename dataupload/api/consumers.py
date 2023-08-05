@@ -1,6 +1,5 @@
 import json
 import os
-import logging
 from channels.generic.websocket import AsyncWebsocketConsumer
 import pandas as pd
 from .models import DatauploadUploadmodel, DatauploadTabletemplates
