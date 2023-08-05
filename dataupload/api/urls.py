@@ -153,7 +153,7 @@ urlpatterns = [
     path('sm_vendor_orders/', views.SMVendorOrders.as_view()),
     path('sm_vendor_orders/<id>/', views.SMVendorOrdersDetail.as_view()),
     path('excel/<vendor>/<date>/', views.ExcelFileView.as_view(), name="excel_file"),
-    path('sm_order_queue/', views.SMOrderQueue.as_view()),
+    path('sm_order_queu/', views.SMOrderQueue.as_view()),
     path('sm_order_queue/<id>/', views.SMUpdateOrderQueue.as_view()),
     path('pen_minicrm_webhook/', views.PenCalculateDistance.as_view()),
     path('pen_googlesheet_webhook/', views.PenGoogleSheetWebhook.as_view()),
