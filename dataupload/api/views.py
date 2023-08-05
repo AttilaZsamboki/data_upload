@@ -916,9 +916,9 @@ class PenGoogleSheetWebhook(APIView):
 
 class Deploy(APIView):
     def post(self, request):
-        process = subprocess.Popen(
-            ["git", "pull"])
-        if process.returncode == 0:
+        try:
+            subprocess.Popen(
+                ["git", "pull"])
             return Response("Successfully deployed", status=HTTP_200_OK)
-        else:
+        except:
             return Response(f"Error while deploying", status=HTTP_500_INTERNAL_SERVER_ERROR)
