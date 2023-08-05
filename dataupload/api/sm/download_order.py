@@ -24,9 +24,7 @@ def download_order(vendor):
         datetime.now().strftime('%Y-%m-%d'))
 
     if os.path.exists(path):
-        print("Order for {} already exists".format(vendor))
         return {"data": pd.read_excel(path), "path": path}
-    print("Downloading order for {}".format(vendor))
     data = pd.read_sql(f"""
 
                     select sku, sum(to_order) as quantity

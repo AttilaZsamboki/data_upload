@@ -26,6 +26,7 @@ from .sm.inventory_planner import inventory_planner
 from .sm.fetch_data import sm_fetch_data
 from .utils.logs import log
 from .utils.utils import schedule_feed_retries, connect_to_db
+from .pen.szamlazz_hu import dijbekero
 
 
 def upload_file():
@@ -93,7 +94,8 @@ def upload_feed(feed, retry_if_failed=True):
         if retry_if_failed:
             schedule_feed_retries(table, retry_number,
                                   frequency, file)
-        log("Hibás fájl tartalom", "ERROR", "upload_feed_daily", e)
+        log(f"Hibás fájl tartalom. Tábla {uploadmodel.table}\n URL {url}",
+            "ERROR", "upload_feed_daily", e)
         return "ERROR"
     except Exception as error:
         uploadmodel.table = table
@@ -544,8 +546,15 @@ def sm_inventory_planner():
 def sm_auto_order():
     engine = connect_to_db()
 
-    df = pd.read_sql(
-        "select vendor, need_permission from sm_vendor_data where budget <= to_order_cost;", con=engine)
+    df = pd.read_sql("""
+
+                     select vendor, need_permission
+                     from sm_vendor_data 
+                     where budget <= to_order_cost 
+                        and sm_vendor_data.vendor not in (select vendor from sm_vendor_orders where order_status='DRAFT')
+
+                     """, con=engine)
+
     for i in df.iloc:
         status = ""
         if i.need_permission == True:
@@ -573,3 +582,15 @@ def dataupload_retry_feed():
             DatauploadRetries.objects.filter(table=retry.table).delete()
         else:
             retry.delete()
+
+
+def pen_dijbekero():
+    log("Díjbekérők feltöltése", "INFO", script_name="pen_dijbekero")
+    try:
+        dijbekero()
+    except KeyError as e:
+        log("Nincsenek számlázási adatok", "FAILED",
+            script_name="pen_dijbekero", details=e)
+    except Exception as e:
+        log("Hiba akadt a díbekérő feltöltésében", "ERROR",
+            script_name="pen_dijbekero", details=e)

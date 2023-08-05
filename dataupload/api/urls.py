@@ -151,6 +151,7 @@ urlpatterns = [
     path('sm_product_data/', views.SMProductView.as_view({'get': 'list'})),
     path('sm_vendor_data/', views.SMVendorDataSet.as_view()),
     path('sm_vendor_orders/', views.SMVendorOrders.as_view()),
+    path('sm_vendor_orders/<id>/', views.SMVendorOrdersDetail.as_view()),
     path('excel/<vendor>/<date>/', views.ExcelFileView.as_view(), name="excel_file"),
     path('sm_order_queue/', views.SMOrderQueue.as_view()),
     path('sm_order_queue/<id>/', views.SMUpdateOrderQueue.as_view()),

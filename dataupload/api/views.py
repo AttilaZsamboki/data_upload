@@ -1,5 +1,6 @@
 from django.http import HttpResponse
-import requests
+from .utils.google_maps import get_street_view, get_street_view_url
+from .pen.utils import update_adatlap_fields
 import math
 import codecs
 from .utils.google_maps import calculate_distance
@@ -753,12 +754,12 @@ class SMVendorDataSet(APIView):
 
     def post(self, request):
         data = json.loads(request.body)
+        vendors = []
         for item in data:
-            name = item.get('name')
-            models.SMVendorsTable.objects.update_or_create(
-                name=name,
-                defaults=item
-            )
+            vendors.append(models.SMVendorsTable(
+                {"name": item["vendor"], **item}))
+        models.SMVendorsTable.objects.bulk_create(
+            vendors, ignore_conflicts=True)
         return Response({'status': 'success'}, status=HTTP_201_CREATED)
 
 
@@ -802,6 +803,17 @@ class SMVendorOrders(APIView):
             if create_order["status"] == "ERROR":
                 return Response({'status': 'failed', 'reason': create_order["message"]}, status=HTTP_400_BAD_REQUEST)
             return Response({'status': 'success', 'message': create_order["message"]}, status=HTTP_200_OK)
+        return Response({'status': 'failed', 'reason': f'null order object. id: {id}'}, status=HTTP_400_BAD_REQUEST)
+
+
+class SMVendorOrdersDetail(APIView):
+    def delete(self, request, id, format=None):
+        orderObj = models.SMVendorOrders.objects.filter(id=id)
+        if orderObj:
+            orderObj = orderObj[0]
+            if orderObj.order_status == "DRAFT":
+                orderObj.delete()
+                return Response({'status': 'success'}, status=HTTP_200_OK)
         return Response({'status': 'failed', 'reason': f'null order object. id: {id}'}, status=HTTP_400_BAD_REQUEST)
 
 
@@ -862,13 +874,11 @@ class PenCalculateDistance(APIView):
         log("Penészmentesítés MiniCRM webhook meghívva",
             "INFO", "pen_calculate_distance")
         data = json.loads(str(request.body)[2:-1])["Data"]
-        API_KEY = os.environ.get("PEN_MINICRM_API_KEY")
-        SYSTEM_ID = os.environ.get("PEN_MINICRM_SYSTEM_ID")
         telephely = "Budapest, Nagytétényi út 218, 1225"
 
-        address = codecs.unicode_escape_decode(
-            f"{data['Cim2']} {data['Telepules']}, {data['Iranyitoszam']} {data['Orszag']}")[0]
-        gmaps_result = calculate_distance(start=telephely, end=address)
+        address = f"{data['Cim2']} {data['Telepules']}, {data['Iranyitoszam']} {data['Orszag']}"
+        gmaps_result = calculate_distance(
+            start=telephely, end=codecs.unicode_escape_decode(address)[0])
         duration = gmaps_result["duration"] / 60
         distance = gmaps_result["distance"] // 1000
         formatted_duration = f"{math.floor(duration//60)} óra {math.floor(duration%60)} perc"
@@ -880,10 +890,19 @@ class PenCalculateDistance(APIView):
         }
         fee = fee_map[[i for i in fee_map.keys() if i < distance][-1]]
 
-        requests.put(
-            f'https://r3.minicrm.hu/Api/R3/Project/{data["Id"]}', auth=(SYSTEM_ID, API_KEY), json={"UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee})
-        log("Penészmentesítés MiniCRM webhook sikeresen lefutott",
-            "SUCCESS", "pen_calculate_distance")
+        try:
+            get_street_view(location=address)
+        except Exception as e:
+            log("Penészmentesítés MiniCRM webhook sikertelen", "ERROR", e)
+        street_view_url = get_street_view_url(location=address)
+        response = update_adatlap_fields(data["Id"], {
+            "IngatlanKepe": "https://www.dataupload.xyz/static/images/google_street_view/street_view.jpg", "UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee, "StreetViewUrl": street_view_url, "BruttoFelmeresiDij": round(fee*1.27)})
+        if response.code == 200:
+            log("Penészmentesítés MiniCRM webhook sikeresen lefutott",
+                "SUCCESS", "pen_calculate_distance")
+        else:
+            log("Penészmentesítés MiniCRM webhook sikertelen",
+                "ERROR", response.reason)
         return Response({'status': 'success'}, status=HTTP_200_OK)
 
 
