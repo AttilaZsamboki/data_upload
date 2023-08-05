@@ -921,4 +921,4 @@ class Deploy(APIView):
         if process.returncode == 0:
             return Response("Successfully deployed", status=HTTP_200_OK)
         else:
-            return Response(f"Error while deploying", status=HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(f"Error eploying", status=HTTP_500_INTERNAL_SERVER_ERROR)
