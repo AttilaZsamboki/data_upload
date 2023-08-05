@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+import subprocess
 from .utils.google_maps import get_street_view, get_street_view_url
 from .pen.utils import update_adatlap_fields
 import math
@@ -9,7 +10,7 @@ from django.db import IntegrityError
 from rest_framework import generics, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK, HTTP_400_BAD_REQUEST
+from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
 from django.http import JsonResponse
 import psycopg2
 from . import models, serializers
@@ -911,3 +912,13 @@ class PenGoogleSheetWebhook(APIView):
         data = json.loads(request.body)["data"]
         data = [[j for j in i if j != ""] for i in data]
         return Response("Succesfully received data", status=HTTP_200_OK)
+
+
+class Deploy(APIView):
+    def post(self, request):
+        process = subprocess.Popen(
+            ["git", "pull"])
+        if process.returncode == 0:
+            return Response("Successfully deployed", status=HTTP_200_OK)
+        else:
+            return Response(f"Error deploying", status=HTTP_500_INTERNAL_SERVER_ERROR)

@@ -13,6 +13,8 @@ SYSTEM_ID = os.environ.get("PEN_MINICRM_SYSTEM_ID")
 def dijbekero():
     adatlapok = get_all_adatlap(23, 3079)
     adatlapok = adatlapok["Results"]
+    if adatlapok == []:
+        return
     for i in adatlapok.keys():
         adatlap = adatlap_details(adatlapok[i]["Id"])
         if adatlap["FizetesiMod2"] != "Átutalás":

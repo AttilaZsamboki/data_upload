@@ -1,6 +1,6 @@
 from django.db import models
 from .utils.gmail import send_email, gmail_authenticate
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 class AuthGroup(models.Model):
@@ -157,7 +157,7 @@ class DatauploadUploadmodel(models.Model):
     def save(self, *args, **kwargs):
         if self.status == "ERROR":
             log = Logs(script_name="upload",
-                       time=datetime.now(), status="ERROR", value="Hiba történt a feldolgozás során")
+                       time=datetime.now() + timedelta(hours=2), status="ERROR", value="Hiba történt a feldolgozás során")
             log.save()
         super(DatauploadUploadmodel, self).save(*args, **kwargs)
 
