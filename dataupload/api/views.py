@@ -919,6 +919,7 @@ class Deploy(APIView):
         try:
             subprocess.Popen(
                 ["git", "pull"])
+            subprocess.run(["pkill", "-HUP", "gunicorn"])
             return Response("Successfully deployed", status=HTTP_200_OK)
         except:
             return Response(f"Error while deploying", status=HTTP_500_INTERNAL_SERVER_ERROR)
