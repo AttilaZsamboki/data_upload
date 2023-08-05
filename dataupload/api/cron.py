@@ -592,5 +592,5 @@ def pen_dijbekero():
         log("Nincsenek számlázási adatok", "FAILED",
             script_name="pen_dijbekero", details=e)
     except Exception as e:
-        log("Hiba akadt a díbekérő feltöltésében", "ERROR",
+        log("Hiba akadt a díjbekérő feltöltésében", "ERROR",
             script_name="pen_dijbekero", details=e)
