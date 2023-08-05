@@ -15,6 +15,8 @@ def dijbekero():
     adatlapok = adatlapok["Results"]
     for i in adatlapok.keys():
         adatlap = adatlap_details(adatlapok[i]["Id"])
+        if adatlap["FizetesiMod2"] != "Átutalás":
+            return
         contact_id = adatlapok[i]["BusinessId"]
         contact = contact_details(contact_id)
         address = billing_address(contact_id)
@@ -34,14 +36,15 @@ def dijbekero():
                 <fizetesiHataridoDatum>{(datetime.datetime.now() + datetime.timedelta(days=3)).strftime("%Y-%m-%d")}</fizetesiHataridoDatum>
                 <!-- due date -->
                 <fizmod>Átutalás</fizmod>
-                <!-- payment type: it can be seen in case you create the invoice 
+                <!-- payment type: it can be seen in case you create the invoice
                                         from browser -->
                 <penznem>HUF</penznem>
-                <!-- currency: it can be seen in case you create the invoice 
+                <!-- currency: it can be seen in case you create the invoice
                                         from browser -->
                 <szamlaNyelve>hu</szamlaNyelve>
                 <!-- language of invoice, can  be: de, en, it, hu, fr, ro, sk, hr
                                         -->
+                <megjegyzes>{adatlap["DijbekeroMegjegyzes2"]}</megjegyzes>
                 <rendelesSzam>{adatlap["Id"]}</rendelesSzam>
                 <!-- order number -->
                 <dijbekeroSzamlaszam>{adatlap["DijbekeroSzama2"]}</dijbekeroSzamlaszam>
@@ -111,15 +114,16 @@ def dijbekero():
             </tetelek>
         </xmlszamla>
         """
-        with open("invoice.xml", "w") as f:
+        with open("/home/atti/googleds/files/pen/szamla/invoice.xml", "w") as f:
             f.write(xml)
             f.close()
 
         url = "https://www.szamlazz.hu/szamla/"
         response = requests.post(
-            url, files={"action-xmlagentxmlfile": open("invoice.xml", "rb")})
-        with open("/home/atti/googleds/dataupload/static/response.pdf", "wb") as f:
+            url, files={"action-xmlagentxmlfile": open("/home/atti/googleds/files/pen/szamla/invoice.xml", "rb")})
+        dijbekero_number = response.headers["szlahu_szamlaszam"]
+        with open(f"/home/atti/googleds/dataupload/static/{dijbekero_number}.pdf", "wb") as f:
             f.write(response.content)
             f.close()
         update_adatlap_fields(adatlap["Id"], {
-            "DijbekeroPdf2": "https://www.dataupload.xyz/static/response.pdf", "StatusId": "Utalásra vár"})
+            "DijbekeroPdf2": f"https://www.dataupload.xyz/static/{dijbekero_number}.pdf", "StatusId": "Utalásra vár", "DijbekeroSzama2": dijbekero_number, "KiallitasDatuma": datetime.datetime.now().strftime("%Y-%m-%d"), "FizetesiHatarido": (datetime.datetime.now() + datetime.timedelta(days=3)).strftime("%Y-%m-%d"), "DijbekeroUzenetek": f"Díjbekérő elkészült {datetime.datetime.now()}"})
