@@ -6,9 +6,18 @@ from os import environ
 from dotenv import load_dotenv
 import pandas as pd
 from datetime import datetime, timedelta
+import platform
 load_dotenv()
 
-sys.path.append(os.path.abspath('/home/atti/googleds/dataupload'))
+
+base_path = (
+    os.environ.get("BASE_PATH_LINUX")
+    if platform.system() == "Linux"
+    else os.environ.get("BASE_PATH_WINDOWS")
+)
+
+
+sys.path.append(os.path.abspath(f"{base_path}/dataupload"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                       "dataupload.dataupload.settings")
 django.setup()

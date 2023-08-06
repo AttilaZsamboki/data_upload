@@ -1,4 +1,5 @@
 from .utils import get_all_adatlap, adatlap_details, contact_details, billing_address, update_adatlap_fields
+from ..utils.utils import base_path
 import requests
 import datetime
 import os
@@ -116,16 +117,18 @@ def dijbekero():
             </tetelek>
         </xmlszamla>
         """
-        with open("/home/atti/googleds/files/pen/szamla/invoice.xml", "w") as f:
+        with open(f"{base_path}/files/pen/szamla/invoice.xml", "w", encoding="utf-8") as f:
             f.write(xml)
             f.close()
 
         url = "https://www.szamlazz.hu/szamla/"
         response = requests.post(
-            url, files={"action-xmlagentxmlfile": open("/home/atti/googleds/files/pen/szamla/invoice.xml", "rb")})
+            url, files={"action-xmlagentxmlfile": open(f"{base_path}/files/pen/szamla/invoice.xml", "rb")})
         dijbekero_number = response.headers["szlahu_szamlaszam"]
-        with open(f"/home/atti/googleds/dataupload/static/{dijbekero_number}.pdf", "wb") as f:
+        pdf_path = f"{base_path}/dataupload/static/{dijbekero_number}.pdf"
+        with open(pdf_path, "wb") as f:
             f.write(response.content)
             f.close()
         update_adatlap_fields(adatlap["Id"], {
-            "DijbekeroPdf2": f"https://www.dataupload.xyz/static/{dijbekero_number}.pdf", "StatusId": "Utalásra vár", "DijbekeroSzama2": dijbekero_number, "KiallitasDatuma": datetime.datetime.now().strftime("%Y-%m-%d"), "FizetesiHatarido": (datetime.datetime.now() + datetime.timedelta(days=3)).strftime("%Y-%m-%d"), "DijbekeroUzenetek": f"Díjbekérő elkészült {datetime.datetime.now()}"})
+            "DijbekeroPdf2": f"https://www.dataupload.xyz/static/{dijbekero_number}.pdf", "StatusId": "Utalásra vár", "DijbekeroSzama2": dijbekero_number, "KiallitasDatuma": datetime.datetime.now().strftime("%Y-%m-%d"), "FizetesiHatarido": (datetime.datetime.now() + datetime.timedelta(days=3)).strftime("%Y-%m-%d"), "DijbekeroUzenetek": f"Díjbekéro elkészült {datetime.datetime.now()}"})
+        os.remove(pdf_path)
