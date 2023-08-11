@@ -755,12 +755,13 @@ class SMVendorDataSet(APIView):
 
     def post(self, request):
         data = json.loads(request.body)
-        vendors = []
         for item in data:
-            vendors.append(models.SMVendorsTable(
-                {"name": item["vendor"], **item}))
-        models.SMVendorsTable.objects.bulk_create(
-            vendors, ignore_conflicts=True)
+            if item["vendor"] is None:
+                continue
+            keys = ['vendor', 'lost_revenue', 'to_order_cost', 'replenish_date', 'to_order', 'inventory_value', 'latest_order_date', 'avg_lead_time', 'name']
+            formatted_item = {k: v for k, v in item.items() if k not in keys}
+            models.SMVendorsTable(
+                name=item["vendor"], **formatted_item).save()
         return Response({'status': 'success'}, status=HTTP_201_CREATED)
 
 
