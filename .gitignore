@@ -25,3 +25,4 @@ logs/
 .env
 dataupload/api/credentials.json
 dataupload/media/upload_files/
+dataupload/static/images/google_street_view/
