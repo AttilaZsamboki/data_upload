@@ -99,7 +99,6 @@ CRONJOBS = [
     ('0 0 * * *', 'api.cron.sm_inventory_planner'),
     ('0 0 * * *', 'api.cron.sm_auto_order'),
     ('45 * * * *', 'api.cron.dataupload_retry_feed'),
-    ('*/10 * * * *', 'api.cron.pen_dijbekero'),
 ]
 
 # Password validation
