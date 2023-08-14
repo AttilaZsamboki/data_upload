@@ -2168,7 +2168,7 @@ class Logs(models.Model):
         service = gmail_authenticate("sajat")
         if self.status == "ERROR":
             send_email(service=service, destination="zsamboki.attila.jr@gmail.com",
-                       obj="Script failed: " + self.script_name, body=f"{self.value} \n Részletek: {self.details}")
+                       obj="Sikertelen script: " + self.script_name, body=f"{self.value} \n {f'Részletek: {self.details}' if self.details else ''}")
         super(Logs, self).save(*args, **kwargs)
 
 

@@ -6,8 +6,7 @@ from datetime import datetime
 from datetime import datetime
 from .send_vendor_order import send_vendor_order
 from .fetch_data import sm_fetch_data
-from ..utils.logs import log
-import pandas as pd
+from ..utils.utils import log
 import requests
 from .download_order import download_order
 

@@ -1,28 +1,27 @@
-import sys
 import os
-import django
-from sqlalchemy import create_engine
-from os import environ
-from dotenv import load_dotenv
-import pandas as pd
+import sys
 from datetime import datetime, timedelta
-import platform
+from os import environ
+
+import pandas as pd
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from .base_path import base_path
+import django
+
 load_dotenv()
-
-
-base_path = (
-    os.environ.get("BASE_PATH_LINUX")
-    if platform.system() == "Linux"
-    else os.environ.get("BASE_PATH_WINDOWS")
-)
-
 
 sys.path.append(os.path.abspath(f"{base_path}/dataupload"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
                       "dataupload.dataupload.settings")
 django.setup()
-from api.models import DatauploadRetries  # noqa
 
+
+def log(log_value, status="SUCCESS", script_name="sm_vendor_orders", details=""):
+    from api.models import Logs  # noqa
+    log = Logs(script_name=script_name,
+               time=datetime.now()+timedelta(hours=2), status=status, value=log_value, details=details)
+    log.save()
 
 def diff_month(d1, d2):
     return (d1.year - d2.year) * 12 + d1.month - d2.month
@@ -41,6 +40,7 @@ def connect_to_db():
 
 
 def schedule_feed_retries(table, retry_number, frequency, file=None):
+    from api.models import DatauploadRetries  # noqa
     if retry_number is None or frequency == "1 óra":
         return
     engine = connect_to_db()
@@ -56,5 +56,19 @@ def schedule_feed_retries(table, retry_number, frequency, file=None):
     except:
         pass
     for i in range(1, retry_number+1):
+        log("Újrapróbálkozás beütemezve", "INFO", "dataupload_schedule_feed_retries", f"{table}, {i*2} óra múlva, {i} alkalommal")
         DatauploadRetries(table=table, when=datetime.now() +
                           timedelta(hours=i*2+2)).save(),
+
+
+def check_feed():
+    log("Feed check elkezdődött", "INFO", "dataupload_feed_check")
+    from api.models import DatauploadUploadmodel, Feed  # noqa
+    period_start = datetime.now() - timedelta(hours=1)
+    for feed in Feed.objects.filter(frequency="1 nap", runs_at__gte=period_start.hour, runs_at__lte=datetime.now().hour):
+        uploads = DatauploadUploadmodel.objects.filter(
+            table=feed.table, upload_timestamp__gte=period_start-timedelta(hours=2))
+        if not uploads.exists or uploads.count() == 0:
+            print("nincs")
+            schedule_feed_retries(table=feed.table, retry_number=feed.retry_number, frequency=feed.frequency)
+            log(f"A '{feed.table}' feed nem került feltöltésre az utolsó 1 órában. {feed.retry_number} óránkénti újrapróbálkozás lett beütemezve", "ERROR", "dataupload_feed_check")

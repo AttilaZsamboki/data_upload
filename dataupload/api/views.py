@@ -24,7 +24,7 @@ from datetime import date, timedelta
 import json
 from .sm.inventory_planner import inventory_planner
 from openpyxl import load_workbook
-from .utils.logs import log
+from .utils.utils import log
 
 
 @api_view(["GET"])

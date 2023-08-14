@@ -24,7 +24,7 @@ from .utils.unas_feed import get_unas_feed_url
 from .utils.unas_img import get_unas_img_feed_url
 from .sm.inventory_planner import inventory_planner
 from .sm.fetch_data import sm_fetch_data
-from .utils.logs import log
+from .utils.utils import log, check_feed
 from .utils.utils import schedule_feed_retries, connect_to_db
 from .pen.szamlazz_hu import dijbekero
 
@@ -115,6 +115,7 @@ def upload_feed_daily():
     for feed in Feed.objects.filter(runs_at=current_hour):
         if feed.frequency == "1 nap":
             upload_feed(feed)
+    check_feed()
 
 
 def upload_feed_weekly():
@@ -580,6 +581,7 @@ def dataupload_retry_feed():
         status = upload_feed(feed, False)
         if status == "SUCCESS":
             DatauploadRetries.objects.filter(table=retry.table).delete()
+            log(f"Feed '{retry.table}' újrapróbálkozás sikeres, maradék újrapróbálkozások törölve", "SUCCESS", "dataupload_retry_feed")
         else:
             retry.delete()
 

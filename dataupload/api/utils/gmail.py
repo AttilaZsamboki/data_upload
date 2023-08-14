@@ -6,14 +6,15 @@ from base64 import urlsafe_b64encode
 from googleapiclient.discovery import build
 import pickle
 import os
+from .base_path import base_path
 
 SCOPES = ["https://mail.google.com/"]
 our_email = "admin@foliasjuci.hu"
 
 
 def gmail_authenticate(account: str):
-    if os.path.exists(f"/home/atti/googleds/auth/gmail/{account}/token.pickle"):
-        with open(f"/home/atti/googleds/auth/gmail/{account}/token.pickle", "rb") as token:
+    if os.path.exists(f"{base_path}/auth/gmail/{account}/token.pickle"):
+        with open(f"{base_path}/auth/gmail/{account}/token.pickle", "rb") as token:
             creds = pickle.load(token)
             return build('gmail', 'v1', credentials=creds)
 

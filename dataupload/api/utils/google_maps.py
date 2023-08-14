@@ -2,7 +2,7 @@ import requests
 import os
 import googlemaps
 import dotenv
-from .logs import log
+from .utils import log
 dotenv.load_dotenv()
 
 

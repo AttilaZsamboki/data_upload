@@ -1,5 +1,5 @@
 from .utils import get_all_adatlap, adatlap_details, contact_details, billing_address, update_adatlap_fields
-from ..utils.utils import base_path
+from ..utils.base_path import base_path
 import requests
 import datetime
 import os
