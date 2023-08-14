@@ -56,7 +56,8 @@ def schedule_feed_retries(table, retry_number, frequency, file=None):
     except:
         pass
     for i in range(1, retry_number+1):
-        log("Újrapróbálkozás beütemezve", "INFO", "dataupload_schedule_feed_retries", f"{table}, {i*2} óra múlva, {i} alkalommal")
+        log("Újrapróbálkozás beütemezve", "INFO", "dataupload_schedule_feed_retries",
+            f"{table}, {i*2} óra múlva, {i}. alkalommal")
         DatauploadRetries(table=table, when=datetime.now() +
                           timedelta(hours=i*2+2)).save(),
 
@@ -64,11 +65,17 @@ def schedule_feed_retries(table, retry_number, frequency, file=None):
 def check_feed():
     log("Feed check elkezdődött", "INFO", "dataupload_feed_check")
     from api.models import DatauploadUploadmodel, Feed  # noqa
-    period_start = datetime.now() - timedelta(hours=1)
-    for feed in Feed.objects.filter(frequency="1 nap", runs_at__gte=period_start.hour, runs_at__lte=datetime.now().hour):
+    period_start = datetime.now() + timedelta(hours=1)
+    error = False
+    for feed in Feed.objects.filter(frequency="1 nap", runs_at=period_start.hour):
         uploads = DatauploadUploadmodel.objects.filter(
             table=feed.table, upload_timestamp__gte=period_start-timedelta(hours=2))
         if not uploads.exists or uploads.count() == 0:
-            print("nincs")
-            schedule_feed_retries(table=feed.table, retry_number=feed.retry_number, frequency=feed.frequency)
-            log(f"A '{feed.table}' feed nem került feltöltésre az utolsó 1 órában. {feed.retry_number} óránkénti újrapróbálkozás lett beütemezve", "ERROR", "dataupload_feed_check")
+            error = True
+            schedule_feed_retries(
+                table=feed.table, retry_number=feed.retry_number, frequency=feed.frequency)
+            log(f"A '{feed.table}' feed ismeretlen okokból nem került feltöltésre az utolsó 1 órában. {feed.retry_number}, óránkénti újrapróbálkozás lett beütemezve",
+                "ERROR", "dataupload_feed_check")
+    if not error:
+        log("Feed check sikeres, nem volt hibás feed az utolsó egy órában",
+            "INFO", "dataupload_feed_check")
