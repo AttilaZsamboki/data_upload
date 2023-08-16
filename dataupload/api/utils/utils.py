@@ -77,5 +77,5 @@ def check_feed():
             log(f"A '{feed.table}' feed ismeretlen okokból nem került feltöltésre az utolsó 1 órában. {feed.retry_number}, óránkénti újrapróbálkozás lett beütemezve",
                 "ERROR", "dataupload_feed_check")
     if not error:
-        log("Feed check sikeres, nem volt hibás feed az utolsó egy órában",
+        log("Feed check sikeres, nem volt elmaradt feed az utolsó egy órában",
             "INFO", "dataupload_feed_check")

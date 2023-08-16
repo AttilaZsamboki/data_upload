@@ -563,14 +563,8 @@ def sm_auto_order():
         else:
             status = "OPEN"
         order = inventory_planner(i.vendor, status=status, is_new=True)
-        service = gmail_authenticate("foliasjuci")
         order_url = f"https://stock.dataupload.xyz/orders?order_id={order['id']}"
-        if status == "DRAFT":
-            send_email(service, "beszerzes@foliasjuci.hu", "Új rendelési igény",
-                       f"Elértük a rendeléshez szükséges mennyiséget a következő szállítónál: {i.vendor}. Kérem, hogy ellenőrizze a rendelést és adja meg a rendelési engedélyt a rendszerben: {order_url}. Köszönjük!")
-        if status == "OPEN":
-            send_email(service, "beszerzes@foliasjuci.hu", "Új rendelés",
-                       f"Új automata rendelés lett leadva a következő szállítónál: {i.vendor}. Link: {order_url}")
+        requests.post("https://hooks.zapier.com/hooks/catch/1129295/39rkppy/", data={"vendor": i.vendor, "order_url": order_url})
 
 
 def dataupload_retry_feed():
