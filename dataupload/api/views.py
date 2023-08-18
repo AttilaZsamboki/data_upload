@@ -25,7 +25,7 @@ import json
 from .sm.inventory_planner import inventory_planner
 from openpyxl import load_workbook
 from .utils.utils import log
-from urllib.parse import urlencode
+from urllib.parse import quote
 
 
 @api_view(["GET"])
@@ -899,7 +899,7 @@ class PenCalculateDistance(APIView):
             log("Penészmentesítés MiniCRM webhook sikertelen", "ERROR", e)
         street_view_url = get_street_view_url(location=address)
         response = update_adatlap_fields(data["Id"], {
-            "IngatlanKepe": "https://www.dataupload.xyz/static/images/google_street_view/street_view.jpg", "UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee, "StreetViewUrl": street_view_url, "BruttoFelmeresiDij": round(fee*1.27), "UtvonalAKozponttol": f"https://www.google.com/maps/dir/?api=1&origin=M%C3%A1tra+u.+17,+Budapest,+1224&destination={urlencode({'address':address})}&travelmode=driving"})
+            "IngatlanKepe": "https://www.dataupload.xyz/static/images/google_street_view/street_view.jpg", "UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee, "StreetViewUrl": street_view_url, "BruttoFelmeresiDij": round(fee*1.27), "UtvonalAKozponttol": quote(f"https://www.google.com/maps/dir/?api=1&origin=M%C3%A1tra+u.+17,+Budapest,+1224&destination={address}&travelmode=driving")})
         if response.code == 200:
             log("Penészmentesítés MiniCRM webhook sikeresen lefutott",
                 "SUCCESS", "pen_calculate_distance")
