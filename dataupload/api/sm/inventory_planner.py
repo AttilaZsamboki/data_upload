@@ -104,8 +104,8 @@ def inventory_planner(vendor, status, is_new, id=0):
         log(status="SUCCESS", log_value=value)
         return {"status": "SUCCESS", "message": value}
     if status == "CLOSED" or status == "CANCELLED":
-        # async_to_sync(send_message)(
-        #     "Inventory Planner Purchase Order státusz frissítése folyamatban", 0)
+        async_to_sync(send_message)(
+            "Inventory Planner Purchase Order státusz frissítése folyamatban", 0)
         payload = {
             "purchase-order": {
                 "status": status,
@@ -116,13 +116,12 @@ def inventory_planner(vendor, status, is_new, id=0):
             "Authorization": "219fd6d79ead844c1ecaf1d86dd8c2bb38862e4cd96f7ae95930d605b544126d", "Account": "a3060"
         })
         if response.status_code == 200:
-            SMVendorOrders.objects.filter(id=id).update(order_status="OPEN")
-
+            SMVendorOrders.objects.filter(id=id).update(order_status=status)
             value = "Order {} for {} updated".format(
                 status, vendor)
             log(status="SUCCESS", log_value=value)
-            # async_to_sync(send_message)(
-                # "Inventory Planner Purchase Order státusz sikeresen frissítve", 100)
+            async_to_sync(send_message)(
+                "Inventory Planner Purchase Order státusz sikeresen frissítve", 100)
             return {"status": "SUCCESS", "message": value}
         else:
             value = "Order {} for {} failed to update. Error".format(
