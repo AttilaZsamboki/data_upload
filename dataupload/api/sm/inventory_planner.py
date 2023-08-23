@@ -117,6 +117,7 @@ def inventory_planner(vendor, status, is_new, id=0):
         })
         if response.status_code == 200:
             SMVendorOrders.objects.filter(id=id).update(order_status=status)
+
             value = "Order {} for {} updated".format(
                 status, vendor)
             log(status="SUCCESS", log_value=value)
