@@ -26,3 +26,4 @@ logs/
 dataupload/api/credentials.json
 dataupload/media/upload_files/
 dataupload/static/images/google_street_view/street_view.jpg
+dataupload/api/utils/local_manual_upload.py

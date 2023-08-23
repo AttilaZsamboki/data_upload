@@ -12,7 +12,7 @@ import json
 from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview, DatauploadRetries
 from .upload_handler import handle_uploaded_file
 import requests
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from .utils.gmail import gmail_authenticate, send_email
 import requests
 import pandas as pd
@@ -24,8 +24,7 @@ from .utils.unas_feed import get_unas_feed_url
 from .utils.unas_img import get_unas_img_feed_url
 from .sm.inventory_planner import inventory_planner
 from .sm.fetch_data import sm_fetch_data
-from .utils.utils import log, check_feed
-from .utils.utils import schedule_feed_retries, connect_to_db
+from .utils.utils import log, check_feed, schedule_feed_retries, connect_to_db
 from .pen.szamlazz_hu import dijbekero
 
 
@@ -81,6 +80,8 @@ def upload_feed(feed, retry_if_failed=True):
     except Exception as e:
         log("Hibás oszlop conifg", "ERROR", "upload_feed_daily", e)
     try:
+        if feed.delete:
+            delete_last_90(table)
         handle_uploaded_file(filename, table,
                              table_template, user_id, False, column_bindings, True)
         log("Feed feltöltése sikeresen befejeződött",
@@ -523,21 +524,11 @@ def pen_adatlap_upload():
                          table_template=table_template, user_id=1, is_new_table=False, column_bindings=column_bindings, is_feed=True)
 
 
-def fol_orders_delete_last_90():
-    DB_HOST = os.environ.get("DB_HOST")
-    DB_NAME = os.environ.get("DB_NAME")
-    DB_USER = os.environ.get("DB_USER")
-    DB_PASS = os.environ.get("DB_PASS")
-    DB_PORT = os.environ.get("DB_PORT")
-
-    engine = create_engine('postgresql://'+DB_USER+':' +
-                           DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
+def delete_last_90(table):
+    engine = connect_to_db()
 
     engine.execute(
-        f"DELETE FROM fol_orders WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")
-
-    engine.execute(
-        f"DELETE FROM pro_orders WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")
+        f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")
 
 
 def sm_inventory_planner():

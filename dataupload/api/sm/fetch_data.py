@@ -1,25 +1,19 @@
 import sys
-from sqlalchemy import create_engine
+from sqlalchemy import text
 import json
 import requests
 import pandas as pd
 import os
 import django
 from datetime import datetime
+from ..utils.base_path import base_path
+from ..utils.utils import connect_to_db
 
-sys.path.append(os.path.abspath('/home/atti/googleds/dataupload'))
+sys.path.append(os.path.abspath(f"{base_path}/dataupload"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE",
-                      "dataupload.settings")
+                      "dataupload.dataupload.settings")
 django.setup()
 from api.models import Logs  # noqa
-DB_HOST = os.environ.get("DB_HOST")
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_PASS = os.environ.get("DB_PASS")
-DB_PORT = os.environ.get("DB_PORT")
-
-engine = create_engine('postgresql://'+DB_USER+':' +
-                       DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
 
 
 def log(log_value, status="SUCCESS", script_name="sm_vendor_orders"):
@@ -29,6 +23,7 @@ def log(log_value, status="SUCCESS", script_name="sm_vendor_orders"):
 
 
 def sm_fetch_data():
+    engine = connect_to_db()
 
     def getVendor(connections):
         if len(connections) == 0 or isinstance(connections, dict):
@@ -44,10 +39,12 @@ def sm_fetch_data():
                     return vendors
 
     page = 0
-    engine.execute("delete from sm_product_data")
+    with engine.connect() as con:
+        con.execute(text("delete from sm_product_data"))
+        con.commit()
     while True:
         params = {'page': page, 'limit': '100',
-                  "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost,id",
+                  "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost,id", "sku": "200-5001"
                   }
         response = json.loads(requests.get(url=f"https://app.inventory-planner.com/api/v1/variants", params=params, headers={
             "Authorization": os.environ.get("INVENTORY_PLANNER_API"), "Account": "a3060"}).text)
