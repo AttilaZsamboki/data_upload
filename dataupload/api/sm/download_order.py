@@ -10,6 +10,7 @@ load_dotenv()
 
 engine = connect_to_db()
 
+
 def download_order(vendor):
     directory = f'{base_path}/files/sm_pos/{vendor}'
     if not os.path.exists(directory):
@@ -38,5 +39,3 @@ def download_order(vendor):
     data.to_excel(
         path, index=False)
     return {"data": data, "path": path}
-
-download_order('konrad hornschuch ag')
