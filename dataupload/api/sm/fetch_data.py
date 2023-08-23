@@ -44,7 +44,7 @@ def sm_fetch_data():
         con.commit()
     while True:
         params = {'page': page, 'limit': '100',
-                  "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost,id", "sku": "200-5001"
+                  "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost,id"
                   }
         response = json.loads(requests.get(url=f"https://app.inventory-planner.com/api/v1/variants", params=params, headers={
             "Authorization": os.environ.get("INVENTORY_PLANNER_API"), "Account": "a3060"}).text)
