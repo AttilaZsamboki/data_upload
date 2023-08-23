@@ -759,7 +759,8 @@ class SMVendorDataSet(APIView):
         for item in data:
             if item["vendor"] is None:
                 continue
-            keys = ['vendor', 'lost_revenue', 'to_order_cost', 'replenish_date', 'to_order', 'inventory_value', 'latest_order_date', 'avg_lead_time', 'name']
+            keys = ['vendor', 'lost_revenue', 'to_order_cost', 'replenish_date',
+                    'to_order', 'inventory_value', 'latest_order_date', 'avg_lead_time', 'name']
             formatted_item = {k: v for k, v in item.items() if k not in keys}
             models.SMVendorsTable(
                 name=item["vendor"], **formatted_item).save()
@@ -882,6 +883,10 @@ class PenCalculateDistance(APIView):
         address = f"{data['Cim2']} {data['Telepules']}, {data['Iranyitoszam']} {data['Orszag']}"
         gmaps_result = calculate_distance(
             start=telephely, end=codecs.unicode_escape_decode(address)[0])
+        if gmaps_result == "Error":
+            log("Penészmentesítés MiniCRM webhook sikertelen", "ERROR", "pen_calculate_distance",
+                f"Hiba a Google Maps API-al való kommunikáció során {address}, adatlap id: {data['Id']}")
+            return Response({'status': 'error'}, status=HTTP_200_OK)
         duration = gmaps_result["duration"] / 60
         distance = gmaps_result["distance"] // 1000
         formatted_duration = f"{math.floor(duration//60)} óra {math.floor(duration%60)} perc"
@@ -894,10 +899,11 @@ class PenCalculateDistance(APIView):
         fee = fee_map[[i for i in fee_map.keys() if i < distance][-1]]
 
         try:
-            get_street_view(location=address)
+            get_street_view(location=codecs.unicode_escape_decode(address)[0])
         except Exception as e:
-            log("Penészmentesítés MiniCRM webhook sikertelen", "ERROR", e)
-        street_view_url = get_street_view_url(location=address)
+            log("Penészmentesítés MiniCRM webhook sikertelen", "FAILED", e)
+        street_view_url = get_street_view_url(
+            location=codecs.unicode_escape_decode(address)[0])
         response = update_adatlap_fields(data["Id"], {
             "IngatlanKepe": "https://www.dataupload.xyz/static/images/google_street_view/street_view.jpg", "UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee, "StreetViewUrl": street_view_url, "BruttoFelmeresiDij": round(fee*1.27), "UtvonalAKozponttol": f"https://www.google.com/maps/dir/?api=1&origin=M%C3%A1tra+u.+17,+Budapest,+1224&destination={codecs.decode(address, 'unicode_escape')}&travelmode=driving"})
         if response.code == 200:
@@ -905,7 +911,7 @@ class PenCalculateDistance(APIView):
                 "SUCCESS", "pen_calculate_distance")
         else:
             log("Penészmentesítés MiniCRM webhook sikertelen",
-                "ERROR", response.reason)
+                "ERROR", "pen_calculate_distance", response.reason)
         return Response({'status': 'success'}, status=HTTP_200_OK)
 
 

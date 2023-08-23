@@ -14,7 +14,7 @@ def calculate_distance(start, end, mode="driving"):
     except googlemaps.exceptions.ApiError as e:
         log("Hiba a Google Maps API-al való kommunikáció során",
             status="ERROR", script_name="calculate_distance", details=e)
-        return {"distance": 0, "duration": 0}
+        return "Error"
     distance = direction_result[0]['legs'][0]['distance']['value']
     duration = direction_result[0]['legs'][0]['duration']['value']
     return {"distance": distance, "duration": duration}
@@ -54,7 +54,7 @@ def get_street_view_url(location):
     response.raise_for_status()  # Raise an exception if the request failed
     result = response.json()
 
-    if not result["results"]:
+    if not result["results"] or result["status"] != "OK" or len(result["results"]) == 0:
         log("Hiba a Google Maps API-al való kommunikáció során. Hibásan megadott cím",
             status="INFO", script_name="get_street_view_url", details=location)
 
