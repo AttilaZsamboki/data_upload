@@ -1,23 +1,17 @@
 import os
 from datetime import datetime
 import pandas as pd
-from sqlalchemy import create_engine
 from dotenv import load_dotenv
+
+from ..utils.base_path import base_path
+from ..utils.utils import connect_to_db
+
 load_dotenv()
 
-DB_HOST = os.environ.get("DB_HOST")
-DB_NAME = os.environ.get("DB_NAME")
-DB_USER = os.environ.get("DB_USER")
-DB_PASS = os.environ.get("DB_PASS")
-DB_PORT = os.environ.get("DB_PORT")
-
-engine = create_engine('postgresql://'+DB_USER+':' +
-                       DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
-
+engine = connect_to_db()
 
 def download_order(vendor):
-    directory = '/home/atti/googleds/files/sm_pos/{}'.format(
-        vendor)
+    directory = f'{base_path}/files/sm_pos/{vendor}'
     if not os.path.exists(directory):
         os.makedirs(directory)
     path = directory + "/{}.xlsx".format(
@@ -44,3 +38,5 @@ def download_order(vendor):
     data.to_excel(
         path, index=False)
     return {"data": data, "path": path}
+
+download_order('konrad hornschuch ag')
