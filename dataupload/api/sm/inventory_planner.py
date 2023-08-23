@@ -116,7 +116,7 @@ def inventory_planner(vendor, status, is_new, id=0):
             "Authorization": "219fd6d79ead844c1ecaf1d86dd8c2bb38862e4cd96f7ae95930d605b544126d", "Account": "a3060"
         })
         if response.status_code == 200:
-            SMVendorOrders.objects.filter(id=id).update(order_status=status)
+            SMVendorOrders.objects.filter(id=id).update(order_status="OPEN")
 
             value = "Order {} for {} updated".format(
                 status, vendor)
