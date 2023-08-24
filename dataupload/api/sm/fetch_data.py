@@ -41,7 +41,6 @@ def sm_fetch_data():
     page = 0
     with engine.connect() as con:
         con.execute(text("delete from sm_product_data"))
-        con.commit()
     while True:
         params = {'page': page, 'limit': '100',
                   "fields": "sku,replenish_date,to_order,forecasted_lost_revenue_lead_time,connections,to_order_cost,id"
