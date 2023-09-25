@@ -11,7 +11,7 @@ import { useTableOptionsAll } from "../hooks/Tables";
 
 export default function AddTemplate() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
-	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás"];
+	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás", "Újak frissítése"];
 	const tableOptions = useTableOptionsAll();
 	const [state, setState] = useState<{ table: string; pkey_col: string; skiprows: number; append: string }>({});
 	const [sourceColumns, setSourceColumns] = useState({});
@@ -44,10 +44,10 @@ export default function AddTemplate() {
 			<Autocomplete
 				disablePortal
 				id='table'
-				options={tableOptions.data?.map((table) => table.db_table)}
+				options={tableOptions.data ? tableOptions.data.map((table) => table.db_table) : []}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Tábla neve' />}
-				onChange={(e, v) => setState((prev) => ({ ...prev, table: v }))}
+				onChange={(e, v) => setState((prev) => ({ ...prev, table: v ? v : "" }))}
 			/>
 			<br />
 			<TextField
@@ -71,12 +71,10 @@ export default function AddTemplate() {
 			<Autocomplete
 				disablePortal
 				id='appendOptions'
-				name='appendOptions'
-				type='text'
 				options={appendOptions}
 				sx={{ width: 300 }}
 				renderInput={(params) => <TextField {...params} label='Hozááfűzés formája' />}
-				onChange={(e, v) => setState((prev) => ({ ...prev, append: v }))}
+				onChange={(e, v) => setState((prev) => ({ ...prev, append: v ? v : "" }))}
 				value={state.append}
 			/>
 			<br />

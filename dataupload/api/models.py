@@ -166,7 +166,7 @@ class DatauploadTableOverview(models.Model):
     db_table = models.CharField(max_length=255)
     verbose_name = models.CharField(max_length=255)
     available_at = models.CharField(max_length=255)
-    email_name = models.CharField(max_length=255)
+    email_name = models.CharField(max_length=255, blank=True)
     group = models.CharField(max_length=100)
     id = models.AutoField(primary_key=True)
 
