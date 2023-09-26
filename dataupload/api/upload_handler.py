@@ -180,16 +180,25 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
                                 A fenti okok miatt a feltöltés törlésre került.
                                 """)
 
+
+    primary_key_source = table_template.pkey_col
+    primary_key_db = "".join(
+        [i for i, j in column_bindings.items() if j == primary_key_source])
     base_query = "INSERT INTO \""+table+"\" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary" if column_binding_values_str else "INSERT INTO "+table+" SELECT * FROM temporary"
+    if table_template.append == "Változott adat frissítése":
+        set_clause = ", ".join([f"\"{table_col}\" = temporary.\"{temp_col}\"" for table_col, temp_col in column_bindings.items()])
+        base_query = f"""
+            UPDATE \"{table}\"
+            SET {set_clause}
+            FROM temporary
+            WHERE \"{table}\".\"{primary_key_db}\" = temporary.\"{primary_key_source}\"
+        """
 
     if table_template.append == "Felülírás":
         cur.execute("TRUNCATE \""+table+"\";")
         conn.commit()
     elif table_template.append == "Hozzáfűzés duplikációk szűrésével":
-        primary_key_source = table_template.pkey_col
-        primary_key_db = "".join(
-            [i for i, j in column_bindings.items() if j == primary_key_source])
         cur.execute(
             f"DELETE FROM \"{table}\" WHERE \"{primary_key_db}\" IN (SELECT \"{primary_key_source}\" FROM temporary);")
         conn.commit()

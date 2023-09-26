@@ -11,7 +11,7 @@ import { useTableOptionsAll } from "../hooks/Tables";
 
 export default function AddTemplate() {
 	if (!Userfront.accessToken()) return <Navigate to='/login' replace={true} />;
-	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás", "Újak frissítése"];
+	const appendOptions = ["Hozzáfűzés duplikációk szűrésével", "Hozzáfűzés", "Felülírás", "Változott adat frissítése"];
 	const tableOptions = useTableOptionsAll();
 	const [state, setState] = useState<{ table: string; pkey_col: string; skiprows: number; append: string }>({});
 	const [sourceColumns, setSourceColumns] = useState({});
