@@ -186,14 +186,7 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
         [i for i, j in column_bindings.items() if j == primary_key_source])
     base_query = "INSERT INTO \""+table+"\" ("+", ".join(["\""+i+"\"" for i in column_bindings.keys(
     )]) + ") SELECT "+", ".join(["\""+i+"\"" for i in column_bindings.values()])+" FROM temporary" if column_binding_values_str else "INSERT INTO "+table+" SELECT * FROM temporary"
-    if table_template.append == "Változott adat frissítése":
-        set_clause = ", ".join([f"\"{table_col}\" = temporary.\"{temp_col}\"" for table_col, temp_col in column_bindings.items()])
-        base_query = f"""
-            UPDATE \"{table}\"
-            SET {set_clause}
-            FROM temporary
-            WHERE \"{table}\".\"{primary_key_db}\" = temporary.\"{primary_key_source}\"
-        """
+   
 
     if table_template.append == "Felülírás":
         cur.execute("TRUNCATE \""+table+"\";")
@@ -203,7 +196,34 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
             f"DELETE FROM \"{table}\" WHERE \"{primary_key_db}\" IN (SELECT \"{primary_key_source}\" FROM temporary);")
         conn.commit()
     try:
-        cur.execute(base_query)
+        if table_template.append == "Változott adat frissítése":
+            set_clause = ", ".join([f"\"{table_col}\" = temporary.\"{temp_col}\"" for table_col, temp_col in column_bindings.items()])
+            column_list_db = ", ".join([f"\"{col}\"" for col in column_bindings.keys()])
+            column_list_temp = ", ".join([f"\"{col}\"" for col in column_bindings.values()])
+
+            update_query = f"""
+                UPDATE \"{table}\"
+                SET {set_clause}
+                FROM temporary
+                WHERE \"{table}\".\"{primary_key_db}\" = temporary.\"{primary_key_source}\"
+            """
+            cur.execute(update_query)
+            conn.commit()
+
+            insert_query = f"""
+                INSERT INTO \"{table}\" ({column_list_db})
+                SELECT {column_list_temp}
+                FROM temporary
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM \"{table}\"
+                    WHERE \"{table}\".\"{primary_key_db}\" = temporary.\"{primary_key_source}\"
+                )
+            """
+            cur.execute(insert_query)
+            conn.commit()
+        else:
+            cur.execute(base_query)
     except psycopg2.errors.UndefinedColumn as e:
         upload_model.status = "error"
         upload_model.status_description = f"Hibás oszlop nevek ({e})"

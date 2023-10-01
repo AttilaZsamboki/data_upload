@@ -24,8 +24,8 @@ file = f"files/tests/{table}.xlsx"
 model = DatauploadUploadmodel(table=table, file=file, user_id=1, is_new_table=False, status_description="Test", status="ready", mode="Feed")
 model.save()
 
-try:
-    handle_uploaded_file(file=file, table=table, table_template=template, user_id=1, is_feed=False, is_new_table=False, column_bindings=json.loads(template.source_column_names))
-except Exception as e:
-    print(e)
-    model.delete()
+# try:
+handle_uploaded_file(file=file, table=table, table_template=template, user_id=1, is_feed=False, is_new_table=False, column_bindings=json.loads(template.source_column_names))
+# except Exception as e:
+#     print(e)
+#     model.delete()
