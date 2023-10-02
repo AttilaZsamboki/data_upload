@@ -2,22 +2,25 @@ from datetime import datetime
 import pandas as pd
 from psycopg2 import connect
 from sqlalchemy import create_engine
+from os import environ
+from dotenv import load_dotenv
+load_dotenv()
 
-engine = create_engine(
-    "postgresql://doadmin:AVNS_FovmirLSFDui0KIAOnu@defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com:25060/defaultdb?sslmode=require")
+DB_HOST = environ.get("DB_HOST")
+DB_NAME = environ.get("DB_NAME")
+DB_USER = environ.get("DB_USER")
+DB_PASS = environ.get("DB_PASS")
+DB_PORT = environ.get("DB_PORT")
 
-DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
-DB_NAME = "defaultdb"
-DB_USER = "doadmin"
-DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-DB_PORT = "25060"
+engine = create_engine('postgresql://'+DB_USER+':' +
+                        DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
 
 conn = connect(dbname=DB_NAME, user=DB_USER,
                password=DB_PASS, host=DB_HOST, port=DB_PORT)
 cur = conn.cursor()
 
-stock_transaction_report = pd.read_sql_table(
-    table_name="fol_stock_transaction_report_ext", con=engine)
+stock_transaction_report = pd.read_sql(
+    "select * from fol_stock_transaction_report_ext;", con=engine)
 stock_transaction_report.sort_values(
     by="Finished", ascending=False, inplace=True)
 stock_transaction_report = stock_transaction_report[
