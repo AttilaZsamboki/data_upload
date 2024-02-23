@@ -1,36 +1,39 @@
-from django.http import HttpResponse
-import subprocess
-from .utils.google_maps import get_street_view, get_street_view_url
-from .pen.utils import update_adatlap_fields
-import math
 import codecs
-from .utils.google_maps import calculate_distance
+import json
+import math
+import os
+import subprocess
+import urllib.parse
+from datetime import date, timedelta
+from io import open
+
+import psycopg2
+import requests
 from django.core.files import File
+from django.core.management import call_command
 from django.db import IntegrityError
+from django.http import HttpResponse, JsonResponse
+from openpyxl import load_workbook
+from PIL import Image
 from rest_framework import generics, viewsets
-from rest_framework.views import APIView
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.status import (
-    HTTP_201_CREATED,
     HTTP_200_OK,
+    HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
-from django.http import JsonResponse
-import psycopg2
+from rest_framework.views import APIView
+
 from . import models, serializers
+from .pen.utils import update_adatlap_fields
 from .permissions import AuthorAllUser
-from rest_framework.decorators import api_view
-import os
-from io import open
-from PIL import Image
-from django.core.management import call_command
-from datetime import date, timedelta
-import json
 from .sm.inventory_planner import inventory_planner
-from openpyxl import load_workbook
+from .utils.google_maps import calculate_distance, get_street_view, get_street_view_url
+from .utils.unas_feed import get_unas_token
 from .utils.utils import log
-from urllib.parse import quote
+from .utils.activecampaign import ActiveCampaign
 
 
 @api_view(["GET"])
@@ -1020,5 +1023,84 @@ class Deploy(APIView):
 
 class FolAcKupon(APIView):
     def post(self, request):
-        log("Kupon webhook meghívva", "INFO", "fol_ackupon", details=request.body)
+        binary_string = request.body
+        decoded_string = binary_string.decode("utf-8")
+        parsed_string = urllib.parse.parse_qs(decoded_string)
+        log(
+            "Kupon webhook meghívva",
+            "INFO",
+            "fol_ackupon",
+            details=binary_string,
+            data=parsed_string,
+        )
+
+        if "Start Coupon" in parsed_string["contact[tags]"][0]:
+            value = parsed_string["contact[fields][54]"][0]
+            token = get_unas_token()
+            contact_id = parsed_string["contact[id]"][0]
+            url_payload = f"""<Coupons>
+	<Coupon>
+		<Action></Action>
+		<Id>ncc-{contact_id}</Id>
+		<BaseType>total</BaseType>
+		<Customer>{parsed_string["contact[email]"][0]}</Customer>
+		<Type>{"percent" if parsed_string["contact[fields][56]"][0] == "Percent" else "amount"}</Type>
+		<Template>no</Template>
+		<Value>{value}</Value>
+		<MaxUsabilityInOrders>1</MaxUsabilityInOrders>
+		<MaxUsabilityPerCustomer>1</MaxUsabilityPerCustomer>
+		<UsabilityForNewCustomers>everyone</UsabilityForNewCustomers>
+		<MinimumItemCount>1</MinimumItemCount>
+	</Coupon>
+</Coupons>"""
+            url_request = requests.post(
+                "https://api.unas.eu/shop/setCoupon",
+                headers={"Authorization": f"Bearer {token}"},
+                data=url_payload,
+            )
+            if url_request.status_code == 200:
+                log(
+                    "Unas kupon létrehozva",
+                    "SUCCESS",
+                    "fol_ackupon",
+                )
+
+                active_campaign = ActiveCampaign(
+                    api_key=os.environ.get("ACTIVE_CAMPAIGN_API_KEY"),
+                    domain=os.environ.get("ACTIVE_CAMPAIGN_DOMAIN"),
+                )
+                tag_response = active_campaign.add_tag_to_contact(contact_id, 80)
+
+                if not tag_response.ok:
+                    log(
+                        "Hiba akadt a cimke hozzáadásakor",
+                        "ERROR",
+                        "fol_ackupon",
+                        details=tag_response.text,
+                    )
+                    return
+
+                update_contact_payload = {
+                    "contact": {
+                        "fieldValues": [
+                            {"field": "52", "value": "ncc-" + contact_id},
+                        ]
+                    }
+                }
+                response = active_campaign.update_contact(contact_id, update_contact_payload)
+
+                if response.ok:
+                    log(
+                        "Kupon sikeresen hozzáadva",
+                        "SUCCESS",
+                        "fol_ackupon",
+                    )
+            else:
+                log(
+                    "Kupon webhook sikertelen",
+                    "ERROR",
+                    "fol_ackupon",
+                    details=url_request.text,
+                    data=parsed_string,
+                )
         return Response({"status": "success"}, status=HTTP_200_OK)

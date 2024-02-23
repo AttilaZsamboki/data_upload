@@ -1,91 +1,130 @@
+from .utils.utils import check_feed, connect_to_db, log, schedule_feed_retries
 import datetime
-from google.oauth2 import service_account
-import requests
 import json
-import pandas as pd
-from datetime import date
-from googleapiclient.discovery import build
 import logging
-from base64 import urlsafe_b64decode
 import os
-import json
-from .models import DatauploadUploadmodel, DatauploadTabletemplates, Feed, DatauploadGroups, DatauploadTableOverview, DatauploadRetries
-from .upload_handler import handle_uploaded_file
-import requests
+from base64 import urlsafe_b64decode
 from datetime import date, datetime, timedelta
-from .utils.gmail import gmail_authenticate, send_email
-import requests
+
 import pandas as pd
+import requests
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 from sqlalchemy import create_engine
+
+from .models import (
+    DatauploadGroups,
+    DatauploadRetries,
+    DatauploadTableOverview,
+    DatauploadTabletemplates,
+    DatauploadUploadmodel,
+    Feed,
+    FolOrderFee,
+)
+from .pen.szamlazz_hu import dijbekero
+from .sm.fetch_data import sm_fetch_data
+from .sm.inventory_planner import inventory_planner
 from .unas_translator import translate_unas
 from .unas_translator_correcter_ro import unas_correcter_ro
 from .unas_translator_correcter_sk import unas_correcter_sk
+from .upload_handler import handle_uploaded_file
+from .utils.gmail import gmail_authenticate, send_email
 from .utils.unas_feed import get_unas_feed_url
 from .utils.unas_img import get_unas_img_feed_url
-from .sm.inventory_planner import inventory_planner
-from .sm.fetch_data import sm_fetch_data
-from .utils.utils import log, check_feed, schedule_feed_retries, connect_to_db
-from .pen.szamlazz_hu import dijbekero
+from .utils.activecampaign import ActiveCampaign
 
 
 def upload_file():
     for upload in DatauploadUploadmodel.objects.all():
         table, file, is_new_table, status = (
-            upload.table, upload.file, upload.is_new_table, upload.status)
+            upload.table,
+            upload.file,
+            upload.is_new_table,
+            upload.status,
+        )
         if status == "ready":
             if not is_new_table:
-                table_template = DatauploadTabletemplates.objects.get(
-                    table=table)
+                table_template = DatauploadTabletemplates.objects.get(table=table)
                 try:
-                    column_bindings = json.loads(
-                        table_template.source_column_names)
+                    column_bindings = json.loads(table_template.source_column_names)
                 except:
                     print("Json convert error")
             else:
                 table_template = {}
                 column_bindings = {}
-            handle_uploaded_file(file, table,
-                                 table_template, upload.user_id, is_new_table, column_bindings, False)
+            handle_uploaded_file(
+                file,
+                table,
+                table_template,
+                upload.user_id,
+                is_new_table,
+                column_bindings,
+                False,
+            )
 
 
 def upload_feed(feed, retry_if_failed=True):
     table, url, user_id, frequency, retry_number = (
-        feed.table, feed.url, feed.user_id, feed.frequency, feed.retry_number)
-    log(f"Feed '{table}' feltöltése elkezdődött",
-        "INFO", "upload_feed_daily")
+        feed.table,
+        feed.url,
+        feed.user_id,
+        feed.frequency,
+        feed.retry_number,
+    )
+    log(f"Feed '{table}' feltöltése elkezdődött", "INFO", "upload_feed_daily")
     if table == "fol_unas":
         url = get_unas_feed_url()
     try:
         file = requests.get(url).content
     except:
-        log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
-            "ERROR", "upload_feed_daily")
+        log(
+            f"Feed '{table}' nem érhető el a megadott url-en({url})",
+            "ERROR",
+            "upload_feed_daily",
+        )
         return
-    files_already_existing = [f for f in os.listdir(
-        f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+    files_already_existing = [
+        f
+        for f in os.listdir(f"/home/atti/googleds/files/{table}/")
+        if f"{date.today()}" in f
+    ]
     filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
     try:
         open(filename, "wb").write(file)
     except:
-        log(f"Feed '{table}' nem érhető el a megadott url-en({url})",
-            "ERROR", "upload_feed_daily")
+        log(
+            f"Feed '{table}' nem érhető el a megadott url-en({url})",
+            "ERROR",
+            "upload_feed_daily",
+        )
     uploadmodel = DatauploadUploadmodel(
-        table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+        table=table,
+        file=filename,
+        user_id=user_id,
+        is_new_table=False,
+        status_description="Feltöltésre kész",
+        status="ready",
+        upload_timestamp=datetime.now(),
+        mode="Feed",
+    )
     uploadmodel.save()
-    table_template = DatauploadTabletemplates.objects.get(
-        table=table)
+    table_template = DatauploadTabletemplates.objects.get(table=table)
     try:
-        column_bindings = json.loads(
-            table_template.source_column_names)
+        column_bindings = json.loads(table_template.source_column_names)
     except Exception as e:
         log("Hibás oszlop conifg", "ERROR", "upload_feed_daily", e)
     try:
         if feed.delete:
             delete_last_90(table)
-        handle_uploaded_file(filename, table,
-                             table_template, user_id, False, column_bindings, True)
-        log("Feed feltöltése sikeresen befejeződött",
-            "SUCCESS", "upload_feed_daily", details=f"Table: {table}")
+        handle_uploaded_file(
+            filename, table, table_template, user_id, False, column_bindings, True
+        )
+        log(
+            "Feed feltöltése sikeresen befejeződött",
+            "SUCCESS",
+            "upload_feed_daily",
+            details=f"Table: {table}",
+        )
         return "SUCCESS"
     except ValueError as e:
         uploadmodel.table = table
@@ -93,10 +132,13 @@ def upload_feed(feed, retry_if_failed=True):
         uploadmodel.status_description = "Hibás fájl tartalom"
         uploadmodel.save()
         if retry_if_failed:
-            schedule_feed_retries(table, retry_number,
-                                  frequency, file)
-        log(f"Hibás fájl tartalom. Tábla {uploadmodel.table}\n URL {url}",
-            "ERROR", "upload_feed_daily", e)
+            schedule_feed_retries(table, retry_number, frequency, file)
+        log(
+            f"Hibás fájl tartalom. Tábla {uploadmodel.table}\n URL {url}",
+            "ERROR",
+            "upload_feed_daily",
+            e,
+        )
         return "ERROR"
     except Exception as error:
         uploadmodel.table = table
@@ -104,10 +146,13 @@ def upload_feed(feed, retry_if_failed=True):
         uploadmodel.status_description = "Hiba történt a fájl feltöltése közben."
         uploadmodel.save()
         if retry_if_failed:
-            schedule_feed_retries(table, retry_number,
-                                  frequency, file)
-        log(f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}",
-            "ERROR", "upload_feed_daily", details=error)
+            schedule_feed_retries(table, retry_number, frequency, file)
+        log(
+            f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}",
+            "ERROR",
+            "upload_feed_daily",
+            details=error,
+        )
         return "ERROR"
 
 
@@ -134,16 +179,20 @@ def upload_feed_hourly():
 def email_uploads():
 
     def search_messages(service, query):
-        result = service.users().messages().list(userId='me', q=query).execute()
+        result = service.users().messages().list(userId="me", q=query).execute()
         messages = []
-        if 'messages' in result:
-            messages.extend(result['messages'])
-        while 'nextPageToken' in result:
-            page_token = result['nextPageToken']
-            result = service.users().messages().list(
-                userId='me', q=query, pageToken=page_token).execute()
-            if 'messages' in result:
-                messages.extend(result['messages'])
+        if "messages" in result:
+            messages.extend(result["messages"])
+        while "nextPageToken" in result:
+            page_token = result["nextPageToken"]
+            result = (
+                service.users()
+                .messages()
+                .list(userId="me", q=query, pageToken=page_token)
+                .execute()
+            )
+            if "messages" in result:
+                messages.extend(result["messages"])
         return messages
 
     # utility functions
@@ -180,8 +229,9 @@ def email_uploads():
                 if part.get("parts"):
                     # recursively call this function when we see that a part
                     # has parts inside
-                    parse_parts(service, part.get("parts"),
-                                folder_name, message, sender_email)
+                    parse_parts(
+                        service, part.get("parts"), folder_name, message, sender_email
+                    )
 
                 if mimeType == "text/plain":
                     # if the email part is text plain
@@ -198,60 +248,121 @@ def email_uploads():
                             if "attachment" in part_header_value:
                                 # we get the attachment ID
                                 # and make another request to get the attachment itself
-                                print("Saving the file:", filename,
-                                      "size:", get_size_format(file_size))
+                                print(
+                                    "Saving the file:",
+                                    filename,
+                                    "size:",
+                                    get_size_format(file_size),
+                                )
                                 attachment_id = body.get("attachmentId")
-                                attachment = service.users().messages() \
-                                    .attachments().get(id=attachment_id, userId='me', messageId=message['id']).execute()
+                                attachment = (
+                                    service.users()
+                                    .messages()
+                                    .attachments()
+                                    .get(
+                                        id=attachment_id,
+                                        userId="me",
+                                        messageId=message["id"],
+                                    )
+                                    .execute()
+                                )
                                 data = attachment.get("data")
                                 if data:
                                     headers = {
-                                        'Accept': '*/*',
+                                        "Accept": "*/*",
                                         # Already added when you pass json=
                                         # 'Content-Type': 'application/json',
-                                        'Authorization': 'Bearer uf_live_admin_6nz455rn_9174142975ec131dcc59fa0b55977be2',
+                                        "Authorization": "Bearer uf_live_admin_6nz455rn_9174142975ec131dcc59fa0b55977be2",
                                     }
                                     response = requests.post(
-                                        'https://api.userfront.com/v0/users/find', headers=headers)
+                                        "https://api.userfront.com/v0/users/find",
+                                        headers=headers,
+                                    )
                                     sender_email = sender_email.replace(
-                                        "<", "").replace(">", "")
-                                    user = [i for i in json.loads(response.content)[
-                                        "results"] if i["email"] == sender_email][0]
+                                        "<", ""
+                                    ).replace(">", "")
+                                    user = [
+                                        i
+                                        for i in json.loads(response.content)["results"]
+                                        if i["email"] == sender_email
+                                    ][0]
                                     user_id = user["userId"]
                                     groups = DatauploadGroups.objects.filter(
-                                        user_ids__contains=user_id)
+                                        user_ids__contains=user_id
+                                    )
                                     if len(groups) > 1:
                                         if text:
                                             group = [
-                                                i for i in groups if i.group == text.replace("\r\n", "")][0]
+                                                i
+                                                for i in groups
+                                                if i.group == text.replace("\r\n", "")
+                                            ][0]
                                     else:
                                         group = groups[0]
-                                    tables = [i.email_name for i in DatauploadTableOverview.objects.filter(available_at__contains="upload"
-                                                                                                           ) if i.db_table in group.tables and i.email_name in filename]
+                                    tables = [
+                                        i.email_name
+                                        for i in DatauploadTableOverview.objects.filter(
+                                            available_at__contains="upload"
+                                        )
+                                        if i.db_table in group.tables
+                                        and i.email_name in filename
+                                    ]
                                     table = ""
                                     for i in tables:
                                         table = DatauploadTableOverview.objects.get(
-                                            email_name=i, group=group.group).db_table
+                                            email_name=i, group=group.group
+                                        ).db_table
                                     if table == "":
-                                        send_email(service, sender_email, "Feltöltés hiba",
-                                                   f"'{filename}' nem megfelelő fájlnév, tartalmaznia kell egy tábla nevét az aláábiak közül: {', '.join([i[4:] for i in tables])}", [])
+                                        send_email(
+                                            service,
+                                            sender_email,
+                                            "Feltöltés hiba",
+                                            f"'{filename}' nem megfelelő fájlnév, tartalmaznia kell egy tábla nevét az aláábiak közül: {', '.join([i[4:] for i in tables])}",
+                                            [],
+                                        )
                                     filename, extension_format = os.path.splitext(
-                                        str(filename))
-                                    file_number = len([f for f in os.listdir(
-                                        f'{folder_name}{table}') if filename in f])
+                                        str(filename)
+                                    )
+                                    file_number = len(
+                                        [
+                                            f
+                                            for f in os.listdir(f"{folder_name}{table}")
+                                            if filename in f
+                                        ]
+                                    )
                                     filename = f"{filename}{f' ({file_number})' if file_number else ''}{extension_format}"
                                     filepath = f"{folder_name}{table}/{filename}"
-                                    table_template = DatauploadTabletemplates.objects.get(
-                                        table=table)
+                                    table_template = (
+                                        DatauploadTabletemplates.objects.get(
+                                            table=table
+                                        )
+                                    )
                                     column_bindings = json.loads(
-                                        table_template.source_column_names)
+                                        table_template.source_column_names
+                                    )
                                     with open(filepath, "wb") as f:
                                         f.write(urlsafe_b64decode(data))
-                                    uploadmodel = DatauploadUploadmodel(table=table, file=filepath, user_id=user_id, is_new_table=False,
-                                                                        upload_timestamp=datetime.now(), mode="Email", status="ready")
+                                    uploadmodel = DatauploadUploadmodel(
+                                        table=table,
+                                        file=filepath,
+                                        user_id=user_id,
+                                        is_new_table=False,
+                                        upload_timestamp=datetime.now(),
+                                        mode="Email",
+                                        status="ready",
+                                    )
                                     uploadmodel.save()
-                                    handle_uploaded_file(file=filepath, table=table,
-                                                         table_template=table_template, user_id=user_id, is_new_table=False, column_bindings=column_bindings, is_feed=False, is_email=True, sender_email=sender_email)
+                                    handle_uploaded_file(
+                                        file=filepath,
+                                        table=table,
+                                        table_template=table_template,
+                                        user_id=user_id,
+                                        is_new_table=False,
+                                        column_bindings=column_bindings,
+                                        is_feed=False,
+                                        is_email=True,
+                                        sender_email=sender_email,
+                                    )
 
     def read_message(service, message):
         """
@@ -262,10 +373,14 @@ def email_uploads():
             - Downloads text/html content (if available) and saves it under the folder created as index.html
             - Downloads any file that is attached to the email and saves it in the folder created
         """
-        msg = service.users().messages().get(
-            userId='me', id=message['id'], format='full').execute()
+        msg = (
+            service.users()
+            .messages()
+            .get(userId="me", id=message["id"], format="full")
+            .execute()
+        )
         # parts can be the message body, or attachments
-        payload = msg['payload']
+        payload = msg["payload"]
         headers = payload.get("headers")
         parts = payload.get("parts")
         folder_name = "email"
@@ -275,7 +390,7 @@ def email_uploads():
             for header in headers:
                 name = header.get("name")
                 value = header.get("value")
-                if name.lower() == 'from':
+                if name.lower() == "from":
                     # we print the From address
                     print("From:", value)
                 if name.lower() == "return-path":
@@ -303,21 +418,22 @@ def email_uploads():
                 if name.lower() == "date":
                     # we print the date when the message was sent
                     print("Date:", value)
-        parse_parts(service, parts,
-                    "/home/atti/googleds/files/", message, sender_email)
-        print("="*50)
+        parse_parts(service, parts, "/home/atti/googleds/files/", message, sender_email)
+        print("=" * 50)
 
     def delete_messages(service, query):
         messages_to_delete = search_messages(service, query)
         # it's possible to delete a single message with the delete API, like this:
         # service.users().messages().delete(userId='me', id=msg['id'])
         # but it's also possible to delete all the selected messages with one query, batchDelete
-        return service.users().messages().batchDelete(
-            userId='me',
-            body={
-                'ids': [msg['id'] for msg in messages_to_delete]
-            }
-        ).execute()
+        return (
+            service.users()
+            .messages()
+            .batchDelete(
+                userId="me", body={"ids": [msg["id"] for msg in messages_to_delete]}
+            )
+            .execute()
+        )
 
     service = gmail_authenticate("sajat")
 
@@ -335,37 +451,69 @@ def upload_pro_stock_month():
     DB_USER = os.environ.get("DB_USER")
     DB_PASS = os.environ.get("DB_PASS")
     DB_PORT = os.environ.get("DB_PORT")
-    engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
-                           "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"")
+    engine = create_engine(
+        "postgresql://"
+        + DB_USER
+        + ":"
+        + DB_PASS
+        + "@"
+        + DB_HOST
+        + ":"
+        + DB_PORT
+        + "/"
+        + DB_NAME
+        + ""
+    )
     for upload in Feed.objects.all():
         table, url, user_id, frequency = (
-            upload.table, upload.url, upload.user_id, upload.frequency)
+            upload.table,
+            upload.url,
+            upload.user_id,
+            upload.frequency,
+        )
         if table == "pro_stock_report":
             result = engine.execute(
-                "select case when max(timestamp)::date = current_date then false else true end from pro_stock_report")
-            if (result.fetchone()[0]):
+                "select case when max(timestamp)::date = current_date then false else true end from pro_stock_report"
+            )
+            if result.fetchone()[0]:
                 try:
                     file = requests.get(url).content
                 except:
                     print("Not valid url for file")
                     continue
-                files_already_existing = [f for f in os.listdir(
-                    f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+                files_already_existing = [
+                    f
+                    for f in os.listdir(f"/home/atti/googleds/files/{table}/")
+                    if f"{date.today()}" in f
+                ]
                 filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
                 open(filename, "wb").write(file)
                 uploadmodel = DatauploadUploadmodel(
-                    table=table, file=filename, user_id=user_id, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+                    table=table,
+                    file=filename,
+                    user_id=user_id,
+                    is_new_table=False,
+                    status_description="Feltöltésre kész",
+                    status="ready",
+                    upload_timestamp=datetime.now(),
+                    mode="Feed",
+                )
                 uploadmodel.save()
-                table_template = DatauploadTabletemplates.objects.get(
-                    table=table)
+                table_template = DatauploadTabletemplates.objects.get(table=table)
                 try:
-                    column_bindings = json.loads(
-                        table_template.source_column_names)
+                    column_bindings = json.loads(table_template.source_column_names)
                 except:
                     print("Json convert error")
                 try:
-                    handle_uploaded_file(filename, table,
-                                         table_template, user_id, False, column_bindings, True)
+                    handle_uploaded_file(
+                        filename,
+                        table,
+                        table_template,
+                        user_id,
+                        False,
+                        column_bindings,
+                        True,
+                    )
                 except ValueError:
                     uploadmodel.table = table
                     uploadmodel.status = "error"
@@ -379,7 +527,7 @@ def upload_pro_stock_month():
 
 def pro_stock_report_summary():
     logging.basicConfig()
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
     DB_HOST = os.environ.get("DB_HOST")
     DB_NAME = os.environ.get("DB_NAME")
@@ -387,10 +535,22 @@ def pro_stock_report_summary():
     DB_PASS = os.environ.get("DB_PASS")
     DB_PORT = os.environ.get("DB_PORT")
 
-    engine = create_engine("postgresql://"+DB_USER+":"+DB_PASS +
-                           "@"+DB_HOST+":"+DB_PORT+"/"+DB_NAME+"")
+    engine = create_engine(
+        "postgresql://"
+        + DB_USER
+        + ":"
+        + DB_PASS
+        + "@"
+        + DB_HOST
+        + ":"
+        + DB_PORT
+        + "/"
+        + DB_NAME
+        + ""
+    )
 
-    df = pd.read_sql("""
+    df = pd.read_sql(
+        """
         WITH min_funnel AS (SELECT pro_stock_report_extended."timestamp",
                            count(DISTINCT pro_stock_report_extended."SKU")        AS min_sku,
                            sum(pro_stock_report_extended."Inventory_Value_Layer") AS min_stock_value
@@ -422,9 +582,10 @@ def pro_stock_report_summary():
     FROM funnel f
             LEFT JOIN min_funnel mf ON mf."timestamp" = f."timestamp"
     WHERE f.timestamp = '2023-07-01'
-    """, con=engine)
-    df.to_sql("pro_stock_report_summary", con=engine,
-              index=False, if_exists="append")
+    """,
+        con=engine,
+    )
+    df.to_sql("pro_stock_report_summary", con=engine, index=False, if_exists="append")
 
 
 def unas_upload_and_translate():
@@ -436,18 +597,27 @@ def unas_upload_and_translate():
     except:
         print("Not valid url for file")
         return
-    files_already_existing = [f for f in os.listdir(
-        f"/home/atti/googleds/files/{table}/") if f"{date.today()}" in f]
+    files_already_existing = [
+        f
+        for f in os.listdir(f"/home/atti/googleds/files/{table}/")
+        if f"{date.today()}" in f
+    ]
     filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
     open(filename, "wb").write(file)
     uploadmodel = DatauploadUploadmodel(
-        table=table, file=filename, user_id=1, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+        table=table,
+        file=filename,
+        user_id=1,
+        is_new_table=False,
+        status_description="Feltöltésre kész",
+        status="ready",
+        upload_timestamp=datetime.now(),
+        mode="Feed",
+    )
     uploadmodel.save()
-    table_template = DatauploadTabletemplates.objects.get(
-        table=table)
+    table_template = DatauploadTabletemplates.objects.get(table=table)
     try:
-        column_bindings = json.loads(
-            table_template.source_column_names)
+        column_bindings = json.loads(table_template.source_column_names)
     except:
         print("Json convert error")
     # -- Translation -- ##
@@ -455,8 +625,9 @@ def unas_upload_and_translate():
     # translate_categories()
     # -- Upload --##
     try:
-        handle_uploaded_file(filename, table,
-                             table_template, 1, False, column_bindings, True)
+        handle_uploaded_file(
+            filename, table, table_template, 1, False, column_bindings, True
+        )
     except ValueError:
         uploadmodel.table = table
         uploadmodel.status = "error"
@@ -474,61 +645,97 @@ def unas_translator_correcter():
 def unas_image_upload():
     log("Unas képek feltöltése", "INFO", "unas_image_upload")
     file = get_unas_img_feed_url()
-    table_template = DatauploadTabletemplates.objects.get(
-        table="fol_unas_img")
+    table_template = DatauploadTabletemplates.objects.get(table="fol_unas_img")
     try:
-        column_bindings = json.loads(
-            table_template.source_column_names)
+        column_bindings = json.loads(table_template.source_column_names)
     except:
         print("Json convert error")
     uploadmodel = DatauploadUploadmodel(
-        table="fol_unas_img", file=file, user_id=1, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+        table="fol_unas_img",
+        file=file,
+        user_id=1,
+        is_new_table=False,
+        status_description="Feltöltésre kész",
+        status="ready",
+        upload_timestamp=datetime.now(),
+        mode="Feed",
+    )
     uploadmodel.save()
-    handle_uploaded_file(file=file, table="fol_unas_img",
-                         table_template=table_template, user_id=1, is_new_table=False, column_bindings=column_bindings, is_feed=True)
+    handle_uploaded_file(
+        file=file,
+        table="fol_unas_img",
+        table_template=table_template,
+        user_id=1,
+        is_new_table=False,
+        column_bindings=column_bindings,
+        is_feed=True,
+    )
 
 
 def pen_adatlap_upload():
-    log("Penészmentesítés adatlapok feltöltése",
-        "INFO", script_name="pen_adatlap_upload")
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
-    SERVICE_ACCOUNT_FILE = '/home/atti/googleds/auth/pen/jutalék/dogwood-day-333815-db1f1cf5a4e8.json'
-    SPREADSHEET_ID = '1kFMaObjL4Y3pQyrU6fi3D59-HOkr000XaOHnFS_6l90'
-    RANGE_NAME = 'Datas!A:Z'
+    log(
+        "Penészmentesítés adatlapok feltöltése",
+        "INFO",
+        script_name="pen_adatlap_upload",
+    )
+    SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly"]
+    SERVICE_ACCOUNT_FILE = (
+        "/home/atti/googleds/auth/pen/jutalék/dogwood-day-333815-db1f1cf5a4e8.json"
+    )
+    SPREADSHEET_ID = "1kFMaObjL4Y3pQyrU6fi3D59-HOkr000XaOHnFS_6l90"
+    RANGE_NAME = "Datas!A:Z"
 
     credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    )
 
-    service = build('sheets', 'v4', credentials=credentials)
+    service = build("sheets", "v4", credentials=credentials)
 
-    result = service.spreadsheets().values().get(
-        spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME).execute()
+    result = (
+        service.spreadsheets()
+        .values()
+        .get(spreadsheetId=SPREADSHEET_ID, range=RANGE_NAME)
+        .execute()
+    )
 
-    values = result.get('values', [])
+    values = result.get("values", [])
 
     file = "/home/atti/googleds/files/pen_adatlapok/pen_adatlapok.xlsx"
     df = pd.DataFrame(values[1:], columns=values[0])
-    df.to_excel(file,
-                index=False)
-    table_template = DatauploadTabletemplates.objects.get(
-        table="pen_adatlapok")
+    df.to_excel(file, index=False)
+    table_template = DatauploadTabletemplates.objects.get(table="pen_adatlapok")
     try:
-        column_bindings = json.loads(
-            table_template.source_column_names)
+        column_bindings = json.loads(table_template.source_column_names)
     except:
         print("Json convert error")
     uploadmodel = DatauploadUploadmodel(
-        table="pen_adatlapok", file=file, user_id=1, is_new_table=False, status_description="Feltöltésre kész", status="ready", upload_timestamp=datetime.now(), mode="Feed")
+        table="pen_adatlapok",
+        file=file,
+        user_id=1,
+        is_new_table=False,
+        status_description="Feltöltésre kész",
+        status="ready",
+        upload_timestamp=datetime.now(),
+        mode="Feed",
+    )
     uploadmodel.save()
-    handle_uploaded_file(file=file, table="pen_adatlapok",
-                         table_template=table_template, user_id=1, is_new_table=False, column_bindings=column_bindings, is_feed=True)
+    handle_uploaded_file(
+        file=file,
+        table="pen_adatlapok",
+        table_template=table_template,
+        user_id=1,
+        is_new_table=False,
+        column_bindings=column_bindings,
+        is_feed=True,
+    )
 
 
 def delete_last_90(table):
     engine = connect_to_db()
 
     engine.execute(
-        f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'")
+        f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
+    )
 
 
 def sm_inventory_planner():
@@ -538,14 +745,17 @@ def sm_inventory_planner():
 def sm_auto_order():
     engine = connect_to_db()
 
-    df = pd.read_sql("""
+    df = pd.read_sql(
+        """
 
                      select vendor, need_permission
                      from sm_vendor_data 
                      where budget <= to_order_cost 
                         and sm_vendor_data.vendor not in (select vendor from sm_vendor_orders where order_status='DRAFT')
 
-                     """, con=engine)
+                     """,
+        con=engine,
+    )
 
     for i in df.iloc:
         status = ""
@@ -555,18 +765,30 @@ def sm_auto_order():
             status = "OPEN"
         order = inventory_planner(i.vendor, status=status, is_new=True)
         order_url = f"https://stock.dataupload.xyz/orders?order_id={order['id']}"
-        requests.post("https://hooks.zapier.com/hooks/catch/1129295/39rkppy/", data={"vendor": i.vendor, "order_url": order_url})
+        requests.post(
+            "https://hooks.zapier.com/hooks/catch/1129295/39rkppy/",
+            data={"vendor": i.vendor, "order_url": order_url},
+        )
 
 
 def dataupload_retry_feed():
-    log("Újra próbálkozás feed feltöltéssel",
-        "INFO", script_name="dataupload_retry_feed")
-    for retry in DatauploadRetries.objects.filter(when__lte=datetime.now()+timedelta(hours=2)):
+    log(
+        "Újra próbálkozás feed feltöltéssel",
+        "INFO",
+        script_name="dataupload_retry_feed",
+    )
+    for retry in DatauploadRetries.objects.filter(
+        when__lte=datetime.now() + timedelta(hours=2)
+    ):
         feed = Feed.objects.get(table=retry.table)
         status = upload_feed(feed, False)
         if status == "SUCCESS":
             DatauploadRetries.objects.filter(table=retry.table).delete()
-            log(f"Feed '{retry.table}' újrapróbálkozás sikeres, maradék újrapróbálkozások törölve", "SUCCESS", "dataupload_retry_feed")
+            log(
+                f"Feed '{retry.table}' újrapróbálkozás sikeres, maradék újrapróbálkozások törölve",
+                "SUCCESS",
+                "dataupload_retry_feed",
+            )
         else:
             retry.delete()
 
@@ -575,11 +797,56 @@ def pen_dijbekero():
     log("Díjbekérők feltöltése", "INFO", script_name="pen_dijbekero")
     try:
         dijbekero()
-        log("Díjbekérők feltöltése sikeres",
-            "SUCCESS", script_name="pen_dijbekero")
+        log("Díjbekérők feltöltése sikeres", "SUCCESS", script_name="pen_dijbekero")
     except KeyError as e:
-        log("Nincsenek számlázási adatok", "FAILED",
-            script_name="pen_dijbekero", details=e)
+        log(
+            "Nincsenek számlázási adatok",
+            "FAILED",
+            script_name="pen_dijbekero",
+            details=e,
+        )
     except Exception as e:
-        log("Hiba akadt a díjbekérő feltöltésében", "ERROR",
-            script_name="pen_dijbekero", details=e)
+        log(
+            "Hiba akadt a díjbekérő feltöltésében",
+            "ERROR",
+            script_name="pen_dijbekero",
+            details=e,
+        )
+
+
+def add_coupon_used_tag():
+    log("Kupon használatok ellenőrzése", "INFO", script_name="fol_add_coupon_used_tag")
+    active_campaign = ActiveCampaign(
+        api_key=os.environ.get("ACTIVE_CAMPAIGN_API_KEY"),
+        domain=os.environ.get("ACTIVE_CAMPAIGN_DOMAIN"),
+    )
+    resp = active_campaign.list_contacts(search_params={"tagid": 80})
+    if resp.status_code != 200:
+        log(
+            "Hiba az active campaign API hívás során",
+            "ERROR",
+            script_name="fol_add_coupon_used_tag",
+            details=resp.content,
+        )
+
+    contacts = resp.json()
+    for contact in contacts["contacts"]:
+        if "Coupon used" not in contact["tags"]:
+            order = FolOrderFee.objects.filter(
+                ProductName__contains="ncc" + contact["id"]
+            )
+            if order.exists():
+                add_resp = active_campaign.add_tag_to_contact(contact["id"], 80)
+                if add_resp.status_code != 201:
+                    log(
+                        f"Kupon használat tag hozzáadása sikertelen a {contact['email']} email címhez",
+                        "ERROR",
+                        script_name="fol_add_coupon_used_tag",
+                        details=add_resp.content,
+                    )
+                else:
+                    log(
+                        f"Kupon használat tag hozzáadva a {contact['email']} email címhez",
+                        "INFO",
+                        script_name="fol_add_coupon_used_tag",
+                    )
