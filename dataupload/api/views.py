@@ -10,7 +10,12 @@ from django.db import IntegrityError
 from rest_framework import generics, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_500_INTERNAL_SERVER_ERROR
+from rest_framework.status import (
+    HTTP_201_CREATED,
+    HTTP_200_OK,
+    HTTP_400_BAD_REQUEST,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+)
 from django.http import JsonResponse
 import psycopg2
 from . import models, serializers
@@ -34,13 +39,14 @@ def DownloadFile(request):
         path_to_file = "/home/atti/googleds/files/" + request.GET.get("path")
         if os.path.exists(path_to_file):
             data = open(path_to_file, "rb")
-            response = HttpResponse(
-                File(data).read())
-            response['Content-Disposition'] = 'attachment; filename=%s' % path_to_file.split(
-                "/")[-1]
+            response = HttpResponse(File(data).read())
+            response["Content-Disposition"] = (
+                "attachment; filename=%s" % path_to_file.split("/")[-1]
+            )
             return response
 
-#----------------------------------------------------GENERIC-------------------------------------------------------#
+
+# ----------------------------------------------------GENERIC-------------------------------------------------------#
 
 
 @api_view(["POST"])
@@ -51,8 +57,9 @@ def CreateCashflowPlanner():
         DB_USER = os.environ.get("DB_USER")
         DB_PASS = os.environ.get("DB_PASS")
         DB_PORT = os.environ.get("DB_PORT")
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER,
-                                password=DB_PASS, host=DB_HOST, port=DB_PORT)
+        conn = psycopg2.connect(
+            dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST, port=DB_PORT
+        )
         cur = conn.cursor()
 
         start_date = date(2022, 10, 29)
@@ -66,25 +73,25 @@ def CreateCashflowPlanner():
             days.append(day)
 
         cur.execute(
-            "select string_agg(distinct name, ', ') from cashflow_planner_table;")
-        current_categories = list(cur.fetchone())[0].split(
-            ", ")
-        cur.execute('select distinct name, elem_tipus from elemek;')
+            "select string_agg(distinct name, ', ') from cashflow_planner_table;"
+        )
+        current_categories = list(cur.fetchone())[0].split(", ")
+        cur.execute("select distinct name, elem_tipus from elemek;")
         all_data = [list(i) for i in cur.fetchall()]
         all_categories = [i[0] for i in all_data]
         for i in current_categories:
             if i in all_categories:
                 continue
             else:
-                cur.execute(
-                    f"delete from cashflow_planner_table where name = '{i}'")
+                cur.execute(f"delete from cashflow_planner_table where name = '{i}'")
                 conn.commit()
         for i in all_data:
             if i[0] in current_categories:
                 continue
             for day in days:
                 cur.execute(
-                    f"insert into cashflow_planner_table (name, day, planned_expense, tipus) values ('{i[0]}', '{day}', 0, '{i[1]}')")
+                    f"insert into cashflow_planner_table (name, day, planned_expense, tipus) values ('{i[0]}', '{day}', 0, '{i[1]}')"
+                )
                 conn.commit()
         cur.close()
         conn.close()
@@ -100,18 +107,17 @@ def UploadProfileImg(request):
         data = request.data
 
         def path(type):
-            return "/home/atti/googleds/dataupload/frontend/static/images/" + \
-                str(data[f'{type}Image'])
+            return "/home/atti/googleds/dataupload/frontend/static/images/" + str(
+                data[f"{type}Image"]
+            )
+
         if os.path.exists(path("old")):
-            os.replace(
-                path("old"), path("new"))
+            os.replace(path("old"), path("new"))
             img = Image.open(data["newImage"])
-            img.save(
-                path("new"))
+            img.save(path("new"))
         else:
             img = Image.open(data["newImage"])
-            img.save(
-                path("new"))
+            img.save(path("new"))
         call_command("collectstatic", interactive=False)
         return HttpResponse("good")
 
@@ -122,27 +128,46 @@ def UploadTimer(request):
 
 
 def ColumnNames(request):
-    conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
-                            password="AVNS_FovmirLSFDui0KIAOnu", host="defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com", port=25060)
-    if request.method == 'GET':
+    conn = psycopg2.connect(
+        dbname="defaultdb",
+        user="doadmin",
+        password="AVNS_FovmirLSFDui0KIAOnu",
+        host="defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com",
+        port=25060,
+    )
+    if request.method == "GET":
         cur = conn.cursor()
         cur.execute(
-            "select table_name, column_name, data_type from information_schema.columns where table_schema = 'public'")
-        return JsonResponse((cur.fetchall()), safe=False, json_dumps_params={'ensure_ascii': False})
+            "select table_name, column_name, data_type from information_schema.columns where table_schema = 'public'"
+        )
+        return JsonResponse(
+            (cur.fetchall()), safe=False, json_dumps_params={"ensure_ascii": False}
+        )
     cur.close()
     conn.close()
 
 
 def TableNames(request):
-    conn = psycopg2.connect(dbname="defaultdb", user="doadmin",
-                            password="AVNS_FovmirLSFDui0KIAOnu", host="defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com", port=25060)
-    if request.method == 'GET':
+    conn = psycopg2.connect(
+        dbname="defaultdb",
+        user="doadmin",
+        password="AVNS_FovmirLSFDui0KIAOnu",
+        host="defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com",
+        port=25060,
+    )
+    if request.method == "GET":
         cur = conn.cursor()
         cur.execute(
-            "select string_agg(table_name, ', ') from information_schema.tables where table_schema = 'public';")
-        return JsonResponse(list(cur.fetchone())[0].split(", "), safe=False, json_dumps_params={'ensure_ascii': False})
+            "select string_agg(table_name, ', ') from information_schema.tables where table_schema = 'public';"
+        )
+        return JsonResponse(
+            list(cur.fetchone())[0].split(", "),
+            safe=False,
+            json_dumps_params={"ensure_ascii": False},
+        )
     cur.close()
     conn.close()
+
 
 # dataupload config
 
@@ -184,7 +209,8 @@ class TableOverviewList(generics.ListCreateAPIView):
 
 
 # -------------------------------------------------- DATAS --------------------------------------------------------------- #
-    # ------------------------------------------------FOL-------------------------------------------------------------#
+# ------------------------------------------------FOL-------------------------------------------------------------#
+
 
 class FolCFDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.FolCF.objects.all()
@@ -245,6 +271,7 @@ class FolArresFigyeloList(generics.ListCreateAPIView):
     serializer_class = serializers.FolArresFigyeloSerializer
     permission_classes = [AuthorAllUser]
 
+
 # Fol Bevételek
 
 
@@ -272,6 +299,7 @@ class FolKoltsegDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.FolKoltsegekSerializer
     permission_classes = [AuthorAllUser]
 
+
 # Fol orders
 
 
@@ -285,6 +313,7 @@ class FolOrderDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.FolOrders.objects.all()
     serializer_class = serializers.FolOrdersSerializer
     permission_classes = [AuthorAllUser]
+
 
 # Fol product suppliers
 
@@ -300,6 +329,7 @@ class FolProductSupplierDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.FolProductSuppliersSerializer
     permission_classes = [AuthorAllUser]
 
+
 # Fol stock report
 
 
@@ -314,6 +344,7 @@ class FolStockReportDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.FolStockReportSerializer
     permission_classes = [AuthorAllUser]
 
+
 # Fol számlák
 
 
@@ -327,6 +358,7 @@ class FolSzamlaDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.FolSzmlk.objects.all()
     serializer_class = serializers.FolSzamlakSerializer
     permission_classes = [AuthorAllUser]
+
 
 # Fol unas
 
@@ -421,6 +453,7 @@ class FolOrderBaseList(generics.ListCreateAPIView):
     serializer_class = serializers.FolOrderBaseSerializer
     permission_classes = [AuthorAllUser]
 
+
 #
 
 
@@ -477,7 +510,7 @@ class FolOrderBaseDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.FolOrderBaseSerializer
     permission_classes = [AuthorAllUser]
 
-    #------------------------------------------------PRO----------------------------------------------------------------#
+    # ------------------------------------------------PRO----------------------------------------------------------------#
 
 
 class ProBevetelekList(generics.ListCreateAPIView):
@@ -504,6 +537,7 @@ class ProKoltsegDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ProKoltsegekSerializer
     permission_classes = [AuthorAllUser]
 
+
 # Pro orders
 
 
@@ -517,6 +551,7 @@ class ProOrderDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.ProOrders.objects.all()
     serializer_class = serializers.ProOrdersSerializer
     permission_classes = [AuthorAllUser]
+
 
 # Pro product suppliers
 
@@ -532,6 +567,7 @@ class ProProductSupplierDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.ProProductSuppliersSerializer
     permission_classes = [AuthorAllUser]
 
+
 # Pro stock report
 
 
@@ -545,6 +581,7 @@ class ProStockReportDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = models.ProStockReport.objects.all()
     serializer_class = serializers.ProStockReportSerializer
     permission_classes = [AuthorAllUser]
+
 
 # Pro számlák
 
@@ -625,6 +662,7 @@ class ProOrderBaseList(generics.ListCreateAPIView):
     queryset = models.ProOrderBase.objects.all()
     serializer_class = serializers.ProOrderBaseSerializer
     permission_classes = [AuthorAllUser]
+
 
 #
 
@@ -745,13 +783,12 @@ class GroupsDetail(generics.RetrieveUpdateDestroyAPIView):
 
 class SMVendorDataSet(APIView):
     def get(self, request, format=None):
-        filter_param = request.GET.get('filter', None)
+        filter_param = request.GET.get("filter", None)
         if filter_param:
             queryset = models.SMVendorData.objects.filter(is_visible=True)
         else:
             queryset = models.SMVendorData.objects.all()
-        serializer_class = serializers.SMVendorDataSerializer(
-            queryset, many=True)
+        serializer_class = serializers.SMVendorDataSerializer(queryset, many=True)
         return Response(serializer_class.data)
 
     def post(self, request):
@@ -759,12 +796,20 @@ class SMVendorDataSet(APIView):
         for item in data:
             if item["vendor"] is None:
                 continue
-            keys = ['vendor', 'lost_revenue', 'to_order_cost', 'replenish_date',
-                    'to_order', 'inventory_value', 'latest_order_date', 'avg_lead_time', 'name']
+            keys = [
+                "vendor",
+                "lost_revenue",
+                "to_order_cost",
+                "replenish_date",
+                "to_order",
+                "inventory_value",
+                "latest_order_date",
+                "avg_lead_time",
+                "name",
+            ]
             formatted_item = {k: v for k, v in item.items() if k not in keys}
-            models.SMVendorsTable(
-                name=item["vendor"], **formatted_item).save()
-        return Response({'status': 'success'}, status=HTTP_201_CREATED)
+            models.SMVendorsTable(name=item["vendor"], **formatted_item).save()
+        return Response({"status": "success"}, status=HTTP_201_CREATED)
 
 
 class SMProductView(viewsets.ReadOnlyModelViewSet):
@@ -775,14 +820,12 @@ class SMProductView(viewsets.ReadOnlyModelViewSet):
 class SMVendorOrders(APIView):
     def get(self, request, format=None):
         queryset = models.SMVendorOrders.objects.all()
-        serializer_class = serializers.SMVendorOrdersSerializer(
-            queryset, many=True)
+        serializer_class = serializers.SMVendorOrdersSerializer(queryset, many=True)
         return Response(serializer_class.data)
 
     def post(self, request):
         vendor = json.loads(request.body)
-        vendorObj = models.SMVendorsTable.objects.filter(
-            name=vendor)
+        vendorObj = models.SMVendorsTable.objects.filter(name=vendor)
         if vendorObj:
             need_permission = vendorObj[0].need_permission
         else:
@@ -794,20 +837,33 @@ class SMVendorOrders(APIView):
             status = "OPEN"
         create_order = inventory_planner(vendor, status=status, is_new=True)
         if create_order["status"] == "ERROR":
-            return Response({'status': 'failed', 'reason': create_order["message"]}, status=HTTP_400_BAD_REQUEST)
-        return Response({'status': 'success'}, status=HTTP_201_CREATED)
+            return Response(
+                {"status": "failed", "reason": create_order["message"]},
+                status=HTTP_400_BAD_REQUEST,
+            )
+        return Response({"status": "success"}, status=HTTP_201_CREATED)
 
     def put(self, request):
         data = json.loads(request.body)
         id, status = data["id"], data["status"]
         orderObj = models.SMVendorOrders.objects.filter(id=id)
         if orderObj:
-            create_order = inventory_planner(orderObj[0].vendor,
-                                             status=status, is_new=False, id=id)
+            create_order = inventory_planner(
+                orderObj[0].vendor, status=status, is_new=False, id=id
+            )
             if create_order["status"] == "ERROR":
-                return Response({'status': 'failed', 'reason': create_order["message"]}, status=HTTP_400_BAD_REQUEST)
-            return Response({'status': 'success', 'message': create_order["message"]}, status=HTTP_200_OK)
-        return Response({'status': 'failed', 'reason': f'null order object. id: {id}'}, status=HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"status": "failed", "reason": create_order["message"]},
+                    status=HTTP_400_BAD_REQUEST,
+                )
+            return Response(
+                {"status": "success", "message": create_order["message"]},
+                status=HTTP_200_OK,
+            )
+        return Response(
+            {"status": "failed", "reason": f"null order object. id: {id}"},
+            status=HTTP_400_BAD_REQUEST,
+        )
 
 
 class SMVendorOrdersDetail(APIView):
@@ -817,15 +873,19 @@ class SMVendorOrdersDetail(APIView):
             orderObj = orderObj[0]
             if orderObj.order_status == "DRAFT":
                 orderObj.delete()
-                return Response({'status': 'success'}, status=HTTP_200_OK)
-        return Response({'status': 'failed', 'reason': f'null order object. id: {id}'}, status=HTTP_400_BAD_REQUEST)
+                return Response({"status": "success"}, status=HTTP_200_OK)
+        return Response(
+            {"status": "failed", "reason": f"null order object. id: {id}"},
+            status=HTTP_400_BAD_REQUEST,
+        )
 
 
 class ExcelFileView(APIView):
 
     def get(self, request, vendor, date, format=None):
         workbook = load_workbook(
-            filename=f"/home/atti/googleds/files/sm_pos/{vendor}/{date}.xlsx")
+            filename=f"/home/atti/googleds/files/sm_pos/{vendor}/{date}.xlsx"
+        )
         worksheet = workbook.active
         data = []
         headers = [cell.value for cell in worksheet[1]]
@@ -838,58 +898,69 @@ class SMOrderQueue(APIView):
 
     def get(self, request, format=None):
         queryset = models.SMOrderQueue.objects.all()
-        serializer_class = serializers.SMOrderQueueSerializer(
-            queryset, many=True)
+        serializer_class = serializers.SMOrderQueueSerializer(queryset, many=True)
         return Response(serializer_class.data)
 
     def post(self, request):
         data = json.loads(request.body)
         try:
-            models.SMOrderQueue.objects.create(
-                **data
-            )
+            models.SMOrderQueue.objects.create(**data)
         except IntegrityError as e:
-            return Response({'status': 'failed', 'reason': e}, status=HTTP_400_BAD_REQUEST)
-        order_id = models.SMOrderQueue.objects.latest('id').id
-        return Response({'status': 'success', 'id': order_id}, status=HTTP_201_CREATED)
+            return Response(
+                {"status": "failed", "reason": e}, status=HTTP_400_BAD_REQUEST
+            )
+        order_id = models.SMOrderQueue.objects.latest("id").id
+        return Response({"status": "success", "id": order_id}, status=HTTP_201_CREATED)
 
 
 class SMUpdateOrderQueue(APIView):
     def put(self, request, id):
         data = json.loads(request.body)
         try:
-            models.SMOrderQueue.objects.filter(id=id).update(
-                **data
-            )
+            models.SMOrderQueue.objects.filter(id=id).update(**data)
         except Exception as e:
-            return Response({'status': 'failed', 'message': e}, status=HTTP_400_BAD_REQUEST)
-        return Response({'status': 'success'}, status=HTTP_200_OK)
+            return Response(
+                {"status": "failed", "message": e}, status=HTTP_400_BAD_REQUEST
+            )
+        return Response({"status": "success"}, status=HTTP_200_OK)
 
     def delete(self, request, id):
         try:
             models.SMOrderQueue.objects.filter(id=id).delete()
         except Exception as e:
-            return Response({'status': 'failed', 'message': e}, status=HTTP_400_BAD_REQUEST)
-        return Response({'status': 'success'}, status=HTTP_200_OK)
+            return Response(
+                {"status": "failed", "message": e}, status=HTTP_400_BAD_REQUEST
+            )
+        return Response({"status": "success"}, status=HTTP_200_OK)
 
 
 class PenCalculateDistance(APIView):
     def post(self, request):
-        log("Penészmentesítés MiniCRM webhook meghívva",
-            "INFO", "pen_calculate_distance")
+        log(
+            "Penészmentesítés MiniCRM webhook meghívva",
+            "INFO",
+            "pen_calculate_distance",
+        )
         data = json.loads(str(request.body)[2:-1])["Data"]
         telephely = "Budapest, Nagytétényi út 218, 1225"
 
         address = f"{data['Cim2']} {data['Telepules']}, {data['Iranyitoszam']} {data['Orszag']}"
         gmaps_result = calculate_distance(
-            start=telephely, end=codecs.unicode_escape_decode(address)[0])
+            start=telephely, end=codecs.unicode_escape_decode(address)[0]
+        )
         if gmaps_result == "Error":
-            log("Penészmentesítés MiniCRM webhook sikertelen", "ERROR", "pen_calculate_distance",
-                f"Hiba a Google Maps API-al való kommunikáció során {address}, adatlap id: {data['Id']}")
-            return Response({'status': 'error'}, status=HTTP_200_OK)
+            log(
+                "Penészmentesítés MiniCRM webhook sikertelen",
+                "ERROR",
+                "pen_calculate_distance",
+                f"Hiba a Google Maps API-al való kommunikáció során {address}, adatlap id: {data['Id']}",
+            )
+            return Response({"status": "error"}, status=HTTP_200_OK)
         duration = gmaps_result["duration"] / 60
         distance = gmaps_result["distance"] // 1000
-        formatted_duration = f"{math.floor(duration//60)} óra {math.floor(duration%60)} perc"
+        formatted_duration = (
+            f"{math.floor(duration//60)} óra {math.floor(duration%60)} perc"
+        )
         fee_map = {
             0: 20000,
             31: 25000,
@@ -903,25 +974,51 @@ class PenCalculateDistance(APIView):
         except Exception as e:
             log("Penészmentesítés MiniCRM webhook sikertelen", "FAILED", e)
         street_view_url = get_street_view_url(
-            location=codecs.unicode_escape_decode(address)[0])
-        response = update_adatlap_fields(data["Id"], {
-            "IngatlanKepe": "https://www.dataupload.xyz/static/images/google_street_view/street_view.jpg", "UtazasiIdoKozponttol": formatted_duration, "Tavolsag": distance, "FelmeresiDij": fee, "StreetViewUrl": street_view_url, "BruttoFelmeresiDij": round(fee*1.27), "UtvonalAKozponttol": f"https://www.google.com/maps/dir/?api=1&origin=M%C3%A1tra+u.+17,+Budapest,+1224&destination={codecs.decode(address, 'unicode_escape')}&travelmode=driving"})
+            location=codecs.unicode_escape_decode(address)[0]
+        )
+        response = update_adatlap_fields(
+            data["Id"],
+            {
+                "IngatlanKepe": "https://www.dataupload.xyz/static/images/google_street_view/street_view.jpg",
+                "UtazasiIdoKozponttol": formatted_duration,
+                "Tavolsag": distance,
+                "FelmeresiDij": fee,
+                "StreetViewUrl": street_view_url,
+                "BruttoFelmeresiDij": round(fee * 1.27),
+                "UtvonalAKozponttol": f"https://www.google.com/maps/dir/?api=1&origin=M%C3%A1tra+u.+17,+Budapest,+1224&destination={codecs.decode(address, 'unicode_escape')}&travelmode=driving",
+            },
+        )
         if response.code == 200:
-            log("Penészmentesítés MiniCRM webhook sikeresen lefutott",
-                "SUCCESS", "pen_calculate_distance")
+            log(
+                "Penészmentesítés MiniCRM webhook sikeresen lefutott",
+                "SUCCESS",
+                "pen_calculate_distance",
+            )
         else:
-            log("Penészmentesítés MiniCRM webhook sikertelen",
-                "ERROR", "pen_calculate_distance", response.reason)
-        return Response({'status': 'success'}, status=HTTP_200_OK)
+            log(
+                "Penészmentesítés MiniCRM webhook sikertelen",
+                "ERROR",
+                "pen_calculate_distance",
+                response.reason,
+            )
+        return Response({"status": "success"}, status=HTTP_200_OK)
 
 
 class Deploy(APIView):
     def post(self, request):
         try:
+            subprocess.Popen(["git", "pull"])
             subprocess.Popen(
-                ["git", "pull"])
-            subprocess.Popen(
-                "pkill -TERM $(ps -C gunicorn -o pid= | head -n 1)", shell=True)
+                "pkill -TERM $(ps -C gunicorn -o pid= | head -n 1)", shell=True
+            )
             return Response("Successfully deployed", status=HTTP_200_OK)
         except:
-            return Response(f"Error while deploying", status=HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                f"Error while deploying", status=HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class FolAcKupon(APIView):
+    def post(self, request):
+        data = json.loads(request.body)
+        log("Kupon webhook meghívva", "INFO", "fol_ackupon", data=data)

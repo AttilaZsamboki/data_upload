@@ -17,10 +17,10 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE",
 django.setup()
 
 
-def log(log_value, status="SUCCESS", script_name="sm_vendor_orders", details=""):
+def log(log_value, status="SUCCESS", script_name="sm_vendor_orders", details="", data=None):
     from api.models import Logs  # noqa
     log = Logs(script_name=script_name,
-               time=datetime.now()+timedelta(hours=2), status=status, value=log_value, details=details)
+               time=datetime.now()+timedelta(hours=2), status=status, value=log_value, details=details, data=data)
     log.save()
 
 def diff_month(d1, d2):

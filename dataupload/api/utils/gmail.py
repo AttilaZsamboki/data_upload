@@ -16,21 +16,20 @@ def gmail_authenticate(account: str):
     if os.path.exists(f"{base_path}/auth/gmail/{account}/token.pickle"):
         with open(f"{base_path}/auth/gmail/{account}/token.pickle", "rb") as token:
             creds = pickle.load(token)
-            return build('gmail', 'v1', credentials=creds)
+            return build("gmail", "v1", credentials=creds)
 
 
 def build_message(destination, obj, body, attachment_path):
     message = MIMEMultipart()
-    message['to'] = destination
-    message['from'] = our_email
-    message['subject'] = obj
-    message['body'] = body
+    message["to"] = destination
+    message["from"] = our_email
+    message["subject"] = obj
+    message["body"] = body
     message["reply-to"] = "beszerzes@foliasjuci.hu"
     message.attach(MIMEText(body, "plain"))
 
     # Add body to email
     if attachment_path != "":
-
         # Add attachment
         with open(attachment_path, "rb") as attachment:
             part = MIMEBase("application", "octet-stream")
@@ -42,11 +41,16 @@ def build_message(destination, obj, body, attachment_path):
             )
             message.attach(part)
 
-    return {'raw': urlsafe_b64encode(message.as_bytes()).decode()}
+    return {"raw": urlsafe_b64encode(message.as_bytes()).decode()}
 
 
 def send_email(service, destination, obj, body, attachment=""):
-    return service.users().messages().send(
-        userId="me",
-        body=build_message(destination, obj, body, attachment_path=attachment)
-    ).execute()
+    return (
+        service.users()
+        .messages()
+        .send(
+            userId="me",
+            body=build_message(destination, obj, body, attachment_path=attachment),
+        )
+        .execute()
+    )
