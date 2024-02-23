@@ -1022,5 +1022,5 @@ class FolAcKupon(APIView):
     def post(self, request):
         log("Kupon webhook meghívva", "INFO", "fol_ackupon")
         data = json.loads(request.body)
-        log("Kupon webhook sikeresen lefutott", "SUCCESS", "fol_ackupon", data=dat)
+        log("Kupon webhook sikeresen lefutott", "SUCCESS", "fol_ackupon", data=data)
         return Response({"status": "success"}, status=HTTP_200_OK)
