@@ -23,7 +23,7 @@ def log(
 
     log = Logs(
         script_name=script_name,
-        time=datetime.now() + timedelta(hours=2),
+        time=datetime.now() + timedelta(hours=1),
         status=status,
         value=log_value,
         details=details,

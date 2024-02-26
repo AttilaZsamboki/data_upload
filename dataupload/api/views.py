@@ -34,6 +34,7 @@ from .utils.google_maps import calculate_distance, get_street_view, get_street_v
 from .utils.unas_feed import get_unas_token
 from .utils.utils import log
 from .utils.activecampaign import ActiveCampaign
+import traceback
 
 
 @api_view(["GET"])
@@ -1023,84 +1024,98 @@ class Deploy(APIView):
 
 class FolAcKupon(APIView):
     def post(self, request):
-        binary_string = request.body
-        decoded_string = binary_string.decode("utf-8")
-        parsed_string = urllib.parse.parse_qs(decoded_string)
-        log(
-            "Kupon webhook meghívva",
-            "INFO",
-            "fol_ackupon",
-            details=binary_string,
-            data=parsed_string,
-        )
-
-        if "Start Coupon" in parsed_string["contact[tags]"][0]:
-            value = parsed_string["contact[fields][54]"][0]
-            token = get_unas_token()
-            contact_id = parsed_string["contact[id]"][0]
-            url_payload = f"""<Coupons>
-	<Coupon>
-		<Action></Action>
-		<Id>ncc-{contact_id}</Id>
-		<BaseType>total</BaseType>
-		<Customer>{parsed_string["contact[email]"][0]}</Customer>
-		<Type>{"percent" if parsed_string["contact[fields][56]"][0] == "Percent" else "amount"}</Type>
-		<Template>no</Template>
-		<Value>{value}</Value>
-		<MaxUsabilityInOrders>1</MaxUsabilityInOrders>
-		<MaxUsabilityPerCustomer>1</MaxUsabilityPerCustomer>
-		<UsabilityForNewCustomers>everyone</UsabilityForNewCustomers>
-		<MinimumItemCount>1</MinimumItemCount>
-	</Coupon>
-</Coupons>"""
-            url_request = requests.post(
-                "https://api.unas.eu/shop/setCoupon",
-                headers={"Authorization": f"Bearer {token}"},
-                data=url_payload,
+        try:
+            binary_string = request.body
+            decoded_string = binary_string.decode("utf-8")
+            parsed_string = urllib.parse.parse_qs(decoded_string)
+            log(
+                "Kupon webhook meghívva",
+                "INFO",
+                "fol_ackupon",
+                details=binary_string,
+                data=parsed_string,
             )
-            if url_request.status_code == 200:
-                log(
-                    "Unas kupon létrehozva",
-                    "SUCCESS",
-                    "fol_ackupon",
+
+            if "Start Coupon" in parsed_string["contact[tags]"][0]:
+                value = parsed_string["contact[fields][54]"][0]
+                token = get_unas_token()
+                contact_id = parsed_string["contact[id]"][0]
+                url_payload = f"""<Coupons>
+        <Coupon>
+            <Action></Action>
+            <Id>ncc-{contact_id}</Id>
+            <BaseType>total</BaseType>
+            <Customer>{parsed_string["contact[email]"][0]}</Customer>
+            <Type>{"percent" if parsed_string["contact[fields][56]"][0] == "Percent" else "amount"}</Type>
+            <Template>no</Template>
+            <Value>{value}</Value>
+            <MaxUsabilityInOrders>1</MaxUsabilityInOrders>
+            <MaxUsabilityPerCustomer>1</MaxUsabilityPerCustomer>
+            <UsabilityForNewCustomers>everyone</UsabilityForNewCustomers>
+            <MinimumItemCount>1</MinimumItemCount>
+        </Coupon>
+    </Coupons>"""
+                url_request = requests.post(
+                    "https://api.unas.eu/shop/setCoupon",
+                    headers={"Authorization": f"Bearer {token}"},
+                    data=url_payload,
                 )
-
-                active_campaign = ActiveCampaign(
-                    api_key=os.environ.get("ACTIVE_CAMPAIGN_API_KEY"),
-                    domain=os.environ.get("ACTIVE_CAMPAIGN_DOMAIN"),
-                )
-                tag_response = active_campaign.add_tag_to_contact(contact_id, 80)
-
-                if not tag_response.ok:
+                if url_request.status_code == 200:
                     log(
-                        "Hiba akadt a cimke hozzáadásakor",
-                        "ERROR",
-                        "fol_ackupon",
-                        details=tag_response.text,
-                    )
-                    return
-
-                update_contact_payload = {
-                    "contact": {
-                        "fieldValues": [
-                            {"field": "52", "value": "ncc-" + contact_id},
-                        ]
-                    }
-                }
-                response = active_campaign.update_contact(contact_id, update_contact_payload)
-
-                if response.ok:
-                    log(
-                        "Kupon sikeresen hozzáadva",
+                        "Unas kupon létrehozva",
                         "SUCCESS",
                         "fol_ackupon",
                     )
-            else:
-                log(
-                    "Kupon webhook sikertelen",
-                    "ERROR",
-                    "fol_ackupon",
-                    details=url_request.text,
-                    data=parsed_string,
-                )
-        return Response({"status": "success"}, status=HTTP_200_OK)
+
+                    active_campaign = ActiveCampaign(
+                        api_key=os.environ.get("ACTIVE_CAMPAIGN_API_KEY"),
+                        domain=os.environ.get("ACTIVE_CAMPAIGN_DOMAIN"),
+                    )
+                    tag_response = active_campaign.add_tag_to_contact(contact_id, 80)
+
+                    if not tag_response.ok:
+                        log(
+                            "Hiba akadt a cimke hozzáadásakor",
+                            "ERROR",
+                            "fol_ackupon",
+                            details=tag_response.text,
+                        )
+                        return
+
+                    update_contact_payload = {
+                        "contact": {
+                            "fieldValues": [
+                                {"field": "52", "value": "ncc-" + str(contact_id)},
+                            ]
+                        }
+                    }
+                    response = active_campaign.update_contact(contact_id, update_contact_payload)
+                    if not response.ok:
+                        log(
+                            "Hiba akadt a kupon visszaírásakor",
+                            "ERROR",
+                            "fol_ackupon",
+                            details=response.text,
+                        )
+
+                    del_resp = active_campaign.remove_tag_from_contact(contact_id, "82")
+                    if del_resp.ok:
+                        log(
+                            "Kupon visszaírás sikeres",
+                            "SUCCESS",
+                            "fol_ackupon",
+                        )
+                    else:
+                        log("Kupon visszaírás sikertelen", "ERROR", "fol_ackupon", details=del_resp.text)
+                else:
+                    log(
+                        "Kupon webhook sikertelen",
+                        "ERROR",
+                        "fol_ackupon",
+                        details=url_request.text,
+                        data=parsed_string,
+                    )
+            return Response({"status": "success"}, status=HTTP_200_OK)
+        except:
+            log("Kupon webhook sikertelen", "ERROR", "fol_ackupon", details=traceback.format_exc())
+            return Response({"status": "failed"}, status=HTTP_500_INTERNAL_SERVER_ERROR)

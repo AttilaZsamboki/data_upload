@@ -85,23 +85,22 @@ DATABASES = {
 
 CRONJOBS = [
     ("*/10 * * * *", "api.cron.add_coupon_used_tag"),
+    ("*/10 * * * *", "api.cron.upload_file"),
+    ("0 * * * *", "api.cron.upload_feed_daily"),
+    ("30 * * * *", "api.cron.upload_feed_hourly"),
+    ("0 1 * * 5", "api.cron.upload_feed_weekly"),
+    ("*/10 * * * *", "api.cron.email_uploads"),
+    ("0 10 1 * *", "api.cron.upload_pro_stock_month"),
+    ("0 12 1 * *", "api.cron.pro_stock_report_summary"),
+    # ('0 0 * * *', 'api.cron.unas_upload_and_translate'),
+    # ('0 0 * * *', 'api.cron.unas_translator_correcter'),
+    ("0 1 * * 5", "api.cron.unas_image_upload"),
+    ("0 0 * * *", "api.cron.pen_adatlap_upload"),
+    ("0 0 * * *", "api.cron.fol_orders_delete_last_90"),
+    ("0 0 * * *", "api.cron.sm_inventory_planner"),
+    ("0 0 * * *", "api.cron.sm_auto_order"),
+    ("45 * * * *", "api.cron.dataupload_retry_feed"),
 ]
-#     ("*/10 * * * *", "api.cron.upload_file"),
-#     ("0 * * * *", "api.cron.upload_feed_daily"),
-#     ("30 * * * *", "api.cron.upload_feed_hourly"),
-#     ("0 1 * * 5", "api.cron.upload_feed_weekly"),
-#     ("*/10 * * * *", "api.cron.email_uploads"),
-#     ("0 10 1 * *", "api.cron.upload_pro_stock_month"),
-#     ("0 12 1 * *", "api.cron.pro_stock_report_summary"),
-#     # ('0 0 * * *', 'api.cron.unas_upload_and_translate'),
-#     # ('0 0 * * *', 'api.cron.unas_translator_correcter'),
-#     ("0 1 * * 5", "api.cron.unas_image_upload"),
-#     ("0 0 * * *", "api.cron.pen_adatlap_upload"),
-#     ("0 0 * * *", "api.cron.fol_orders_delete_last_90"),
-#     ("0 0 * * *", "api.cron.sm_inventory_planner"),
-#     ("0 0 * * *", "api.cron.sm_auto_order"),
-#     ("45 * * * *", "api.cron.dataupload_retry_feed"),
-# ]
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators

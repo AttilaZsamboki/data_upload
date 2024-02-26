@@ -831,18 +831,26 @@ def add_coupon_used_tag():
 
     contacts = resp.json()
     for contact in contacts["contacts"]:
-        if "Coupon used" not in contact["tags"]:
-            order = FolOrderFee.objects.filter(
-                ProductName__contains="ncc" + contact["id"]
-            )
-            if order.exists():
-                add_resp = active_campaign.add_tag_to_contact(contact["id"], 80)
-                if add_resp.status_code != 201:
+        order = FolOrderFee.objects.filter(
+            Product_Name__contains="ncc-" +contact["id"]
+        )
+        if order.exists():
+            add_resp = active_campaign.add_tag_to_contact(contact["id"], "81")
+            if add_resp.status_code != 201:
+                log(
+                    f"Kupon használat tag hozzáadása sikertelen a {contact['email']} email címhez",
+                    "ERROR",
+                    script_name="fol_add_coupon_used_tag",
+                    data=json.loads(add_resp.content),
+                )
+            else:
+                del_resp = active_campaign.remove_tag_from_contact(contact["id"], "80")
+                if del_resp.status_code != 200:
                     log(
-                        f"Kupon használat tag hozzáadása sikertelen a {contact['email']} email címhez",
+                        f"Kupon használat tag törlése sikertelen a {contact['email']} email címhez",
                         "ERROR",
                         script_name="fol_add_coupon_used_tag",
-                        details=add_resp.content,
+                        details=del_resp.content,
                     )
                 else:
                     log(
