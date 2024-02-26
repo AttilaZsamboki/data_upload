@@ -1,10 +1,11 @@
 import codecs
 import json
+import random
 import math
 import os
 import subprocess
 import urllib.parse
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from io import open
 
 import psycopg2
@@ -1037,22 +1038,38 @@ class FolAcKupon(APIView):
             )
 
             if "Start Coupon" in parsed_string["contact[tags]"][0]:
-                value = parsed_string["contact[fields][54]"][0]
+                value = parsed_string.get("contact[fields][54]")
+                if not value:
+                    value = 0
+                else:
+                    value = value[0]
                 token = get_unas_token()
                 contact_id = parsed_string["contact[id]"][0]
+                coupon_type = parsed_string.get("contact[fields][56]")
+                if not coupon_type:
+                    coupon_type = "Percent"
+                else:
+                    coupon_type = coupon_type[0]
+                prefix = parsed_string.get("contact[fields][57]")
+                if not prefix:
+                    prefix = "ncc"
+                else:
+                    prefix = prefix[0]
+                code = f"{prefix}-{random.randint(1, 100000)}-{contact_id}"
                 url_payload = f"""<Coupons>
         <Coupon>
             <Action></Action>
-            <Id>ncc-{contact_id}</Id>
-            <BaseType>total</BaseType>
+            <Id>{code}</Id>
+            <BaseType>{"shipping" if coupon_type == "free shipping" else "total"}</BaseType>
             <Customer>{parsed_string["contact[email]"][0]}</Customer>
-            <Type>{"percent" if parsed_string["contact[fields][56]"][0] == "Percent" else "amount"}</Type>
+            <Type>{"percent" if coupon_type == "Percent" else "amount"}</Type>
             <Template>no</Template>
             <Value>{value}</Value>
             <MaxUsabilityInOrders>1</MaxUsabilityInOrders>
             <MaxUsabilityPerCustomer>1</MaxUsabilityPerCustomer>
             <UsabilityForNewCustomers>everyone</UsabilityForNewCustomers>
             <MinimumItemCount>1</MinimumItemCount>
+            <DateEnd>{(datetime.now() + timedelta(days=30)).strftime("%Y.%m.%d")}</DateEnd>
         </Coupon>
     </Coupons>"""
                 url_request = requests.post(
@@ -1085,11 +1102,13 @@ class FolAcKupon(APIView):
                     update_contact_payload = {
                         "contact": {
                             "fieldValues": [
-                                {"field": "52", "value": "ncc-" + str(contact_id)},
+                                {"field": "52", "value": code},
                             ]
                         }
                     }
-                    response = active_campaign.update_contact(contact_id, update_contact_payload)
+                    response = active_campaign.update_contact(
+                        contact_id, update_contact_payload
+                    )
                     if not response.ok:
                         log(
                             "Hiba akadt a kupon visszaírásakor",
@@ -1106,7 +1125,12 @@ class FolAcKupon(APIView):
                             "fol_ackupon",
                         )
                     else:
-                        log("Kupon visszaírás sikertelen", "ERROR", "fol_ackupon", details=del_resp.text)
+                        log(
+                            "Kupon visszaírás sikertelen",
+                            "ERROR",
+                            "fol_ackupon",
+                            details=del_resp.text,
+                        )
                 else:
                     log(
                         "Kupon webhook sikertelen",
@@ -1117,5 +1141,10 @@ class FolAcKupon(APIView):
                     )
             return Response({"status": "success"}, status=HTTP_200_OK)
         except:
-            log("Kupon webhook sikertelen", "ERROR", "fol_ackupon", details=traceback.format_exc())
+            log(
+                "Kupon webhook sikertelen",
+                "ERROR",
+                "fol_ackupon",
+                details=traceback.format_exc(),
+            )
             return Response({"status": "failed"}, status=HTTP_500_INTERNAL_SERVER_ERROR)

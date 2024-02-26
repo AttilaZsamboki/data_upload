@@ -2,6 +2,21 @@ import requests
 
 
 class ActiveCampaign:
+    class FieldValues:
+        class FieldValue:
+            def __init__(self, field, value):
+                self.field = field
+                self.value = value
+
+        def __init__(self, data: list):
+            self.field_values = [self.FieldValue(**i) for i in data]
+
+        def get_field(self, field_id):
+            for field in self.field_values:
+                if field.field == field_id:
+                    return field
+            return None
+
     def __init__(self, api_key, domain):
         self.headers = {
             "accept": "application/json",
@@ -14,6 +29,12 @@ class ActiveCampaign:
         url = f"{self.url}contacts{'?' if search_params else ''}{'&'.join([str(j)+'='+str(k) for j, k in search_params.items()])}"
 
         return requests.get(url, headers=self.headers)
+
+    def get_field_values(self, contact_id):
+        url = f"{self.url}/contacts/{contact_id}/fieldValues"
+
+        field_values = requests.get(url, headers=self.headers)
+        return self.FieldValues(field_values.json()["fieldValues"])
 
     def add_tag_to_contact(self, contact_id, tag_id):
         url = f"{self.url}contactTags"

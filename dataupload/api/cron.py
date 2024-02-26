@@ -831,8 +831,9 @@ def add_coupon_used_tag():
 
     contacts = resp.json()
     for contact in contacts["contacts"]:
+        field_values = active_campaign.get_field_values(contact["id"])
         order = FolOrderFee.objects.filter(
-            Product_Name__contains="ncc-" +contact["id"]
+            Product_Name__contains=field_values.get_field("52")
         )
         if order.exists():
             add_resp = active_campaign.add_tag_to_contact(contact["id"], "81")
