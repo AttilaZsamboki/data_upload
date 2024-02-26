@@ -4,9 +4,17 @@ import requests
 class ActiveCampaign:
     class FieldValues:
         class FieldValue:
-            def __init__(self, field, value):
-                self.field = field
-                self.value = value
+            def __init__(self, field, value, contact,cdate, udate, created_by, updated_by, links, id, owner):
+                self.field=field
+                self.value=value
+                self.contact=contact
+                self.cdate=cdate
+                self.udate=udate
+                self.created_by=created_by
+                self.updated_by=updated_by
+                self.links=links
+                self.id=id
+                self.owner=owner
 
         def __init__(self, data: list):
             self.field_values = [self.FieldValue(**i) for i in data]
