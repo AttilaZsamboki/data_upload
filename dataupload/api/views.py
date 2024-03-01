@@ -1037,7 +1037,10 @@ class FolAcKupon(APIView):
                 data=parsed_string,
             )
 
-            if "Start Coupon" in parsed_string["contact[tags]"][0]:
+            if (
+                "Start Coupon" in parsed_string["contact[tags]"][0]
+                and "Coupon ready" not in parsed_string["contact[tags]"][0]
+            ):
                 value = parsed_string.get("contact[fields][54]")
                 if not value:
                     value = 0
