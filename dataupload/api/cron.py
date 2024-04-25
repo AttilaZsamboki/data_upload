@@ -733,6 +733,12 @@ def pen_adatlap_upload():
 def delete_last_90(table):
     engine = connect_to_db()
 
+    log(
+        "Deleting data older than 90 days",
+        "INFO",
+        "delete_last_90",
+        "from: " + {(datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")},
+    )
     engine.execute(
         f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
     )
