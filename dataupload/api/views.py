@@ -1121,19 +1121,20 @@ class FolAcKupon(APIView):
                         )
 
                     del_resp = active_campaign.remove_tag_from_contact(contact_id, "82")
-                    if del_resp.ok:
-                        log(
-                            "Kupon visszaírás sikeres",
-                            "SUCCESS",
-                            "fol_ackupon",
-                        )
-                    else:
-                        log(
-                            "Kupon visszaírás sikertelen",
-                            "ERROR",
-                            "fol_ackupon",
-                            details=del_resp.text,
-                        )
+                    if del_resp:
+                        if del_resp.ok:
+                            log(
+                                "Kupon visszaírás sikeres",
+                                "SUCCESS",
+                                "fol_ackupon",
+                            )
+                            return
+                    log(
+                        "Kupon visszaírás sikertelen",
+                        "ERROR",
+                        "fol_ackupon",
+                        details=del_resp.text,
+                    )
                 else:
                     log(
                         "Kupon webhook sikertelen",

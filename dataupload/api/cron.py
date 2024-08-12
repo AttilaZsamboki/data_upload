@@ -157,8 +157,7 @@ def upload_feed(feed, retry_if_failed=True):
 
 
 def upload_feed_daily():
-    current_hour = (datetime.now() + timedelta(hours=2)).hour
-    for feed in Feed.objects.filter(runs_at=current_hour):
+    for feed in Feed.objects.filter(runs_at=datetime.now().hour+2):
         if feed.frequency == "1 nap":
             upload_feed(feed)
     check_feed()

@@ -23,7 +23,7 @@ def log(
 
     log = Logs(
         script_name=script_name,
-        time=datetime.now() + timedelta(hours=1),
+        time=datetime.now() + timedelta(hours=2),
         status=status,
         value=log_value,
         details=details,
@@ -98,7 +98,7 @@ def check_feed():
     error = False
     for feed in Feed.objects.filter(frequency="1 nap", runs_at=period_start.hour):
         uploads = DatauploadUploadmodel.objects.filter(
-            table=feed.table, upload_timestamp__gte=period_start - timedelta(hours=2)
+            table=feed.table, upload_timestamp__gte=period_start - timedelta(hours=2, minutes=1)
         )
         if not uploads.exists or uploads.count() == 0:
             error = True
