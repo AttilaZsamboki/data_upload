@@ -12,7 +12,7 @@ import psycopg2
 import requests
 from django.core.files import File
 from django.core.management import call_command
-from django.db import IntegrityError
+from django.db import IntegrityError, OperationalError
 from django.http import HttpResponse, JsonResponse
 from openpyxl import load_workbook
 from PIL import Image
@@ -1144,6 +1144,12 @@ class FolAcKupon(APIView):
                         data=parsed_string,
                     )
             return Response({"status": "success"}, status=HTTP_200_OK)
+        except OperationalError as e:
+            log("OperationalError", "WARNING", "fol_ackupon", details=e)
+            return Response(
+                "Database is currently unavailable. Please try again later.",
+                status=HTTP_500_INTERNAL_SERVER_ERROR
+            )
         except:
             log(
                 "Kupon webhook sikertelen",
