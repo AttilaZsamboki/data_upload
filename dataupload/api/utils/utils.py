@@ -98,7 +98,7 @@ def check_feed():
     error = False
     for feed in Feed.objects.filter(frequency="1 nap", runs_at=period_start.hour):
         uploads = DatauploadUploadmodel.objects.filter(
-            table=feed.table, upload_timestamp__gte=period_start - timedelta(hours=2, minutes=1)
+            table=feed.table, upload_timestamp__gte=period_start - timedelta(hours=2, minutes=1, seconds=1)
         )
         if not uploads.exists or uploads.count() == 0:
             error = True
