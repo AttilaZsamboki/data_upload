@@ -737,7 +737,7 @@ def delete_last_90(table):
         "Deleting data older than 90 days",
         "INFO",
         "delete_last_90",
-        "from: " + {(datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")},
+        "from: " + (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
     )
     engine.execute(
         f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
