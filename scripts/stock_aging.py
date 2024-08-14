@@ -40,11 +40,9 @@ for row in stock_transaction_report.iloc:
     else:
         skus[sku].append([quantity, finished, shippment_supplier_name])
 
-stock_report = pd.read_sql_table(
-    table_name="fol_stock_report", con=engine)
+stock_report = pd.read_sql_query(
+    "select * from fol_stock_report where timestamp = (select max(timestamp) from fol_stock_report)", con=engine)
 
-stock_report = stock_report.query(
-    f"timestamp == '{stock_report['timestamp'].max()}'")
 stock_report_obj = {}
 
 for row in stock_report.iloc:
