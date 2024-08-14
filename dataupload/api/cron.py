@@ -2,6 +2,7 @@ from .utils.utils import check_feed, connect_to_db, log, schedule_feed_retries
 import datetime
 import json
 import logging
+import traceback
 import os
 from base64 import urlsafe_b64decode
 from datetime import date, datetime, timedelta
@@ -148,10 +149,10 @@ def upload_feed(feed, retry_if_failed=True):
         if retry_if_failed:
             schedule_feed_retries(table, retry_number, frequency, file)
         log(
-            f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id}",
+            f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id} \n Error {error}",
             "ERROR",
             "upload_feed_daily",
-            details=error,
+            details=traceback.format_exc(),
         )
         return "ERROR"
 
