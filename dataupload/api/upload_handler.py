@@ -57,12 +57,13 @@ def handle_uploaded_file(file, table, table_template, user_id, is_new_table, col
     if extension_format == '.csv':
         df = pd.read_csv(file, skiprows=int(skiprows))
     elif extension_format == '.tsv':
-        df = pd.read_csv(file, skiprows=int(
-            table_template.skiprows), delimiter='\t')
+        df = pd.read_csv(file, skiprows=int(table_template.skiprows), delimiter='\t')
+    elif extension_format in ['.xls', '.xlsx']:
+        df = pd.read_excel(file, skiprows=int(skiprows), engine='openpyxl')
     else:
-        df = pd.read_excel(file, skiprows=int(skiprows))
+        raise ValueError("Unsupported file format!")
     if df.empty:
-        raise ValueError("Üres fájl!")
+        raise ValueError("Empty file!")
 
     source_column_names = df.columns
     # \\\\\\\\\\\\\\\\\\\\\\\\\ table specifics ///////////////////////////////////////////////
