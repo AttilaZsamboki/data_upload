@@ -44,7 +44,7 @@ with in_stock_days as (select sku,
                     from forgásisebesség_részletező
                     group by 1, 3)
 select stat_start,
-       stat_end,
+       '2024-08-19'::date as stat_end,
        agg_funnel.sku,
        agg_funnel.cogs,
        agg_funnel.sales,

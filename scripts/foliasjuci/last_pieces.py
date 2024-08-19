@@ -23,7 +23,6 @@ engine = create_engine(
 
 unas_client = UnasAPIBase("cfcdf8a7109a30971415ff7f026becdc50dbebbd")
 
-
 def add_category():
     df = pd.read_sql(
         con=engine,
