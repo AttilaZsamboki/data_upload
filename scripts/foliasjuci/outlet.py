@@ -18,7 +18,7 @@ FROM fol_outlet_products op
          LEFT JOIN (SELECT sku, max(age) age from fol_stock_aging group by 1) sa ON sa.sku = op.sku
 WHERE age < 90;""")
     successful = []
-    for i in df.iloc:
+    for i in [{"sku": "CS-F2811"}]:
         unas_client.set_product(
             Product(
                 sku=i["sku"],
@@ -45,7 +45,15 @@ WHERE age < 90;""")
                 ),
             )
         )
+
+        product = unas_client.get_product(i["sku"], "full")
+        product.action = "modify"
+        product.remove_category(392880)
+        product.add_category(Product.Category("alt", None, None))
+        unas_client.set_product(product)
+
         successful.append(i["sku"])
+        break
     with engine.connect() as connection:
         connection.execute(text("delete from fol_outlet_products where sku in ('" + "','".join(successful) + "')"))
         connection.commit()
@@ -54,6 +62,7 @@ def set_outlet():
     df = pd.read_sql(con=engine, sql='select * from fol_outlet;')
     successful = []
     for i in df.iloc:
+        i = {"sku": "CS-F2811", "discount": 10, "netto_ar": 1000}
         unas_client.set_product(
             Product(
                 sku=i["sku"],
@@ -68,6 +77,9 @@ def set_outlet():
                         after=None,
                     )
                 ],
+                categories=[
+                    Product.Category("alt", "392880", None),
+                ],
                 action="modify",
                 prices=Product.Prices(
                     appearance=None,
@@ -81,13 +93,14 @@ def set_outlet():
             )
         )
         successful.append(i["sku"])
+        break
 
     with engine.connect() as connection:
         connection.execute(text("insert into fol_outlet_products (sku, start_date) values " + ','.join([f'(\'{i}\', current_date)' for i in successful])))
         connection.commit()
 
 def main():
-    set_outlet()
+    # set_outlet()
     reset_outlet()
     
 if __name__ == "__main__":
