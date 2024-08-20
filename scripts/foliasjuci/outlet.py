@@ -49,7 +49,7 @@ WHERE age < 90;""")
         product = unas_client.get_product(i["sku"], "full")
         product.action = "modify"
         product.remove_category(392880)
-        product.add_category(Product.Category("alt", None, None))
+        product.add_category(Product.Category("alt", "", ""))
         unas_client.set_product(product)
 
         successful.append(i["sku"])

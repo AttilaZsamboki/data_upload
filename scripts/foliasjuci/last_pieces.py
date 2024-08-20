@@ -73,7 +73,7 @@ where concat("Alternativ_Kategoria_1", "Alternativ_Kategoria_2", "Alternativ_Kat
         product.minimum_qty = 1
         product.maximum_qty = None
         product.remove_category(684112)
-        product.add_category(Product.Category("alt", None, None))
+        product.add_category(Product.Category("alt", "", ""))
         unas_client.set_product(product)
 
 
