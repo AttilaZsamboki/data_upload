@@ -51,8 +51,8 @@ select stat_start,
        avg_inv_cost,
        in_stock_days,
        agg_funnel.sales / nullif(avg_inv, 0)                     as stockturn_ip,
-       avg_inv_cost * in_stock_days / nullif(agg_funnel.cogs, 0) as fsn_nap,
-       agg_funnel.cogs / nullif(avg_inv_cost, 0)                 as fsf_fordulat,
+       avg_inv_cost * in_stock_days / nullif(agg_funnel.cogs, 0) as fsf_fordulat,
+       agg_funnel.cogs / nullif(avg_inv_cost, 0)                 as fsn_nap,
        agg_funnel.sales / in_stock_days                          as sales_velocity,
        case
            when fol_product_suppliers."Supplier___1___Default" = 1
