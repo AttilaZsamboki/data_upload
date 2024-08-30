@@ -23,14 +23,14 @@ engine = create_engine(
 
 unas_client = UnasAPIBase("cfcdf8a7109a30971415ff7f026becdc50dbebbd")
 
+
 def add_category():
     df = pd.read_sql(
         con=engine,
         sql="""select distinct sku,
                 on_stock
 from fol_min_pcs mp
-         left join fol_unas u
-                   on u."Category" = mp.category
+         LEFT JOIN fol_unas_extended u ON u."1_alkategoria" = mp.category
          left join fol_stock_report_last sr on sr.sku = u.cikkszam
 where sr.on_stock <= mp."limit"
   and concat("Alternativ_Kategoria_1", "Alternativ_Kategoria_2", "Alternativ_Kategoria_3",
@@ -68,7 +68,8 @@ where concat("Alternativ_Kategoria_1", "Alternativ_Kategoria_2", "Alternativ_Kat
     )
 
     for sku in df["cikkszam"]:
-        product = unas_client.get_product(sku, "full")
+        init_product = unas_client.get_product(sku, "full")
+        product = Product(sku=sku, categories=init_product.categories)
         product.action = "modify"
         product.minimum_qty = 1
         product.maximum_qty = None

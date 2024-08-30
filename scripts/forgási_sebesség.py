@@ -2,27 +2,45 @@ import pandas as pd
 from sqlalchemy import create_engine
 from psycopg2 import connect
 
-DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
-DB_NAME = 'defaultdb'
-DB_USER = 'doadmin'
-DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
-DB_PORT = '25060'
+DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
+DB_NAME = "defaultdb"
+DB_USER = "doadmin"
+DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
+DB_PORT = "25060"
 
-engine = create_engine('postgresql://'+DB_USER+':'+DB_PASS +
-            '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME+'?sslmode=require')
+engine = create_engine(
+    "postgresql://"
+    + DB_USER
+    + ":"
+    + DB_PASS
+    + "@"
+    + DB_HOST
+    + ":"
+    + DB_PORT
+    + "/"
+    + DB_NAME
+    + "?sslmode=require"
+)
 
 keepalive_kwargs = {
-    'keepalives': 1,
-    'keepalives_idle': 60,
-    'keepalives_interval': 10,
-    'keepalives_count': 5
+    "keepalives": 1,
+    "keepalives_idle": 60,
+    "keepalives_interval": 10,
+    "keepalives_count": 5,
 }
 
-conn = connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS,
-               host=DB_HOST, port=DB_PORT, **keepalive_kwargs)
+conn = connect(
+    dbname=DB_NAME,
+    user=DB_USER,
+    password=DB_PASS,
+    host=DB_HOST,
+    port=DB_PORT,
+    **keepalive_kwargs
+)
 cur = conn.cursor()
 
-data = pd.read_sql(sql="""
+data = pd.read_sql(
+    sql="""
 with in_stock_days as (select sku,
                               current_date as start,
                               min(date)    as end,
@@ -44,7 +62,7 @@ with in_stock_days as (select sku,
                     from forgásisebesség_részletező
                     group by 1, 3)
 select stat_start,
-       '2024-08-19'::date as stat_end,
+       current_date as stat_end,
        agg_funnel.sku,
        agg_funnel.cogs,
        agg_funnel.sales,
@@ -69,6 +87,8 @@ from agg_funnel
          left join on_stock on on_stock.sku = agg_funnel.sku
          left join fol_product_suppliers on fol_product_suppliers."SKU" = agg_funnel.sku
          left join in_stock_days on in_stock_days.sku = agg_funnel.sku
-""", con=engine)
+""",
+    con=engine,
+)
 
 data.to_sql("forgásisebesség_összesítés", con=engine, if_exists="append")
