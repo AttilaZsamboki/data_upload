@@ -126,7 +126,8 @@ def set_outlet():
                 )
             )
             connection.commit()
-        successful.append(i["sku"])
+        if not i["start_date"]:
+            successful.append(i["sku"])
 
     if len(successful) > 0:
         with engine.connect() as connection:
