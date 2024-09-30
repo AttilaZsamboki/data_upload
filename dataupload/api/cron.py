@@ -11,7 +11,7 @@ import pandas as pd
 import requests
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from .models import (
     DatauploadGroups,
@@ -741,7 +741,9 @@ def delete_last_90(table):
     )
     with engine.connect() as connection:
         connection.execute(
-            f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
+            text(
+                f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
+            )
         )
 
 
