@@ -158,7 +158,7 @@ def upload_feed(feed, retry_if_failed=True):
 
 
 def upload_feed_daily():
-    for feed in Feed.objects.filter(runs_at=datetime.now().hour+2):
+    for feed in Feed.objects.filter(runs_at=datetime.now().hour + 2):
         if feed.frequency == "1 nap":
             upload_feed(feed)
     check_feed()
@@ -737,11 +737,12 @@ def delete_last_90(table):
         "Deleting data older than 90 days",
         "INFO",
         "delete_last_90",
-        "from: " + (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
+        "from: " + (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d"),
     )
-    engine.execute(
-        f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
-    )
+    with engine.connect() as connection:
+        connection.execute(
+            f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
+        )
 
 
 def sm_inventory_planner():
