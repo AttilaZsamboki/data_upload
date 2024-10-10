@@ -2259,7 +2259,9 @@ class Feed(models.Model):
     id = models.AutoField(primary_key=True)
     runs_at = models.IntegerField()
     retry_number = models.IntegerField(default=3)
-    delete = models.BooleanField(default=False)
+    delete_data = models.BooleanField(
+        default=False, blank=True, null=True, db_column="delete"
+    )
 
     class Meta:
         managed = False

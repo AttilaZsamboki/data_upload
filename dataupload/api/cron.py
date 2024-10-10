@@ -64,7 +64,7 @@ def upload_file():
             )
 
 
-def upload_feed(feed, retry_if_failed=True):
+def upload_feed(feed: Feed, retry_if_failed=True):
     table, url, user_id, frequency, retry_number = (
         feed.table,
         feed.url,
@@ -115,7 +115,7 @@ def upload_feed(feed, retry_if_failed=True):
     except Exception as e:
         log("Hibás oszlop conifg", "ERROR", "upload_feed_daily", e)
     try:
-        if feed.delete:
+        if feed.delete_data:
             delete_last_90(table)
         handle_uploaded_file(
             filename, table, table_template, user_id, False, column_bindings, True
