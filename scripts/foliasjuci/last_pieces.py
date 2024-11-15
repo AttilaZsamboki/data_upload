@@ -27,17 +27,19 @@ unas_client = UnasAPIBase("cfcdf8a7109a30971415ff7f026becdc50dbebbd")
 def add_category():
     df = pd.read_sql(
         con=engine,
-        sql="""select distinct sku,
+        sql="""select distinct sr.sku,
                 on_stock
 from fol_min_pcs mp
          LEFT JOIN fol_unas_extended u ON u."1_alkategoria" = mp.category
          left join fol_stock_report_last sr on sr.sku = u.cikkszam
+         left join fol_stock_aging on fol_stock_aging.sku = u.cikkszam
 where sr.on_stock <= mp."limit"
   and concat("Alternativ_Kategoria_1", "Alternativ_Kategoria_2", "Alternativ_Kategoria_3",
                     "Alternativ_Kategoria_4", "Alternativ_Kategoria_5", "Alternativ_Kategoria_6",
                     "Alternativ_Kategoria_7") not like '%%UTOLSÓ DARABOK%%' 
   and sr.on_stock
-    > 0;
+    > 0
+  and fol_stock_aging.age > 90;
 """,
     )
 
