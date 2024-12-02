@@ -7,20 +7,12 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app
-    command: daphne -b 0.0.0.0 -p 8001 dataupload.asgi:application
-    volumes:
-      - ./dataupload:/app
-      - ./files:/app/files
-      - ./auth:/app/auth  
-      - ./logs:/app/logs
+    command: >
+      bash -c "apt-get update && apt-get install -y cron &&
+      python dataupload/manage.py crontab add &&
+      daphne -b 0.0.0.0 -p 8001 dataupload.asgi:application"
     depends_on:
       - redis
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   redis:
     image: redis:7
