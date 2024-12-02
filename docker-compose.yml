@@ -12,6 +12,11 @@ services:
       daphne -b 0.0.0.0 -p 8001 dataupload.asgi:application"
     depends_on:
       - redis
+    volumes:
+      - ./dataupload:/app
+      - ./files:/app/files
+      - ./auth:/app/auth  
+      - ./logs:/app/logs
 
   redis:
     image: redis:7
