@@ -129,7 +129,7 @@ def UploadProfileImg(request):
 
 @api_view(["GET"])
 def UploadTimer(request):
-    return HttpResponse(open("/home/atti/googleds/files/misc/last_upload.txt", "r"))
+    return HttpResponse(None, status=204)
 
 
 def ColumnNames(request):
@@ -1148,7 +1148,7 @@ class FolAcKupon(APIView):
             log("OperationalError", "WARNING", "fol_ackupon", details=e)
             return Response(
                 "Database is currently unavailable. Please try again later.",
-                status=HTTP_500_INTERNAL_SERVER_ERROR
+                status=HTTP_500_INTERNAL_SERVER_ERROR,
             )
         except:
             log(
