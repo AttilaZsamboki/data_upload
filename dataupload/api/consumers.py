@@ -191,7 +191,7 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
         await self.delete_upload()
         if self.upload.status != "success":
             os.remove(
-                f'/home/atti/googleds/dataupload/media/{self.upload.file}')
+                f'/app/media/{self.upload.file}')
         else:
             os.remove(str(self.upload.file))
 

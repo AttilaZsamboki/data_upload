@@ -86,10 +86,10 @@ def upload_feed(feed: Feed, retry_if_failed=True):
         return
     files_already_existing = [
         f
-        for f in os.listdir(f"/home/atti/googleds/files/{table}/")
+        for f in os.listdir(f"/app/files/{table}/")
         if f"{date.today()}" in f
     ]
-    filename = f"/home/atti/googleds/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
+    filename = f"/app/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
     try:
         open(filename, "wb").write(file)
     except:
