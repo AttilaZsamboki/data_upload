@@ -5,6 +5,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/dataupload/media/upload_files
+RUN mkdir -p /app/dataupload/media/files
 
 COPY . /app/
 EXPOSE 8001
