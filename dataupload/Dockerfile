@@ -8,3 +8,4 @@ RUN mkdir -p /app/dataupload/media/upload_files
 
 COPY . /app/
 EXPOSE 8001
+CMD ["python", "/app/dataupload/manage.py", "crontab", "add"]
