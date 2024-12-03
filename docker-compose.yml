@@ -9,7 +9,7 @@ services:
       - PYTHONPATH=/app
     command: >
       bash -c "apt-get update && apt-get install -y cron &&
-      python /app/dataupload/manage.py crontab add &&
+      python /app/manage.py crontab add &&
       daphne -b 0.0.0.0 -p 8001 dataupload.asgi:application"
     depends_on:
       - redis
