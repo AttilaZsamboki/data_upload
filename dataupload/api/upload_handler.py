@@ -16,8 +16,6 @@ import dotenv
 
 dotenv.load_dotenv()
 
-service = gmail_authenticate("sajat")
-
 
 def handle_uploaded_file(
     file,
@@ -234,15 +232,6 @@ def handle_uploaded_file(
                 )
                 upload_model.status = "error"
                 upload_model.save()
-                if is_email:
-                    send_email(
-                        service,
-                        sender_email,
-                        "Rossz tábla tartalom",
-                        f"Egy hiba lépett fel a(z) '{i}' oszlop tartalmát illetően: {e}",
-                    )
-                    os.remove(str(file))
-                return
 
     if "temporary" in tables_in_sql:
         cur.execute("DROP TABLE temporary;")
@@ -256,17 +245,6 @@ def handle_uploaded_file(
             errors.append(
                 f"{i} oszlop nincs benne a fájlban, biztosítsd azt, hogy benne van és próbáld újra"
             )
-        if errors:
-            if is_email:
-                send_email(
-                    service,
-                    sender_email,
-                    "Feltöltésben akadt hibák",
-                    f"""Az alábbi hibák akadtak a feltöltésben: {", ".join(errors)}.
-
-                                A fenti okok miatt a feltöltés törlésre került.
-                                """,
-                )
 
     primary_key_source = table_template.pkey_col
     primary_key_db = "".join(
@@ -356,12 +334,13 @@ def handle_uploaded_file(
             f for f in os.listdir(file_dir) if f"{date.today()}" in f
         ]
         upload_model.file = f"{file_dir}{str(filename).split('/')[-1]}{f' ({len(files_already_existing)-1})' if files_already_existing else ''}{extension_format}"
-        os.rename("/app/dataupload/media/" + str(file), str(upload_model.file))
-    elif is_email:
-        send_email(
-            service,
-            sender_email,
-            "Sikeres feltöltés",
-            f"Feltöltésed ({filename.split('/')[-1]}) sikeresen felkerült az adatbázisba",
-        )
+        source_path = "/app/dataupload/media/" + str(file)
+        destination_path = str(upload_model.file)
+
+        # Check if the source file exists
+        if not os.path.exists(source_path):
+            raise FileNotFoundError(f"Source file does not exist: {source_path}")
+
+        # Proceed with renaming if the file exists
+        os.rename(source_path, destination_path)
     upload_model.save()

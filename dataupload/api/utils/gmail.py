@@ -13,8 +13,8 @@ our_email = "admin@foliasjuci.hu"
 
 
 def gmail_authenticate(account: str):
-    if os.path.exists(f"{base_path}/auth/gmail/{account}/token.pickle"):
-        with open(f"{base_path}/auth/gmail/{account}/token.pickle", "rb") as token:
+    if os.path.exists(f"/app/auth/gmail/{account}/token.pickle"):
+        with open(f"/app/auth/gmail/{account}/token.pickle", "rb") as token:
             creds = pickle.load(token)
             return build("gmail", "v1", credentials=creds)
 
