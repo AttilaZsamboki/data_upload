@@ -1,10 +1,14 @@
 from sqlalchemy import create_engine
-from google.oauth2.credentials import Credentials
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import pandas as pd
 import os
 from datetime import datetime
+import base64
+import json
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Google Sheets API setup
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
@@ -14,7 +18,6 @@ SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 SERVICE_ACCOUNT_FILE = "dogwood-day-333815-db1f1cf5a4e8.json"
 SPREADSHEET_ID = "1DXOxrPHD5SA1lXHOYu3nXWWv47ArsiJOhEsVt7FUUD0"
 RANGE_NAME = "RENDELÉSEK!A1"  # Starting cell where data will be inserted
-FOLDER_PATH = "/path/to/your/folder"  # Replace with your actual folder path
 FILE_SHEET_RANGE = "TERVEK!A1"  # New sheet name where file data will be inserted
 
 
@@ -61,11 +64,25 @@ def query_database():
     return df
 
 
-def update_sheet(data_df):
-    """Update Google Sheet with data"""
-    credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+def get_credentials():
+    """Get credentials from environment variable"""
+    # Get base64 encoded credentials from environment
+    encoded_creds = os.environ.get("GOOGLE_CREDENTIALS")
+    if not encoded_creds:
+        raise ValueError("GOOGLE_CREDENTIALS environment variable not set")
+
+    # Decode and create temp file
+    creds_json = base64.b64decode(encoded_creds)
+    credentials = service_account.Credentials.from_service_account_info(
+        json.loads(creds_json), scopes=SCOPES
     )
+    return credentials
+
+
+def update_sheet_orders():
+    data_df = query_database()
+    """Update Google Sheet with data"""
+    credentials = get_credentials()
     service = build("sheets", "v4", credentials=credentials)
 
     # First, get existing data
@@ -133,51 +150,31 @@ def update_sheet(data_df):
 
 import os
 
-FOLDER_PATH = "../../files/fol_költségek"  # Replace with your actual folder path
 FILE_SHEET_RANGE = (
     "ÖSSZES KÖLTSÉG!A1"  # New sheet name where file data will be inserted
 )
 
-# ... existing get_db_connection and query_database functions ...
 
-
-def get_latest_file():
-    """Get the most recent file from the specified folder"""
-    files = [
-        os.path.join(FOLDER_PATH, f)
-        for f in os.listdir(FOLDER_PATH)
-        if f.endswith(".xlsx")
-    ]  # Adjust file extension if needed
-    if not files:
-        raise FileNotFoundError(f"No suitable files found in {FOLDER_PATH}")
-
-    latest_file = max(files, key=os.path.getmtime)
-    return latest_file
-
-
-def read_file_data(file_path):
-    """Read data from the latest file"""
-    df = pd.read_excel(file_path)  # Adjust reading method if needed
-    return df
-
-
-def update_sheet2(data_df, range_name, sheet_name):
+def update_sheet_expenses(range_name, sheet_name):
     """Updated version of update_sheet that handles different sheets"""
-    credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES
+    engine = get_db_connection()
+    data_df = pd.read_sql(
+        """select date "Dátum", 
+                  to_char(date, 'YYYY-MM') "Hónap", 
+                  koltseg_osztaly "Költség osztály", 
+                  koltsegelem "Költségelem", 
+                  partner "Partner", 
+                  tipus "Költség típus", 
+                  ROUND(CAST(netto_ossz AS numeric), 0)::integer "NETTÓ Összesen" 
+           from "fol_költségek_extended";""",
+        engine,
     )
-    service = build("sheets", "v4", credentials=credentials)
 
-    # First, get existing data
-    result = (
-        service.spreadsheets()
-        .values()
-        .get(
-            spreadsheetId=SPREADSHEET_ID,
-            range=f"{sheet_name}!A1:Z",  # Expanded range to handle variable columns
-        )
-        .execute()
-    )
+    # Replace NaN values with None (null)
+    data_df = data_df.where(pd.notnull(data_df), None)
+
+    credentials = get_credentials()
+    service = build("sheets", "v4", credentials=credentials)
 
     # Clear existing data in the sheet
     service.spreadsheets().values().clear(
@@ -187,7 +184,19 @@ def update_sheet2(data_df, range_name, sheet_name):
 
     # Convert DataFrame to values list
     headers = data_df.columns.tolist()
-    values = [headers] + data_df.values.tolist()
+    values = [headers]
+
+    # Convert each row, handling dates and other special values
+    for _, row in data_df.iterrows():
+        formatted_row = []
+        for val in row:
+            if pd.isna(val):
+                formatted_row.append(None)
+            elif isinstance(val, (datetime, pd.Timestamp)) or hasattr(val, "strftime"):
+                formatted_row.append(val.strftime("%Y-%m-%d"))
+            else:
+                formatted_row.append(val)
+        values.append(formatted_row)
 
     body = {"values": values}
 
@@ -209,18 +218,10 @@ def update_sheet2(data_df, range_name, sheet_name):
 
 def main():
     # Get data from database
-    data_df = query_database()
-
-    # Update original sheet with database data
-
-
-def main():
-    # Get data from database
-    data_df = query_database()
 
     # Update Google Sheet
-    update_sheet(data_df)
-    update_sheet2(data_df, FILE_SHEET_RANGE, "ÖSSZES KÖLTSÉG")
+    update_sheet_orders()
+    update_sheet_expenses(FILE_SHEET_RANGE, "ÖSSZES KÖLTSÉG")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,27 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/dataupload/media/upload_files
 RUN mkdir -p /app/dataupload/media/files
+RUN apt-get update && apt-get install -y cron dos2unix
 
 COPY . /app/
+RUN dos2unix /app/manage.py
+RUN dos2unix /app/docker-entrypoint.sh
+RUN dos2unix /app/crontab.sh
+RUN chmod +x /app/manage.py /app/docker-entrypoint.sh /app/crontab.sh
+
+# Set up crontab
+RUN echo '*/10 * * * * /app/crontab.sh upload_file >> /app/logs/cron.log 2>&1' > /etc/cron.d/app-cron
+RUN echo '0 * * * * /app/crontab.sh upload_feed_daily >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '30 * * * * /app/crontab.sh upload_feed_hourly >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 1 * * 5 /app/crontab.sh upload_feed_weekly >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * /app/crontab.sh fol_orders_delete_last_90 >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/app-cron
+
+# Apply cron job
+RUN crontab /etc/cron.d/app-cron
+
 EXPOSE 8001
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "dataupload.asgi:application"]

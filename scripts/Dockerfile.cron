@@ -1,0 +1,36 @@
+FROM python:3.11.4
+
+WORKDIR /app
+
+# Copy requirements first for better caching
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install cron and dos2unix
+RUN apt-get update && apt-get install -y cron dos2unix
+
+# Create necessary directories
+RUN mkdir -p /app/logs
+
+# Copy application files
+COPY . /app/
+
+# Convert scripts to Unix format and make executable
+RUN find /app -type f -name "*.py" -exec dos2unix {} \;
+RUN find /app -type f -name "*.py" -exec chmod +x {} \;
+
+# Set up crontab
+RUN echo '0 4 * * * python /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
+RUN echo '0 0 * * 0 python /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * python /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * python /app/foliasjuci/terv_teny.py >> /app/logs/terv_teny.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '* * * * * echo "Hello" >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+
+# Give execution rights on the cron job
+RUN chmod 0644 /etc/cron.d/app-cron
+
+# Apply cron job
+RUN crontab /etc/cron.d/app-cron
+
+# Start cron in foreground
+CMD ["cron", "-f"]

@@ -26,3 +26,4 @@ dataupload/media/upload_files/
 dataupload/static/images/google_street_view/street_view.jpg
 dataupload/api/utils/local_manual_upload.py
 dataupload/static/images/google_street_view/street_view.jpg
+auth/pen

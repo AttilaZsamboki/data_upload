@@ -7,14 +7,28 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app
-    command: >
-      bash -c "apt-get update && apt-get install -y cron &&
-      python /app/manage.py crontab add &&
-      daphne -b 0.0.0.0 -p 8001 dataupload.asgi:application"
     depends_on:
       - redis
+
+  cron:
+    build: ./dataupload
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=dataupload.settings
+      - PYTHONPATH=/app
+    command: ["./docker-entrypoint.sh", "cron"]
+    volumes:
+      - ./logs:/app/logs
 
   redis:
     image: redis:7
     ports:
       - 6379:6379
+
+  cron-scripts:
+    build: 
+      context: scripts
+      dockerfile: Dockerfile.cron
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs

@@ -23,8 +23,6 @@ from .models import (
     FolOrderFee,
 )
 from .pen.szamlazz_hu import dijbekero
-from .sm.fetch_data import sm_fetch_data
-from .sm.inventory_planner import inventory_planner
 from .unas_translator import translate_unas
 from .unas_translator_correcter_ro import unas_correcter_ro
 from .unas_translator_correcter_sk import unas_correcter_sk
@@ -85,9 +83,7 @@ def upload_feed(feed: Feed, retry_if_failed=True):
         )
         return
     files_already_existing = [
-        f
-        for f in os.listdir(f"/app/files/{table}/")
-        if f"{date.today()}" in f
+        f for f in os.listdir(f"/app/files/{table}/") if f"{date.today()}" in f
     ]
     filename = f"/app/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
     try:
@@ -744,39 +740,6 @@ def delete_last_90(table):
             text(
                 f"DELETE FROM {table} WHERE \"Order_Date\" >= '{(datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d')}'"
             )
-        )
-
-
-def sm_inventory_planner():
-    sm_fetch_data()
-
-
-def sm_auto_order():
-    engine = connect_to_db()
-
-    df = pd.read_sql(
-        """
-
-                     select vendor, need_permission
-                     from sm_vendor_data 
-                     where budget <= to_order_cost 
-                        and sm_vendor_data.vendor not in (select vendor from sm_vendor_orders where order_status='DRAFT')
-
-                     """,
-        con=engine,
-    )
-
-    for i in df.iloc:
-        status = ""
-        if i.need_permission == True:
-            status = "DRAFT"
-        else:
-            status = "OPEN"
-        order = inventory_planner(i.vendor, status=status, is_new=True)
-        order_url = f"https://stock.dataupload.xyz/orders?order_id={order['id']}"
-        requests.post(
-            "https://hooks.zapier.com/hooks/catch/1129295/39rkppy/",
-            data={"vendor": i.vendor, "order_url": order_url},
         )
 
 
