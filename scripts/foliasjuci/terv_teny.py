@@ -160,7 +160,7 @@ def update_sheet_expenses(range_name, sheet_name):
     engine = get_db_connection()
     data_df = pd.read_sql(
         """select date "Dátum", 
-                  to_char(date, 'YYYY-MM') "Hónap", 
+                  to_char(teljesites_datuma, 'YYYY-MM') "Hónap", 
                   koltseg_osztaly "Költség osztály", 
                   koltsegelem "Költségelem", 
                   partner "Partner", 

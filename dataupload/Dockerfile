@@ -15,11 +15,11 @@ RUN dos2unix /app/crontab.sh
 RUN chmod +x /app/manage.py /app/docker-entrypoint.sh /app/crontab.sh
 
 # Set up crontab
-RUN echo '*/10 * * * * /app/crontab.sh upload_file >> /app/logs/cron.log 2>&1' > /etc/cron.d/app-cron
-RUN echo '0 * * * * /app/crontab.sh upload_feed_daily >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '30 * * * * /app/crontab.sh upload_feed_hourly >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '0 1 * * 5 /app/crontab.sh upload_feed_weekly >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '0 0 * * * /app/crontab.sh fol_orders_delete_last_90 >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '*/10 * * * * root /app/crontab.sh upload_file >> /app/logs/cron.log 2>&1' > /etc/cron.d/app-cron
+RUN echo '0 * * * * root /app/crontab.sh upload_feed_daily >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '30 * * * * root /app/crontab.sh upload_feed_hourly >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 1 * * 5 root /app/crontab.sh upload_feed_weekly >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * root /app/crontab.sh fol_orders_delete_last_90 >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
 
 # Give execution rights on the cron job
 RUN chmod 0644 /etc/cron.d/app-cron
