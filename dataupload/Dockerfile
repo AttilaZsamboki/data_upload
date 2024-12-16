@@ -6,6 +6,7 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/dataupload/media/upload_files
 RUN mkdir -p /app/dataupload/media/files
+RUN mkdir -p /app/files
 RUN apt-get update && apt-get install -y cron dos2unix
 
 COPY . /app/

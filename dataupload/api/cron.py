@@ -82,8 +82,10 @@ def upload_feed(feed: Feed, retry_if_failed=True):
             "upload_feed_daily",
         )
         return
+    folder_path = f"/app/files/{table}/"
+    os.makedirs(folder_path, exist_ok=True)
     files_already_existing = [
-        f for f in os.listdir(f"/app/files/{table}/") if f"{date.today()}" in f
+        f for f in os.listdir(folder_path) if f"{date.today()}" in f
     ]
     filename = f"/app/files/{table}/{date.today()}{f' ({len(files_already_existing)})' if files_already_existing else ''}.xlsx"
     try:
