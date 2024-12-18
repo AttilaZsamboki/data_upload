@@ -52,11 +52,11 @@ def handle_uploaded_file(
         "keepalives_count": 5,
     }
 
-    DB_HOST = os.environ.get("DB_HOST")
-    DB_NAME = os.environ.get("DB_NAME")
-    DB_USER = os.environ.get("DB_USER")
-    DB_PASS = os.environ.get("DB_PASS")
-    DB_PORT = os.environ.get("DB_PORT")
+    DB_NAME = "defaultdb"
+    DB_USER = "doadmin"
+    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
+    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
+    DB_PORT = "25060"
 
     engine = create_engine(
         "postgresql://"
