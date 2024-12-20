@@ -24,6 +24,7 @@ RUN echo '0 4 * * * root python /app/stock_aging.py >> /app/logs/stock_aging.log
 RUN echo '0 0 * * 0 root python /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * * root python /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * * root python /app/foliasjuci/terv_teny.py >> /app/logs/terv_teny.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * root python /app/foliasjuci/last_pieces.py >> /app/logs/last_pieces.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '* * * * * root echo "Hello" >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
 
 # Give execution rights on the cron job

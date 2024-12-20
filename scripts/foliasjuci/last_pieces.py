@@ -71,7 +71,7 @@ where concat("Alternativ_Kategoria_1", "Alternativ_Kategoria_2", "Alternativ_Kat
 
     for sku in df["cikkszam"]:
         init_product = unas_client.get_product(sku, "full")
-        product = Product(sku=sku, categories=init_product.categories)
+        product = Product(sku=sku, categories=init_product.categories, action="modify")
         product.action = "modify"
         product.minimum_qty = 1
         product.maximum_qty = None
