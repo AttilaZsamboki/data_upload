@@ -41,7 +41,7 @@ import traceback
 @api_view(["GET"])
 def DownloadFile(request):
     if request.method == "GET":
-        path_to_file = "/home/atti/googleds/files/" + request.GET.get("path")
+        path_to_file = "/app/files/" + request.GET.get("path")
         if os.path.exists(path_to_file):
             data = open(path_to_file, "rb")
             response = HttpResponse(File(data).read())
