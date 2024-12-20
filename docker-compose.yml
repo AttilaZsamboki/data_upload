@@ -4,6 +4,8 @@ services:
     ports:
       - 8001:8001
     env_file: .env
+    volumes:
+      - ./files:/app/files
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app
@@ -32,3 +34,4 @@ services:
     env_file: .env
     volumes:
       - ./logs:/app/logs
+      - ./files:/app/files
