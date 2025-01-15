@@ -20,12 +20,11 @@ RUN find /app -type f -name "*.py" -exec dos2unix {} \;
 RUN find /app -type f -name "*.py" -exec chmod +x {} \;
 
 # Set up crontab
-RUN echo '0 4 * * * python /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
-RUN echo '0 0 * * 0 python /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '0 0 * * * python /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '0 0 * * * python /app/foliasjuci/terv_teny.py >> /app/logs/terv_teny.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '0 0 * * * python /app/foliasjuci/last_pieces.py >> /app/logs/last_pieces.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '* * * * * echo "Hello" >> /app/logs/cron.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 4 * * * /usr/local/bin/python /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
+RUN echo '0 0 * * 0 /usr/local/bin/python /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * /usr/local/bin/python /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * /usr/local/bin/python /app/foliasjuci/terv_teny.py >> /app/logs/terv_teny.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * /usr/local/bin/python /app/foliasjuci/last_pieces.py >> /app/logs/last_pieces.log 2>&1' >> /etc/cron.d/app-cron
 
 # Give execution rights on the cron job
 RUN chmod 0644 /etc/cron.d/app-cron
