@@ -15,12 +15,6 @@ RUN dos2unix /app/docker-entrypoint.sh
 RUN dos2unix /app/crontab.sh
 RUN chmod +x /app/manage.py /app/docker-entrypoint.sh /app/crontab.sh
 
-RUN printenv > /app/env.sh
-
-# Ensure cron uses bash and sources env variables
-RUN echo "SHELL=/bin/bash" > /etc/cron.d/app-cron
-RUN echo "BASH_ENV=/app/env.sh" >> /etc/cron.d/app-cron
-
 # Set up crontab
 RUN echo '*/10 * * * * /app/crontab.sh upload_file' >> /etc/cron.d/app-cron
 RUN echo '*/5 * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
