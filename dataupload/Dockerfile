@@ -2,18 +2,6 @@ FROM python:3.11.4
 
 WORKDIR /app
 
-ARG DB_HOST
-ARG DB_NAME
-ARG DB_PASS
-ARG DB_PORT
-ARG DB_USER
-
-ENV DB_HOST=${DB_HOST}
-ENV DB_NAME=${DB_NAME}
-ENV DB_PASS=${DB_PASS}
-ENV DB_PORT=${DB_PORT}
-ENV DB_USER=${DB_USER}
-
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/dataupload/media/upload_files
