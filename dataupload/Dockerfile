@@ -27,6 +27,8 @@ RUN dos2unix /app/docker-entrypoint.sh
 RUN dos2unix /app/crontab.sh
 RUN chmod +x /app/manage.py /app/docker-entrypoint.sh /app/crontab.sh
 
+RUN printenv > /app/env.sh
+
 RUN echo "SHELL=/bin/bash" > /etc/cron.d/app-cron
 RUN echo "BASH_ENV=/app/env.sh" >> /etc/cron.d/app-cron
 
