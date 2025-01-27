@@ -136,7 +136,7 @@ def upload_feed(feed: Feed, retry_if_failed=True):
             f"Hibás fájl tartalom. Tábla {uploadmodel.table}\n URL {url}",
             "ERROR",
             "upload_feed_daily",
-            e,
+            str(e),
         )
         return "ERROR"
     except Exception as error:
@@ -144,8 +144,6 @@ def upload_feed(feed: Feed, retry_if_failed=True):
         uploadmodel.status = "error"
         uploadmodel.status_description = "Hiba történt a fájl feltöltése közben."
         uploadmodel.save()
-        if retry_if_failed:
-            schedule_feed_retries(table, retry_number, frequency, file)
         log(
             f"Hiba történt a fájl feltöltése közben. \n Tábla {table} \n URL {url} \n User {user_id} \n Error {error}",
             "ERROR",
