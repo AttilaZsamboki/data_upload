@@ -2,6 +2,12 @@ FROM python:3.11.4
 
 WORKDIR /app
 
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_PASS
+ARG DB_PORT
+ARG DB_USER
+
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 RUN mkdir -p /app/dataupload/media/upload_files
