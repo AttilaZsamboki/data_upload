@@ -17,11 +17,11 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app
-      - 'DB_HOST=${DB_HOST}'
-      - 'DB_NAME=${DB_NAME}'
-      - 'DB_PASS=${DB_PASS}'
-      - 'DB_PORT=${DB_PORT}'
-      - 'DB_USER=${DB_USER}'
+      - DB_HOST=${DB_HOST}
+      - DB_NAME=${DB_NAME}
+      - DB_PASS=${DB_PASS}
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
     command: ["./docker-entrypoint.sh", "cron"]
     volumes:
       - ./logs:/app/logs
