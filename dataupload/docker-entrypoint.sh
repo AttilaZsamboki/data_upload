@@ -5,6 +5,7 @@
 if [ "$1" = cron ]; then
     # Create log file if it doesn't exist
     touch /app/logs/cron.log
+    source /app/envs.log
     
     # Start cron in foreground mode
     cron -f

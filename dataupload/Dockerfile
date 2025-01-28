@@ -34,7 +34,7 @@ RUN printenv > /app/envs.log
 
 # Set up crontab
 RUN echo '*/10 * * * * /app/crontab.sh upload_file' >> /etc/cron.d/app-cron
-RUN echo '*/5 * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
+RUN echo '0 * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
 RUN echo '30 * * * * /app/crontab.sh upload_feed_hourly' >> /etc/cron.d/app-cron
 RUN echo '0 1 * * 5 /app/crontab.sh upload_feed_weekly' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * * /app/crontab.sh fol_orders_delete_last_90' >> /etc/cron.d/app-cron
