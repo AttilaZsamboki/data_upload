@@ -32,13 +32,6 @@ ENV DB_USER=$DB_USER
 # Log environment variables (optional, for debugging)
 RUN printenv > /app/envs.log
 
-RUN echo "DB_HOST=$DB_HOST" > /etc/cron.d/app-cron
-RUN echo "DB_NAME=$DB_NAME" >> /etc/cron.d/app-cron
-RUN echo "DB_PASS=$DB_PASS" >> /etc/cron.d/app-cron
-RUN echo "DB_PORT=$DB_PORT" >> /etc/cron.d/app-cron
-RUN echo "DB_USER=$DB_USER" >> /etc/cron.d/app-cron
-RUN echo " " >> /etc/cron.d/app-cron
-
 # Set up crontab
 RUN echo '*/10 * * * * /app/crontab.sh upload_file' >> /etc/cron.d/app-cron
 RUN echo '*/5 * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
@@ -53,5 +46,5 @@ RUN chmod 0644 /etc/cron.d/app-cron
 RUN crontab /etc/cron.d/app-cron
 
 EXPOSE 8001
-ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "dataupload.asgi:application"]
+ENTRYPOINT ['./docker-entrypoint.sh']
+CMD ['daphne', '-b', '0.0.0.0', '-p', '8001', 'dataupload.asgi:application']

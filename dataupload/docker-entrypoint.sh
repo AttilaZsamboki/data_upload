@@ -1,8 +1,6 @@
 #!/bin/sh
 # docker-entrypoint.sh
 
-echo "Arguments passed to the container: $@" >> /app/container_args.log
-
 # If this is going to be a cron container, start cron in foreground
 if [ "$1" = cron ]; then
     # Create log file if it doesn't exist
