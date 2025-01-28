@@ -130,8 +130,6 @@ def upload_feed(feed: Feed, retry_if_failed=True):
         uploadmodel.status = "error"
         uploadmodel.status_description = "Hibás fájl tartalom"
         uploadmodel.save()
-        if retry_if_failed:
-            schedule_feed_retries(table, retry_number, frequency, file)
         log(
             f"Hibás fájl tartalom. Tábla {uploadmodel.table}\n URL {url}",
             "ERROR",
