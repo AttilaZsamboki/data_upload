@@ -67,7 +67,6 @@ WHERE age < 90;""",
             )
             connection.commit()
         successful.append(i["sku"])
-        break
     with engine.connect() as connection:
         connection.execute(
             text(
@@ -80,7 +79,7 @@ WHERE age < 90;""",
 
 
 def set_outlet():
-    df = pd.read_sql(con=engine, sql="select * from fol_outlet;")
+    df = pd.read_sql(con=engine, sql="select * from fol_outlet where start_date is null;")
     successful = []
     for i in df.iloc:
         product_category = unas_client.get_product(i["sku"], "full").categories
