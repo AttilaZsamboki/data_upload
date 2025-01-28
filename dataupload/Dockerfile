@@ -46,5 +46,5 @@ RUN chmod 0644 /etc/cron.d/app-cron
 RUN crontab /etc/cron.d/app-cron
 
 EXPOSE 8001
-ENTRYPOINT ['./docker-entrypoint.sh']
-CMD ['daphne', '-b', '0.0.0.0', '-p', '8001', 'dataupload.asgi:application']
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8001", "dataupload.asgi:application"]
