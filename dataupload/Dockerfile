@@ -21,6 +21,7 @@ ENV DB_PASS=AVNS_FovmirLSFDui0KIAOnu
 ENV DB_PORT=25060 
 ENV DB_USER=doadmin
 
+RUN mkdir -p /app/logs
 RUN echo printenv > /app/logs/envs.log
 
 # Set up crontab
