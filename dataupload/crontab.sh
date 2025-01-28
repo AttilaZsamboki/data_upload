@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /app/envs.log
+
 # Set environment variables
 export DJANGO_SETTINGS_MODULE=dataupload.settings
 export PYTHONPATH=/app
