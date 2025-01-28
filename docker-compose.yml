@@ -13,7 +13,14 @@ services:
       - redis
 
   cron:
-    build: ./dataupload
+    build: 
+      context: ./dataupload
+      args:
+        - DB_HOST
+        - DB_NAME
+        - DB_PASS
+        - DB_PORT
+        - DB_USER
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app

@@ -15,16 +15,25 @@ RUN dos2unix /app/docker-entrypoint.sh
 RUN dos2unix /app/crontab.sh
 RUN chmod +x /app/manage.py /app/docker-entrypoint.sh /app/crontab.sh
 
-ENV DB_HOST=defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com 
-ENV DB_NAME=defaultdb 
-ENV DB_PASS=AVNS_FovmirLSFDui0KIAOnu 
-ENV DB_PORT=25060 
-ENV DB_USER=doadmin
+# Add ARG directives for each build-time variable
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_PASS
+ARG DB_PORT
+ARG DB_USER
 
+# Map ARGs to ENV variables
+ENV DB_HOST=$DB_HOST
+ENV DB_NAME=$DB_NAME
+ENV DB_PASS=$DB_PASS
+ENV DB_PORT=$DB_PORT
+ENV DB_USER=$DB_USER
+
+# Log environment variables (optional, for debugging)
 RUN printenv > /app/envs.log
 
 # Set up crontab
-RUN echo '*/10 * * * * /app/crontab.sh upload_file' > /etc/cron.d/app-cron
+RUN echo '*/10 * * * * /app/crontab.sh upload_file' >> /etc/cron.d/app-cron
 RUN echo '0 * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
 RUN echo '30 * * * * /app/crontab.sh upload_feed_hourly' >> /etc/cron.d/app-cron
 RUN echo '0 1 * * 5 /app/crontab.sh upload_feed_weekly' >> /etc/cron.d/app-cron
