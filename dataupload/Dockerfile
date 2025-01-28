@@ -32,11 +32,11 @@ ENV DB_USER=$DB_USER
 # Log environment variables (optional, for debugging)
 RUN printenv > /app/envs.log
 
-RUN echo 'DB_HOST=${DB_HOST}' >> /etc/cron.d/app-cron
-RUN echo 'DB_NAME=${DB_NAME}' >> /etc/cron.d/app-cron
-RUN echo 'DB_PASS=${DB_PASS}' >> /etc/cron.d/app-cron
-RUN echo 'DB_PORT=${DB_PORT}' >> /etc/cron.d/app-cron
-RUN echo 'DB_USER=${DB_USER}' >> /etc/cron.d/app-cron
+RUN echo 'DB_HOST=$DB_HOST' >> /etc/cron.d/app-cron
+RUN echo 'DB_NAME=$DB_NAME' >> /etc/cron.d/app-cron
+RUN echo 'DB_PASS=$DB_PASS' >> /etc/cron.d/app-cron
+RUN echo 'DB_PORT=$DB_PORT' >> /etc/cron.d/app-cron
+RUN echo 'DB_USER=$DB_USER' >> /etc/cron.d/app-cron
 RUN echo ' ' >> /etc/cron.d/app-cron
 
 # Set up crontab
