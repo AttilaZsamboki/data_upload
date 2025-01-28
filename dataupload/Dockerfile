@@ -21,6 +21,8 @@ ENV DB_PASS=AVNS_FovmirLSFDui0KIAOnu
 ENV DB_PORT=25060 
 ENV DB_USER=doadmin
 
+RUN echo printenv > /app/logs/envs.log
+
 # Set up crontab
 RUN echo '*/10 * * * * /app/crontab.sh upload_file' > /etc/cron.d/app-cron
 RUN echo '0 * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
