@@ -14,6 +14,9 @@ run_django_command() {
     source /app/envs.log
     /usr/local/bin/python << EOF
 import django
+import dotenv
+dotenv.load_dotenv()
+
 django.setup()
 from api.cron import $1
 $1()
