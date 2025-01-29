@@ -29,9 +29,6 @@ ENV DB_PASS=$DB_PASS
 ENV DB_PORT=$DB_PORT
 ENV DB_USER=$DB_USER
 
-# Log environment variables (optional, for debugging)
-RUN printenv > /app/envs.log
-
 # Set up crontab
 RUN echo '*/10 * * * * /app/crontab.sh upload_file' >> /etc/cron.d/app-cron
 RUN echo '* * * * * /app/crontab.sh upload_feed_daily' >> /etc/cron.d/app-cron
