@@ -6,12 +6,14 @@ export DJANGO_SETTINGS_MODULE=dataupload.settings
 export PYTHONPATH=/app
 export PATH=/usr/local/bin:$PATH
 
+source /app/envs.log
+printenv > /app/envs.log
+
 # Change to app directory
 cd /app
 
 # Function to run Django command
 run_django_command() {
-    source /app/envs.log
     /usr/local/bin/python << EOF
 import django
 import dotenv
