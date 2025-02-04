@@ -22,4 +22,4 @@ if [ -z "$1" ]; then
 fi
 
 # Execute the specified function
-"$1"
+python3 "$1"
