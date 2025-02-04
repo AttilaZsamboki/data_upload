@@ -37,6 +37,8 @@ services:
     build: 
       context: scripts
       dockerfile: Dockerfile.cron
+      args:
+        - GOOGLE_CREDENTIALS
     env_file: .env
     volumes:
       - ./logs:/app/logs
