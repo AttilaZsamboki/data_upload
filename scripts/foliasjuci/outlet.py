@@ -80,12 +80,13 @@ FROM fol_outlet_products op
 def set_outlet():
     df = pd.read_sql(con=engine, sql="""
 select * from fol_outlet 
-left join (select sku, max(timestamp) as timestamp from fol_outlet_log where action = 'REMOVE' group by 1) as fol on fol.sku = fol_outlet.sku
+left join (select sku as sku_2, max(timestamp) as timestamp from fol_outlet_log where action = 'REMOVE' group by 1) as fol on fol.sku_2 = fol_outlet.sku
 where start_date is null
-		and fol.timestamp < current_date - '30 days'::interval
+	and (fol.timestamp < current_date - '31 days'::interval or fol.timestamp is null)
 order by random()
 limit 20;
 """)
+    print(df)
     successful = []
     for i in df.iloc:
         product = unas_client.get_product(i["sku"], "full")
