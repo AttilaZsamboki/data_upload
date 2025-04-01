@@ -27,11 +27,9 @@ unas_client = UnasAPIBase("cfcdf8a7109a30971415ff7f026becdc50dbebbd")
 def reset_outlet():
     df = pd.read_sql(
         con=engine,
-        sql="""SELECT op.sku, srl.on_stock
+        sql="""SELECT distinct op.sku, srl.on_stock
 FROM fol_outlet_products op
-         LEFT JOIN (SELECT sku, max(age) age from fol_stock_aging group by 1) sa ON sa.sku = op.sku
-         LEFT JOIN fol_stock_report_last srl on srl.sku = op.sku
-WHERE age < 90;""",
+         LEFT JOIN fol_stock_report_last srl on srl.sku = op.sku""",
     )
     successful = []
     for i in df.iloc:
@@ -57,6 +55,7 @@ WHERE age < 90;""",
             ),
             categories=[i for i in init_product.categories if i.id != 392880]
             + [Product.Category("alt", "", "")],
+            statuses=[Product.Status(type="plus", value="0", id="1", name="OUTLET"), Product.Status(type="base", value="1")]
         )
         unas_client.set_product(product)
         with engine.connect() as connection:
@@ -79,10 +78,18 @@ WHERE age < 90;""",
 
 
 def set_outlet():
-    df = pd.read_sql(con=engine, sql="select * from fol_outlet where start_date is null;")
+    df = pd.read_sql(con=engine, sql="""
+select * from fol_outlet 
+left join (select sku, max(timestamp) as timestamp from fol_outlet_log where action = 'REMOVE' group by 1) as fol on fol.sku = fol_outlet.sku
+where start_date is null
+		and fol.timestamp < current_date - '30 days'::interval
+order by random()
+limit 20;
+""")
     successful = []
     for i in df.iloc:
-        product_category = unas_client.get_product(i["sku"], "full").categories
+        product = unas_client.get_product(i["sku"], "full")
+        product_category = product.categories
         unas_client.set_product(
             Product(
                 sku=i["sku"],
@@ -102,6 +109,7 @@ def set_outlet():
                     *product_category,
                 ],
                 action="modify",
+                statuses=[Product.Status(type="plus", id="1", value="1", name="OUTLET"), Product.Status(type="base", value="1")],
                 prices=Product.Prices(
                     appearance=None,
                     vat=None,
@@ -140,9 +148,8 @@ def set_outlet():
 
 
 def main():
-    set_outlet()
     reset_outlet()
-
+    set_outlet()
 
 if __name__ == "__main__":
     main()

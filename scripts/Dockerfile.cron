@@ -22,9 +22,20 @@ RUN chmod +x /app/crontab.sh
 RUN find /app -type f -name "*.py" -exec dos2unix {} \;
 RUN find /app -type f -name "*.py" -exec chmod +x {} \;
   
+# Add ARG directives for each build-time variable
 ARG GOOGLE_CREDENTIALS
+ARG DB_HOST
+ARG DB_NAME
+ARG DB_PASS
+ARG DB_PORT
+ARG DB_USER
 
 # Map ARGs to ENV variables
+ENV DB_HOST=$DB_HOST
+ENV DB_NAME=$DB_NAME
+ENV DB_PASS=$DB_PASS
+ENV DB_PORT=$DB_PORT
+ENV DB_USER=$DB_USER
 ENV GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
 
 RUN printenv > '/app/envs.env'
@@ -33,7 +44,7 @@ RUN printenv > '/app/envs.env'
 RUN echo '0 4 * * * /app/crontab.sh /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
 RUN echo '0 0 * * 0 /app/crontab.sh /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * * /app/crontab.sh /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
-RUN echo '* * * * * /app/crontab.sh /app/foliasjuci/terv_teny.py 2>&1 | while read -r line; do echo "$(date "+%Y-%m-%d %H:%M:%S") $line"; done >> /app/logs/terv_teny.log' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * /app/crontab.sh /app/foliasjuci/terv_teny.py 2>&1 | while read -r line; do echo "$(date "+%Y-%m-%d %H:%M:%S") $line"; done >> /app/logs/terv_teny.log' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * * /app/crontab.sh /app/foliasjuci/last_pieces.py >> /app/logs/last_pieces.log 2>&1' >> /etc/cron.d/app-cron
 
 # Give execution rights on the cron job
