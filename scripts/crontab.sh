@@ -11,6 +11,11 @@ cd /app
 source envs.env
 
 export GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
+export DB_HOST=$DB_HOST
+export DB_NAME=$DB_NAME
+export DB_PASS=$DB_PASS
+export DB_PORT=$DB_PORT
+export DB_USER=$DB_USER
 
 printenv > /app/envs.log
 

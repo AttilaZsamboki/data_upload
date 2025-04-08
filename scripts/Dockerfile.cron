@@ -41,7 +41,7 @@ ENV GOOGLE_CREDENTIALS=$GOOGLE_CREDENTIALS
 RUN printenv > '/app/envs.env'
 
 # Set up crontab
-RUN echo '0 4 * * * /app/crontab.sh /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
+RUN echo '*/5 * * * * /app/crontab.sh /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
 RUN echo '0 0 * * 0 /app/crontab.sh /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * THU /app/crontab.sh /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * MON /app/crontab.sh /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
