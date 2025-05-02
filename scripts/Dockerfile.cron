@@ -42,10 +42,10 @@ RUN printenv > '/app/envs.env'
 
 # Set up crontab
 RUN echo '0 0 * * * /app/crontab.sh /app/stock_aging.py >> /app/logs/stock_aging.log 2>&1' > /etc/cron.d/app-cron
-RUN echo '0 0 * * * /app/crontab.sh /app/inventory_history.py >> /app/logs/inventory_history.log 2>&1' > /etc/cron.d/app-cron
 RUN echo '0 0 * * 0 /app/crontab.sh /app/forgási_sebesség.py >> /app/logs/forgasi_sebesseg.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * THU /app/crontab.sh /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * MON /app/crontab.sh /app/foliasjuci/outlet.py >> /app/logs/outlet.log 2>&1' >> /etc/cron.d/app-cron
+RUN echo '0 0 * * * /app/crontab.sh /app/foliasjuci/inventory_history.py >> /app/logs/inventory_history.log 2>&1' > /etc/cron.d/app-cron
 RUN echo '0 0 * * * /app/crontab.sh /app/foliasjuci/terv_teny.py 2>&1 | while read -r line; do echo "$(date "+%Y-%m-%d %H:%M:%S") $line"; done >> /app/logs/terv_teny.log' >> /etc/cron.d/app-cron
 RUN echo '0 0 * * * /app/crontab.sh /app/foliasjuci/last_pieces.py >> /app/logs/last_pieces.log 2>&1' >> /etc/cron.d/app-cron
 
