@@ -152,7 +152,7 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [{
-                "address": "195.201.130.156:6379",
+                "address": "redis://195.201.130.156:6379",
                 "password": os.environ.get("REDIS_PASSWORD"),
             }],
         },
