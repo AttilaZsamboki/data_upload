@@ -149,7 +149,7 @@ def handle_uploaded_file(
             df.to_sql(table, engine, index=False)
             cur.execute(f"TRUNCATE {table}")
             conn.commit()
-            os.remove("/app/dataupload/media/" + str(file))
+            os.remove("/app/media/" + str(file))
             upload_log = DatauploadUploadmodel.objects.get(
                 table=table, file=file, user_id=user_id
             )
@@ -326,7 +326,7 @@ def handle_uploaded_file(
     )
     upload_model.status_description = "Sikeres feltöltés!"
     upload_model.status = "success"
-    file_dir = f"/app/dataupload/media/files/{table}/"
+    file_dir = f"/app/media/files/{table}/"
     if not os.path.isdir(file_dir):
         os.mkdir(file_dir)
     if not is_email and not is_feed:
@@ -334,7 +334,7 @@ def handle_uploaded_file(
             f for f in os.listdir(file_dir) if f"{date.today()}" in f
         ]
         upload_model.file = f"{file_dir}{str(filename).split('/')[-1]}{f' ({len(files_already_existing)-1})' if files_already_existing else ''}{extension_format}"
-        source_path = "/app/dataupload/media/" + str(file)
+        source_path = "/app/media/" + str(file)
         destination_path = str(upload_model.file)
 
         # Check if the source file exists

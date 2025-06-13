@@ -225,7 +225,7 @@ class UploadDeleteConsumer(AsyncWebsocketConsumer):
         self.upload_group_name = "upload_%s" % self.upload_id
         await self.delete_upload()
         if self.upload.status != "success":
-            os.remove(f"/app/dataupload/media/{self.upload.file}")
+            os.remove(f"/app/media/{self.upload.file}")
         else:
             os.remove(str(self.upload.file))
 
