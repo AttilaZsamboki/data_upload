@@ -6,6 +6,7 @@ services:
     env_file: .env
     volumes:
       - ./files:/app/files
+        static-content:/app/media
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app
@@ -27,6 +28,8 @@ services:
     command: ["./docker-entrypoint.sh", "cron"]
     volumes:
       - ./logs:/app/logs
+      - static-content:/app/dataupload/media
+  
 
   redis:
       image: redis:7-alpine
@@ -49,3 +52,6 @@ services:
     volumes:
       - ./logs:/app/logs
       - ./files:/app/files
+
+  volumes:
+    static-content:
