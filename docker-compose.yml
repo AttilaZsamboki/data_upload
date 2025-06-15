@@ -6,7 +6,7 @@ services:
     env_file: .env
     volumes:
       - ./files:/app/files
-        static-content:/app/media
+      - static-content:/app/media
     environment:
       - DJANGO_SETTINGS_MODULE=dataupload.settings
       - PYTHONPATH=/app
