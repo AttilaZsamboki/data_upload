@@ -53,5 +53,5 @@ services:
       - ./logs:/app/logs
       - ./files:/app/files
 
-  volumes:
-    static-content:
+volumes:
+  static-content:
