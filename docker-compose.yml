@@ -28,7 +28,7 @@ services:
     command: ["./docker-entrypoint.sh", "cron"]
     volumes:
       - ./logs:/app/logs
-      - static-content:/app/dataupload/media
+      - static-content:/app/media
   
 
   redis:
