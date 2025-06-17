@@ -1,6 +1,13 @@
 services:
   dataupload:
-    build: ./dataupload
+    build:
+      context: ./dataupload
+      args: 
+        - DB_HOST
+        - DB_NAME
+        - DB_PASS
+        - DB_PORT
+        - DB_USER
     ports:
       - 8001:8001
     env_file: .env
