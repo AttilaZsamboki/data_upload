@@ -134,10 +134,10 @@ def UploadTimer(request):
 
 def ColumnNames(request):
     conn = psycopg2.connect(
-        dbname="defaultdb",
-        user="doadmin",
-        password="AVNS_FovmirLSFDui0KIAOnu",
-        host="defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com",
+        dbname="postgres",
+        user="postgres",
+        password="9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx",
+        host="195.201.130.156",
         port=25060,
     )
     if request.method == "GET":
@@ -153,11 +153,12 @@ def ColumnNames(request):
 
 
 def TableNames(request):
+
     conn = psycopg2.connect(
-        dbname="defaultdb",
-        user="doadmin",
-        password="AVNS_FovmirLSFDui0KIAOnu",
-        host="defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com",
+        dbname="postgres",
+        user="postgres",
+        password="9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx",
+        host="195.201.130.156",
         port=25060,
     )
     if request.method == "GET":

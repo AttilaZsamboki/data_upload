@@ -52,10 +52,10 @@ def handle_uploaded_file(
         "keepalives_count": 5,
     }
 
-    DB_NAME = "defaultdb"
-    DB_USER = "doadmin"
-    DB_PASS = "AVNS_FovmirLSFDui0KIAOnu"
-    DB_HOST = "defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com"
+    DB_HOST = "195.201.130.156"
+    DB_NAME = "posgres"
+    DB_USER = "postgres"
+    DB_PASS = "9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx"
     DB_PORT = "25060"
 
     engine = create_engine(
@@ -326,7 +326,7 @@ def handle_uploaded_file(
     )
     upload_model.status_description = "Sikeres feltöltés!"
     upload_model.status = "success"
-    file_dir = f"/app/dataupload/media/files/{table}/"
+    file_dir = f"/app/media/files/{table}/"
     if not os.path.isdir(file_dir):
         os.mkdir(file_dir)
     if not is_email and not is_feed:

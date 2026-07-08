@@ -7,11 +7,11 @@ import json
 DB_HOST = 'defaultdb.c0rzdkeutp8f.eu-central-1.rds.amazonaws.com'
 DB_NAME = 'defaultdb'
 DB_USER = 'doadmin'
-DB_PASS = 'AVNS_FovmirLSFDui0KIAOnu'
 DB_PORT = '25060'
 
-engine = create_engine('postgresql://'+DB_USER+':' +
-                       DB_PASS + '@'+DB_HOST+':'+DB_PORT+'/'+DB_NAME)
+engine = create_engine(
+'postgres://postgres:9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx@195.201.130.156:25060/postgres'
+)
 
 df = pd.read_sql("""select "Billing_Email" as email,
        "Webshop_Id"    as externalid,
