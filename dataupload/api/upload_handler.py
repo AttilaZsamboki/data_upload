@@ -69,7 +69,7 @@ def handle_uploaded_file(
         + DB_PORT
         + "/"
         + DB_NAME
-        + "?sslmode=require"
+        + "?sslmode=disable"
     )
 
     conn = psycopg2.connect(

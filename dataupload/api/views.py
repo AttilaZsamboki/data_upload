@@ -139,6 +139,7 @@ def ColumnNames(request):
         password="9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx",
         host="195.201.130.156",
         port=25060,
+        sslmode="disable"
     )
     if request.method == "GET":
         cur = conn.cursor()
@@ -160,6 +161,7 @@ def TableNames(request):
         password="9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx",
         host="195.201.130.156",
         port=25060,
+        sslmode="disable"
     )
     if request.method == "GET":
         cur = conn.cursor()
