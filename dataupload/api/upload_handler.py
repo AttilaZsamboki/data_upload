@@ -53,7 +53,7 @@ def handle_uploaded_file(
     }
 
     DB_HOST = "195.201.130.156"
-    DB_NAME = "posgres"
+    DB_NAME = "postgres"
     DB_USER = "postgres"
     DB_PASS = "9Hq4orC8ehuznXvryOz3HxvVYzzAo96OzSTEx1IPwH5vIlVqbEXgw1XmHf26JXfx"
     DB_PORT = "25060"
